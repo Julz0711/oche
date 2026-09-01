@@ -2,8 +2,12 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Discord from "next-auth/providers/discord";
 import Email from "next-auth/providers/email";
+import { MongoDBAdapter } from "@auth/mongodb-adapter";
+import clientPromise from "./mongodb-client";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  adapter: MongoDBAdapter(clientPromise),
+  session: { strategy: "jwt" },
   providers: [
     Google({
       clientId: process.env.GOOGLE_ID,

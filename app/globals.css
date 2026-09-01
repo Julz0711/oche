@@ -1,26 +1,40 @@
 @import "tailwindcss";
 
+/**
+ * Design Token CSS Variables
+ * Maps to lib/theme.ts for consistency
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Color Tokens */
+  --oche: #141A18;
+  --slate: #1E2724;
+  --chalk: #F2F4F3;
+  --sisal: #E4D8BC;
+  --wire: #C0A15C;
+  --treble: #C8102E;
+  --double: #1B7F5A;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/**
+ * Base Styles
+ */
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--oche);
+  color: var(--chalk);
+  font-family: var(--font-sans, "Inter Tight", system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/**
+ * Tabular Numbers Class
+ * For live score displays that need fixed-width digits
+ */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }

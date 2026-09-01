@@ -22,11 +22,30 @@ const matchInfo = (state: X01State, settings: X01Settings): { label: string; val
 const visitHistory = (
   state: X01State,
   playerId: PlayerId
-): { throws: Throw[]; scoreAfter: number; busted: boolean }[] =>
-  state.visitHistory
-    .filter((entry) => entry.playerId === playerId && entry.legNumberBefore === state.currentLegNumber)
+): { throws: Throw[]; scoreAfter: number; busted: boolean }[] => {
+  // Entries from the leg currently in progress.
+  const currentLegEntries = state.visitHistory.filter(
+    (entry) => entry.playerId === playerId && entry.legNumberBefore === state.currentLegNumber
+  );
+
+  // The checkout that just ended the PREVIOUS leg is never itself "in" the current leg
+  // (its own legNumberBefore is the old leg number, and currentLegNumber has already
+  // advanced by the time any code observes this state) — without this, the winning
+  // dart would never appear in any panel, ever. Carry it forward into the new leg's
+  // view so it's visible at least once.
+  const previousLegCheckout = state.visitHistory.find(
+    (entry) =>
+      entry.playerId === playerId && entry.wasCheckout && entry.legNumberBefore === state.currentLegNumber - 1
+  );
+
+  // previousLegCheckout is chronologically older than every entry in currentLegEntries,
+  // so it goes first here — after the .reverse() below, it correctly ends up last (oldest).
+  const entries = previousLegCheckout ? [previousLegCheckout, ...currentLegEntries] : currentLegEntries;
+
+  return entries
     .map((entry) => ({ throws: entry.throws, scoreAfter: entry.scoreAfter, busted: entry.busted }))
     .reverse();
+};
 
 const X01Module: GameModule<X01State, X01Settings> = {
   id: 'x01',

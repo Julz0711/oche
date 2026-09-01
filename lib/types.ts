@@ -162,6 +162,16 @@ export interface GameModule<TState = any, TSettings = any> {
    */
   visitProgress: (state: TState) => { darts: number; max: number };
   /**
+   * Small info entries to display about overall match progress (e.g. current leg number).
+   * Generic across games — X01 reports leg progress; a future game might report something else.
+   */
+  matchInfo: (state: TState, settings: TSettings) => { label: string; value: string }[];
+  /**
+   * A player's completed visits within the current "round" of play (for X01, the current leg),
+   * newest first. Used to render a per-player recent-activity panel.
+   */
+  visitHistory: (state: TState, playerId: PlayerId) => { throws: Throw[]; scoreAfter: number; busted: boolean }[];
+  /**
    * React component to render one player's scoreboard slot
    */
   ScoreboardSlot: React.FC<{ state: TState; playerId: PlayerId }>;

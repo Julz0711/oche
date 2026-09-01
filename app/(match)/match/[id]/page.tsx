@@ -20,21 +20,26 @@ export default function MatchPage({ params }: MatchPageProps) {
 
   useEffect(() => {
     const init = async () => {
-      const res = await fetch(`/api/matches/${id}`);
-      if (!res.ok) {
-        setError('Match not found');
-        setLoading(false);
-        return;
-      }
-      const { gameId } = await res.json();
+      try {
+        const res = await fetch(`/api/matches/${id}`);
+        if (!res.ok) {
+          setError('Match not found');
+          setLoading(false);
+          return;
+        }
+        const { gameId } = await res.json();
 
-      const module = await getGameModule(gameId as GameId);
-      const initialState = module.init(
-        [createPlayerId('player1'), createPlayerId('player2')],
-        module.defaultSettings
-      );
-      useMatchStore.getState().setMatch(id, module, initialState, module.defaultSettings);
-      setLoading(false);
+        const module = await getGameModule(gameId as GameId);
+        const initialState = module.init(
+          [createPlayerId('player1'), createPlayerId('player2')],
+          module.defaultSettings
+        );
+        useMatchStore.getState().setMatch(id, module, initialState, module.defaultSettings);
+        setLoading(false);
+      } catch {
+        setError('Unable to load this match');
+        setLoading(false);
+      }
     };
     init();
   }, [id]);

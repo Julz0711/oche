@@ -45,10 +45,11 @@ export default function SignInPage() {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 rounded border-2 bg-black/20 text-white placeholder-gray-400 focus:outline-none focus:border-current"
+              className="w-full px-4 py-2 rounded border-2 focus:outline-none focus:border-current"
               style={{
                 borderColor: tokens.wire,
                 color: tokens.chalk,
+                backgroundColor: `${tokens.slate}dd`,
               }}
             />
             <button
@@ -75,7 +76,11 @@ export default function SignInPage() {
           <button
             onClick={() => handleSignIn("google")}
             disabled={isLoading}
-            className="w-full px-4 py-2 rounded font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 bg-white text-black"
+            className="w-full px-4 py-2 rounded font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{
+              backgroundColor: tokens.chalk,
+              color: tokens.slate,
+            }}
           >
             {isLoading ? "Loading..." : "Sign in with Google"}
           </button>
@@ -84,7 +89,11 @@ export default function SignInPage() {
           <button
             onClick={() => handleSignIn("discord")}
             disabled={isLoading}
-            className="w-full px-4 py-2 rounded font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 bg-indigo-600 text-white"
+            className="w-full px-4 py-2 rounded font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{
+              backgroundColor: tokens.treble,
+              color: tokens.chalk,
+            }}
           >
             {isLoading ? "Loading..." : "Sign in with Discord"}
           </button>

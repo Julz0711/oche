@@ -1,5 +1,6 @@
 // lib/games/x01/engine.test.ts
 import { describe, it, expect } from 'vitest';
+import type { Throw } from '@/lib/types';
 import { init, applyThrow, undo, isComplete, winner } from './engine';
 import { createPlayerId } from '@/lib/types';
 import { X01DefaultSettings } from './schema';
@@ -117,6 +118,7 @@ describe('X01 Engine', () => {
       expect(state.playerScores[player1]).toBe(501); // new leg started, scores reset
       expect(state.legsWon[player1]).toBe(1);
       expect(state.currentLegNumber).toBe(2);
+      expect(state.currentPlayerIndex).toBe(1);
     });
 
     it('recognizes a checkout on the first dart of a visit (leg ends mid-visit, remaining darts not thrown)', () => {
@@ -129,6 +131,7 @@ describe('X01 Engine', () => {
 
       expect(after.legsWon[player1]).toBe(1);
       expect(after.currentVisit).toHaveLength(0); // remaining darts never thrown
+      expect(after.currentPlayerIndex).toBe(1);
     });
 
     it('allows straight checkout (any dart to 0)', () => {
@@ -146,6 +149,32 @@ describe('X01 Engine', () => {
 
       expect(state.playerScores[player1]).toBe(501); // new leg started
       expect(state.legsWon[player1]).toBe(1);
+      expect(state.currentPlayerIndex).toBe(1);
+    });
+
+    it('recognizes master checkout on a triple', () => {
+      const settings = { ...X01DefaultSettings, checkOut: 'master' as const };
+      const state = init([player1, player2], settings);
+      state.playerScores[player1] = 60;
+
+      const finishDart = { sector: 20 as const, ring: 'T' as const, points: 60, order: 0 as const }; // T20 finishes under master
+
+      const after = applyThrow(state, finishDart, settings);
+
+      expect(after.legsWon[player1]).toBe(1);
+    });
+
+    it('busts under master checkout when the finishing dart is neither a double nor a triple', () => {
+      const settings = { ...X01DefaultSettings, checkOut: 'master' as const };
+      const state = init([player1, player2], settings);
+      state.playerScores[player1] = 20;
+
+      const finishDart = { sector: 20 as const, ring: 'S' as const, points: 20, order: 0 as const }; // single, invalid under master
+
+      const after = applyThrow(state, finishDart, settings);
+
+      expect(after.playerScores[player1]).toBe(20); // must bust, not zero
+      expect(after.legsWon[player1]).toBe(0);
     });
 
     // Known gap (tracked in the SDD ledger, not fixed in this task): isValidCheckout only
@@ -268,6 +297,177 @@ describe('X01 Engine', () => {
         expect(state.playerScores[player1]).toBeGreaterThanOrEqual(0);
         expect(state.playerScores[player2]).toBeGreaterThanOrEqual(0);
       }
+    });
+  });
+
+  describe('fixture legs', () => {
+    // Each fixture replays a full leg for player1: zero or more non-finishing 3-dart
+    // visits of a fixed low-value single dart, each followed by a harmless 3-dart
+    // "miss" visit for player2 (so the turn passes back to player1 — applyThrow
+    // always scores whoever is currently up, and a non-checkout visit always
+    // advances currentPlayerIndex), then one final dart that lands exactly on 0
+    // via a ring legal for the fixture's checkOut mode.
+    //
+    // Arithmetic for every fixture: startingScore - (visits.length * 3 * dartValue)
+    // must equal finishDart.points exactly. Verified by hand-computation (see
+    // task-M1-3-fix1-report.md for the generation method) and by the fact that
+    // this whole block only passes if every one of the 20 assertions holds.
+    const miss: Throw = { sector: 1, ring: 'M', points: 0, order: 0 };
+
+    function threeOf(dart: Omit<Throw, 'order'>): Omit<Throw, 'order'>[] {
+      return [dart, dart, dart];
+    }
+
+    function replayLeg(
+      checkOut: 'double' | 'straight' | 'master',
+      startingScore: number,
+      visits: Omit<Throw, 'order'>[][],
+      finishDart: Omit<Throw, 'order'>
+    ) {
+      const settings = { ...X01DefaultSettings, checkOut };
+      let state = init([player1, player2], settings);
+      state.playerScores[player1] = startingScore;
+
+      visits.forEach((visitDarts) => {
+        visitDarts.forEach((d, idx) => {
+          state = applyThrow(state, { ...d, order: idx as 0 | 1 | 2 }, settings);
+        });
+        // Pass the turn back to player1: player2 throws a harmless scoreless visit.
+        threeOf(miss).forEach((d, idx) => {
+          state = applyThrow(state, { ...d, order: idx as 0 | 1 | 2 }, settings);
+        });
+      });
+
+      state = applyThrow(state, { ...finishDart, order: 0 }, settings);
+      return state;
+    }
+
+    const fixtures: Array<{
+      name: string;
+      checkOut: 'double' | 'straight' | 'master';
+      startingScore: number;
+      visits: Omit<Throw, 'order'>[][];
+      finishDart: Omit<Throw, 'order'>;
+    }> = [
+      { name: '40 double-out, 1 filler visit of S4 then D14 finish', checkOut: 'double', startingScore: 40,
+        visits: [threeOf({ sector: 4, ring: 'S', points: 4 })],
+        finishDart: { sector: 14, ring: 'D', points: 28 } },
+      { name: '60 straight-out, 1 filler visit of S5 then T15 finish', checkOut: 'straight', startingScore: 60,
+        visits: [threeOf({ sector: 5, ring: 'S', points: 5 })],
+        finishDart: { sector: 15, ring: 'T', points: 45 } },
+      { name: '80 master-out, 1 filler visit of S10 then double-bull finish', checkOut: 'master', startingScore: 80,
+        visits: [threeOf({ sector: 10, ring: 'S', points: 10 })],
+        finishDart: { sector: 25, ring: 'D', points: 50 } },
+      { name: '100 double-out, 2 filler visits of S10 then D20 finish', checkOut: 'double', startingScore: 100,
+        visits: [threeOf({ sector: 10, ring: 'S', points: 10 }), threeOf({ sector: 10, ring: 'S', points: 10 })],
+        finishDart: { sector: 20, ring: 'D', points: 40 } },
+      { name: '121 straight-out, 3 filler visits of S9 then D20 finish', checkOut: 'straight', startingScore: 121,
+        visits: [
+          threeOf({ sector: 9, ring: 'S', points: 9 }),
+          threeOf({ sector: 9, ring: 'S', points: 9 }),
+          threeOf({ sector: 9, ring: 'S', points: 9 }),
+        ],
+        finishDart: { sector: 20, ring: 'D', points: 40 } },
+      { name: '170 master-out, 4 filler visits of S10 then double-bull finish', checkOut: 'master', startingScore: 170,
+        visits: [
+          threeOf({ sector: 10, ring: 'S', points: 10 }),
+          threeOf({ sector: 10, ring: 'S', points: 10 }),
+          threeOf({ sector: 10, ring: 'S', points: 10 }),
+          threeOf({ sector: 10, ring: 'S', points: 10 }),
+        ],
+        finishDart: { sector: 25, ring: 'D', points: 50 } },
+      { name: '40 double-out, 2 filler visits of S4 then D8 finish', checkOut: 'double', startingScore: 40,
+        visits: [threeOf({ sector: 4, ring: 'S', points: 4 }), threeOf({ sector: 4, ring: 'S', points: 4 })],
+        finishDart: { sector: 8, ring: 'D', points: 16 } },
+      { name: '60 straight-out, 2 filler visits of S4 then T12 finish', checkOut: 'straight', startingScore: 60,
+        visits: [threeOf({ sector: 4, ring: 'S', points: 4 }), threeOf({ sector: 4, ring: 'S', points: 4 })],
+        finishDart: { sector: 12, ring: 'T', points: 36 } },
+      { name: '80 master-out, 2 filler visits of S8 then D16 finish', checkOut: 'master', startingScore: 80,
+        visits: [threeOf({ sector: 8, ring: 'S', points: 8 }), threeOf({ sector: 8, ring: 'S', points: 8 })],
+        finishDart: { sector: 16, ring: 'D', points: 32 } },
+      { name: '100 double-out, 2 filler visits of S10 then D20 finish (b)', checkOut: 'double', startingScore: 100,
+        visits: [threeOf({ sector: 10, ring: 'S', points: 10 }), threeOf({ sector: 10, ring: 'S', points: 10 })],
+        finishDart: { sector: 20, ring: 'D', points: 40 } },
+      { name: '121 straight-out, 3 filler visits of S9 then D20 finish (b)', checkOut: 'straight', startingScore: 121,
+        visits: [
+          threeOf({ sector: 9, ring: 'S', points: 9 }),
+          threeOf({ sector: 9, ring: 'S', points: 9 }),
+          threeOf({ sector: 9, ring: 'S', points: 9 }),
+        ],
+        finishDart: { sector: 20, ring: 'D', points: 40 } },
+      { name: '170 master-out, 4 filler visits of S10 then double-bull finish (b)', checkOut: 'master', startingScore: 170,
+        visits: [
+          threeOf({ sector: 10, ring: 'S', points: 10 }),
+          threeOf({ sector: 10, ring: 'S', points: 10 }),
+          threeOf({ sector: 10, ring: 'S', points: 10 }),
+          threeOf({ sector: 10, ring: 'S', points: 10 }),
+        ],
+        finishDart: { sector: 25, ring: 'D', points: 50 } },
+      { name: '40 double-out, 3 filler visits of S2 then D11 finish', checkOut: 'double', startingScore: 40,
+        visits: [
+          threeOf({ sector: 2, ring: 'S', points: 2 }),
+          threeOf({ sector: 2, ring: 'S', points: 2 }),
+          threeOf({ sector: 2, ring: 'S', points: 2 }),
+        ],
+        finishDart: { sector: 11, ring: 'D', points: 22 } },
+      { name: '60 straight-out, 3 filler visits of S3 then T11 finish', checkOut: 'straight', startingScore: 60,
+        visits: [
+          threeOf({ sector: 3, ring: 'S', points: 3 }),
+          threeOf({ sector: 3, ring: 'S', points: 3 }),
+          threeOf({ sector: 3, ring: 'S', points: 3 }),
+        ],
+        finishDart: { sector: 11, ring: 'T', points: 33 } },
+      { name: '80 master-out, 3 filler visits of S8 then D4 finish', checkOut: 'master', startingScore: 80,
+        visits: [
+          threeOf({ sector: 8, ring: 'S', points: 8 }),
+          threeOf({ sector: 8, ring: 'S', points: 8 }),
+          threeOf({ sector: 8, ring: 'S', points: 8 }),
+        ],
+        finishDart: { sector: 4, ring: 'D', points: 8 } },
+      { name: '100 double-out, 3 filler visits of S8 then D14 finish', checkOut: 'double', startingScore: 100,
+        visits: [
+          threeOf({ sector: 8, ring: 'S', points: 8 }),
+          threeOf({ sector: 8, ring: 'S', points: 8 }),
+          threeOf({ sector: 8, ring: 'S', points: 8 }),
+        ],
+        finishDart: { sector: 14, ring: 'D', points: 28 } },
+      { name: '121 straight-out, 3 filler visits of S9 then D20 finish (c)', checkOut: 'straight', startingScore: 121,
+        visits: [
+          threeOf({ sector: 9, ring: 'S', points: 9 }),
+          threeOf({ sector: 9, ring: 'S', points: 9 }),
+          threeOf({ sector: 9, ring: 'S', points: 9 }),
+        ],
+        finishDart: { sector: 20, ring: 'D', points: 40 } },
+      { name: '170 master-out, 4 filler visits of S10 then double-bull finish (c)', checkOut: 'master', startingScore: 170,
+        visits: [
+          threeOf({ sector: 10, ring: 'S', points: 10 }),
+          threeOf({ sector: 10, ring: 'S', points: 10 }),
+          threeOf({ sector: 10, ring: 'S', points: 10 }),
+          threeOf({ sector: 10, ring: 'S', points: 10 }),
+        ],
+        finishDart: { sector: 25, ring: 'D', points: 50 } },
+      { name: '40 double-out, 4 filler visits of S2 then D8 finish', checkOut: 'double', startingScore: 40,
+        visits: [
+          threeOf({ sector: 2, ring: 'S', points: 2 }),
+          threeOf({ sector: 2, ring: 'S', points: 2 }),
+          threeOf({ sector: 2, ring: 'S', points: 2 }),
+          threeOf({ sector: 2, ring: 'S', points: 2 }),
+        ],
+        finishDart: { sector: 8, ring: 'D', points: 16 } },
+      { name: '60 straight-out, 4 filler visits of S2 then T12 finish', checkOut: 'straight', startingScore: 60,
+        visits: [
+          threeOf({ sector: 2, ring: 'S', points: 2 }),
+          threeOf({ sector: 2, ring: 'S', points: 2 }),
+          threeOf({ sector: 2, ring: 'S', points: 2 }),
+          threeOf({ sector: 2, ring: 'S', points: 2 }),
+        ],
+        finishDart: { sector: 12, ring: 'T', points: 36 } },
+    ];
+
+    it.each(fixtures)('replays leg: $name', ({ checkOut, startingScore, visits, finishDart }) => {
+      const state = replayLeg(checkOut, startingScore, visits, finishDart);
+      expect(state.legsWon[player1]).toBe(1);
+      expect(state.playerScores[player1]).toBe(X01DefaultSettings.startingScore);
     });
   });
 });

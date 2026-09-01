@@ -2,7 +2,7 @@
 import { Visit, StatTileDef, GameStats } from '@/lib/types';
 import { X01Settings } from './schema';
 
-export interface X01Stats {
+export interface X01Stats extends GameStats {
   avg3Dart: number;
   firstNineAvg: number;
   checkoutRate: number;

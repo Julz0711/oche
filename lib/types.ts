@@ -88,7 +88,7 @@ export interface Player {
  * Used by individual game modules to compute and store game-specific metrics
  */
 export type GameStats = {
-  [key: string]: string | number | boolean;
+  [key: string]: string | number | boolean | null;
 };
 
 /**

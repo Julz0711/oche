@@ -135,7 +135,7 @@ export interface GameModule<TState = any, TSettings = any> {
   /**
    * Apply a single throw to the current game state and return the new state
    */
-  applyThrow: (state: TState, throw_: Throw) => TState;
+  applyThrow: (state: TState, throw_: Throw, settings: TSettings) => TState;
   /**
    * Undo the last action in the game (remove last visit)
    */

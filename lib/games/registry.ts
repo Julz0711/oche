@@ -16,11 +16,7 @@ export const gameRegistry = {
    * Will be implemented in M1-2
    * TODO: Implement in M1-2
    */
-  x01: async () => {
-    // Import will be available after M1-2
-    // return import('./x01').then((m) => m.default);
-    throw new Error('X01 game not yet implemented (planned for M1-2)');
-  },
+  x01: async () => import('./x01').then((m) => m.default),
 
   /**
    * Cricket - Strategic darts game

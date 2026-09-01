@@ -8,6 +8,8 @@ interface DartboardInputProps {
   disabled?: boolean;
   /** How many darts have already landed in the current, still-open visit (0, 1, or 2). Used to tag the correct `order` on the next dart. Defaults to 0. */
   visitDartCount?: number;
+  /** Hit-frequency map (key: `${ring}${sector}`) for the current player, used to shade the decorative board. Defaults to empty (uniform, unshaded board). */
+  heatmap?: Record<string, number>;
 }
 
 const CENTER = 200;
@@ -49,9 +51,14 @@ type Modifier = 'S' | 'D' | 'T';
 
 const KEYPAD_NUMBERS = Array.from({ length: 20 }, (_, i) => i + 1);
 
-export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0 }: DartboardInputProps) {
+export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, heatmap = {} }: DartboardInputProps) {
   const [modifier, setModifier] = useState<Modifier>('S');
   const order = Math.min(visitDartCount, 2) as 0 | 1 | 2;
+  const maxHeat = Math.max(1, ...Object.values(heatmap));
+  const heatOpacity = (key: string) => {
+    const count = heatmap[key] ?? 0;
+    return 0.15 + (count / maxHeat) * 0.75; // 0.15 (unhit) to 0.9 (most-hit)
+  };
 
   const throwSector = (sector: number) => {
     if (disabled) return;
@@ -97,10 +104,10 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0 }
 
           return (
             <g key={segment}>
-              <path d={annularWedgePath(RADIUS.doubleInner, RADIUS.boardEdge, startAngle, endAngle)} fill="var(--double)" opacity="0.5" />
-              <path d={annularWedgePath(RADIUS.outerSingleInner, RADIUS.doubleInner, startAngle, endAngle)} fill="var(--slate)" opacity="0.5" />
-              <path d={annularWedgePath(RADIUS.trebleInner, RADIUS.outerSingleInner, startAngle, endAngle)} fill="var(--wire)" opacity="0.5" />
-              <path d={annularWedgePath(RADIUS.innerSingleInner, RADIUS.trebleInner, startAngle, endAngle)} fill="var(--slate)" opacity="0.5" />
+              <path d={annularWedgePath(RADIUS.doubleInner, RADIUS.boardEdge, startAngle, endAngle)} fill="var(--double)" opacity={heatOpacity(`D${segment}`)} />
+              <path d={annularWedgePath(RADIUS.outerSingleInner, RADIUS.doubleInner, startAngle, endAngle)} fill="var(--slate)" opacity={heatOpacity(`S${segment}`)} />
+              <path d={annularWedgePath(RADIUS.trebleInner, RADIUS.outerSingleInner, startAngle, endAngle)} fill="var(--wire)" opacity={heatOpacity(`T${segment}`)} />
+              <path d={annularWedgePath(RADIUS.innerSingleInner, RADIUS.trebleInner, startAngle, endAngle)} fill="var(--slate)" opacity={heatOpacity(`S${segment}`)} />
               <text x={labelPoint.x} y={labelPoint.y} textAnchor="middle" className="text-xs fill-chalk" dy="0.3em">
                 {segment}
               </text>
@@ -108,8 +115,8 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0 }
           );
         })}
 
-        <circle cx={CENTER} cy={CENTER} r={RADIUS.innerSingleInner} fill="var(--wire)" />
-        <circle cx={CENTER} cy={CENTER} r={RADIUS.innerSingleInner * 0.4} fill="var(--treble)" />
+        <circle cx={CENTER} cy={CENTER} r={RADIUS.innerSingleInner} fill="var(--wire)" opacity={heatOpacity('OB25')} />
+        <circle cx={CENTER} cy={CENTER} r={RADIUS.innerSingleInner * 0.4} fill="var(--treble)" opacity={heatOpacity('IB25')} />
       </svg>
 
       {/* Modifier toggles */}

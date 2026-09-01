@@ -10,9 +10,10 @@ const players = (state: X01State): PlayerId[] => state.players;
 
 const currentPlayer = (state: X01State): PlayerId => state.players[state.currentPlayerIndex];
 
-const visitProgress = (state: X01State): { darts: number; max: number } => ({
+const visitProgress = (state: X01State): { darts: number; max: number; throws: Throw[] } => ({
   darts: state.currentVisit.length,
   max: 3,
+  throws: state.currentVisit,
 });
 
 const matchInfo = (state: X01State, settings: X01Settings): { label: string; value: string }[] => [
@@ -47,6 +48,19 @@ const visitHistory = (
     .reverse();
 };
 
+const heatmap = (state: X01State, playerId: PlayerId): Record<string, number> => {
+  const counts: Record<string, number> = {};
+  state.visitHistory
+    .filter((entry) => entry.playerId === playerId)
+    .forEach((entry) => {
+      entry.throws.forEach((t) => {
+        const key = `${t.ring}${t.sector}`;
+        counts[key] = (counts[key] ?? 0) + 1;
+      });
+    });
+  return counts;
+};
+
 const X01Module: GameModule<X01State, X01Settings> = {
   id: 'x01',
   name: 'X01',
@@ -69,6 +83,7 @@ const X01Module: GameModule<X01State, X01Settings> = {
   visitProgress,
   matchInfo,
   visitHistory,
+  heatmap,
 
   ScoreboardSlot,
   primaryMetric: (state: X01State, playerId: PlayerId) => ({

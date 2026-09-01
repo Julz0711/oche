@@ -4,9 +4,10 @@ import { PlayerId } from '@/lib/types';
 import { Numeral } from '@/components/atoms/Numeral';
 
 export function ScoreboardSlot({ state, playerId }: { state: X01State; playerId: PlayerId }) {
-  const score = state.playerScores[playerId];
-  const legsWon = state.legsWon[playerId];
   const isCurrentPlayer = state.players[state.currentPlayerIndex] === playerId;
+  const pending = isCurrentPlayer ? state.currentVisit.reduce((sum, t) => sum + t.points, 0) : 0;
+  const score = state.playerScores[playerId] - pending;
+  const legsWon = state.legsWon[playerId];
 
   return (
     <div className={`p-4 rounded ${isCurrentPlayer ? 'bg-wire text-oche' : 'bg-slate text-chalk'}`}>

@@ -160,7 +160,7 @@ export interface GameModule<TState = any, TSettings = any> {
    * Progress within the current, still-open visit (e.g. how many darts have
    * landed so far this turn, and the maximum for this game)
    */
-  visitProgress: (state: TState) => { darts: number; max: number };
+  visitProgress: (state: TState) => { darts: number; max: number; throws: Throw[] };
   /**
    * Small info entries to display about overall match progress (e.g. current leg number).
    * Generic across games — X01 reports leg progress; a future game might report something else.
@@ -171,6 +171,11 @@ export interface GameModule<TState = any, TSettings = any> {
    * newest first. Used to render a per-player recent-activity panel.
    */
   visitHistory: (state: TState, playerId: PlayerId) => { throws: Throw[]; scoreAfter: number; busted: boolean }[];
+  /**
+   * Hit-frequency map for a player's darts across the whole match so far, keyed as
+   * `${ring}${sector}` (e.g. "D20", "T19", "IB25"). Used to render a heatmap.
+   */
+  heatmap: (state: TState, playerId: PlayerId) => Record<string, number>;
   /**
    * React component to render one player's scoreboard slot
    */

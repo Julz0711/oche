@@ -18,27 +18,53 @@ function formatDart(t: Throw): string {
   return `${t.ring}${t.sector}`;
 }
 
+/** Doubles and triples get distinct colors; everything else stays neutral. */
+function dartColorClass(t: Throw): string {
+  if (t.ring === 'D' || t.ring === 'IB') return 'bg-double text-chalk';
+  if (t.ring === 'T') return 'bg-treble text-chalk';
+  return 'bg-oche text-chalk';
+}
+
 function HistoryPanel({
   playerId,
   visits,
+  inProgress,
 }: {
   playerId: PlayerId;
   visits: { throws: Throw[]; scoreAfter: number; busted: boolean }[];
+  inProgress: Throw[];
 }) {
   return (
-    <div className="bg-slate rounded p-3 flex flex-col gap-2 min-h-[200px]">
-      <div className="text-xs font-semibold text-sisal uppercase">{playerId} — this leg</div>
-      {visits.length === 0 && <div className="text-xs text-sisal opacity-60">No visits yet</div>}
-      {visits.map((visit, i) => (
-        <div key={i} className={`text-sm ${visit.busted ? 'text-treble' : 'text-chalk'}`}>
-          <div className="flex gap-1">
-            {visit.throws.map((t, j) => (
-              <span key={j} className="px-1.5 py-0.5 bg-oche rounded text-xs">
+    <div className="bg-slate rounded p-4 flex flex-col gap-4 min-h-[240px]">
+      <div className="text-sm font-semibold text-sisal uppercase">{playerId} — this leg</div>
+
+      {inProgress.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <div className="text-xs text-wire uppercase">In progress</div>
+          <div className="flex gap-2 flex-wrap">
+            {inProgress.map((t, j) => (
+              <span key={j} className={`px-3 py-2 rounded text-sm font-semibold ${dartColorClass(t)}`}>
                 {formatDart(t)}
               </span>
             ))}
           </div>
-          <div className="text-xs opacity-70">{visit.busted ? 'BUST' : `→ ${visit.scoreAfter}`}</div>
+        </div>
+      )}
+
+      {visits.length === 0 && inProgress.length === 0 && (
+        <div className="text-sm text-sisal opacity-60">No visits yet</div>
+      )}
+
+      {visits.map((visit, i) => (
+        <div key={i} className="flex flex-col gap-2">
+          <div className="flex gap-2 flex-wrap">
+            {visit.throws.map((t, j) => (
+              <span key={j} className={`px-3 py-2 rounded text-sm font-semibold ${dartColorClass(t)}`}>
+                {formatDart(t)}
+              </span>
+            ))}
+          </div>
+          {visit.busted && <div className="text-xs font-semibold text-treble">BUST</div>}
         </div>
       ))}
     </div>
@@ -98,7 +124,9 @@ export default function MatchPage({ params }: MatchPageProps) {
   const visitProgress = gameModule.visitProgress(gameState);
   const players = gameModule.players(gameState);
   const [leftPlayer, rightPlayer] = players;
+  const currentPlayerId = gameModule.currentPlayer(gameState);
   const info = gameModule.matchInfo(gameState, useMatchStore.getState().settings);
+  const currentPlayerHeatmap = gameModule.heatmap(gameState, currentPlayerId);
 
   return (
     <div className="min-h-screen bg-oche text-chalk p-4 flex flex-col gap-4">
@@ -125,13 +153,30 @@ export default function MatchPage({ params }: MatchPageProps) {
 
       {/* Middle row: history / board+keypad / history */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 flex-1">
-        {leftPlayer && <HistoryPanel playerId={leftPlayer} visits={gameModule.visitHistory(gameState, leftPlayer)} />}
+        {leftPlayer && (
+          <HistoryPanel
+            playerId={leftPlayer}
+            visits={gameModule.visitHistory(gameState, leftPlayer)}
+            inProgress={leftPlayer === currentPlayerId ? visitProgress.throws : []}
+          />
+        )}
 
         <div className="flex flex-col items-center justify-center gap-4">
-          <DartboardInput onThrow={handleThrow} disabled={isComplete} visitDartCount={visitProgress.darts} />
+          <DartboardInput
+            onThrow={handleThrow}
+            disabled={isComplete}
+            visitDartCount={visitProgress.darts}
+            heatmap={currentPlayerHeatmap}
+          />
         </div>
 
-        {rightPlayer && <HistoryPanel playerId={rightPlayer} visits={gameModule.visitHistory(gameState, rightPlayer)} />}
+        {rightPlayer && (
+          <HistoryPanel
+            playerId={rightPlayer}
+            visits={gameModule.visitHistory(gameState, rightPlayer)}
+            inProgress={rightPlayer === currentPlayerId ? visitProgress.throws : []}
+          />
+        )}
       </div>
 
       {/* Match end */}

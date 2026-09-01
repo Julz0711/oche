@@ -2,6 +2,10 @@
 import { Throw, PlayerId } from '@/lib/types';
 import { X01Settings } from './schema';
 
+function isDoubleRing(ring: Throw['ring']): boolean {
+  return ring === 'D' || ring === 'IB';
+}
+
 interface VisitHistoryEntry {
   playerId: PlayerId;
   throws: Throw[];
@@ -82,7 +86,7 @@ export function applyThrow(state: X01State, throw_: Throw, settings: X01Settings
   for (const dart of newVisit) {
     if (isOnAfterVisit) {
       visitTotal += dart.points;
-    } else if (dart.ring === 'D') {
+    } else if (isDoubleRing(dart.ring)) {
       isOnAfterVisit = true;
       visitTotal += dart.points;
     }
@@ -97,7 +101,7 @@ export function applyThrow(state: X01State, throw_: Throw, settings: X01Settings
 
   const isBust =
     newScore < 0 ||
-    (newScore === 1 && settings.checkOut === 'double') ||
+    (newScore === 1 && settings.checkOut !== 'straight') ||
     (isFinishAttempt && !validFinish);
 
   if (isBust) {
@@ -256,8 +260,8 @@ export function winner(state: X01State): PlayerId | null {
 }
 
 function isValidCheckout(dart: Throw, settings: X01Settings): boolean {
-  if (settings.checkOut === 'double') return dart.ring === 'D';
+  if (settings.checkOut === 'double') return isDoubleRing(dart.ring);
   if (settings.checkOut === 'straight') return true;
-  if (settings.checkOut === 'master') return dart.ring === 'D' || dart.ring === 'T';
+  if (settings.checkOut === 'master') return isDoubleRing(dart.ring) || dart.ring === 'T';
   return false;
 }

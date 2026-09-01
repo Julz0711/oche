@@ -60,7 +60,7 @@ export function computeStats(visits: Visit[], settings: X01Settings): X01Stats {
       if (t.ring === 'T') {
         treblesHit++;
         trebleAttempts++;
-      } else if (t.ring === 'D') {
+      } else if (t.ring === 'D' || t.ring === 'IB') {
         doublesHit++;
         doublesAttempts++;
       }

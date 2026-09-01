@@ -177,11 +177,29 @@ describe('X01 Engine', () => {
       expect(after.legsWon[player1]).toBe(0);
     });
 
-    // Known gap (tracked in the SDD ledger, not fixed in this task): isValidCheckout only
-    // recognizes ring 'D' as a double, so a double-bullseye finish (ring 'IB') is currently
-    // NOT recognized as a valid double-out. This is a pending fix, not something to work
-    // around here.
-    it.todo('recognizes double-bullseye (ring "IB") as a valid double-out finish — known gap, see ledger');
+    it('recognizes double-bullseye (ring "IB") as a valid double-out finish', () => {
+      const settings = { ...X01DefaultSettings, checkOut: 'double' as const };
+      const state = init([player1, player2], settings);
+      state.playerScores[player1] = 50;
+
+      const finishDart = { sector: 25 as const, ring: 'IB' as const, points: 50, order: 0 as const };
+
+      const after = applyThrow(state, finishDart, settings);
+
+      expect(after.legsWon[player1]).toBe(1);
+    });
+
+    it('busts under master checkout when exactly 1 remains (unfinishable via double or triple)', () => {
+      const settings = { ...X01DefaultSettings, checkOut: 'master' as const };
+      const state = init([player1, player2], settings);
+      state.playerScores[player1] = 4;
+
+      const dart = { sector: 3 as const, ring: 'S' as const, points: 3, order: 0 as const }; // 4 -> 1, unfinishable under master
+
+      const after = applyThrow(state, dart, settings);
+
+      expect(after.playerScores[player1]).toBe(4); // must bust, not leave the player on 1
+    });
   });
 
   describe('double-in (checkIn: "double")', () => {
@@ -268,7 +286,7 @@ describe('X01 Engine', () => {
 
       const throw1 = { sector: 20 as const, ring: 'T' as const, points: 60, order: 0 as const };
       const throw2 = { sector: 20 as const, ring: 'T' as const, points: 60, order: 1 as const };
-      const throw3 = { sector: 25 as const, ring: 'D' as const, points: 50, order: 2 as const }; // 170-60-60-50=0, double out
+      const throw3 = { sector: 25 as const, ring: 'IB' as const, points: 50, order: 2 as const }; // 170-60-60-50=0, double out
 
       state = applyThrow(state, throw1, settings);
       state = applyThrow(state, throw2, settings);
@@ -357,7 +375,7 @@ describe('X01 Engine', () => {
         finishDart: { sector: 15, ring: 'T', points: 45 } },
       { name: '80 master-out, 1 filler visit of S10 then double-bull finish', checkOut: 'master', startingScore: 80,
         visits: [threeOf({ sector: 10, ring: 'S', points: 10 })],
-        finishDart: { sector: 25, ring: 'D', points: 50 } },
+        finishDart: { sector: 25, ring: 'IB', points: 50 } },
       { name: '100 double-out, 2 filler visits of S10 then D20 finish', checkOut: 'double', startingScore: 100,
         visits: [threeOf({ sector: 10, ring: 'S', points: 10 }), threeOf({ sector: 10, ring: 'S', points: 10 })],
         finishDart: { sector: 20, ring: 'D', points: 40 } },
@@ -375,7 +393,7 @@ describe('X01 Engine', () => {
           threeOf({ sector: 10, ring: 'S', points: 10 }),
           threeOf({ sector: 10, ring: 'S', points: 10 }),
         ],
-        finishDart: { sector: 25, ring: 'D', points: 50 } },
+        finishDart: { sector: 25, ring: 'IB', points: 50 } },
       { name: '40 double-out, 2 filler visits of S4 then D8 finish', checkOut: 'double', startingScore: 40,
         visits: [threeOf({ sector: 4, ring: 'S', points: 4 }), threeOf({ sector: 4, ring: 'S', points: 4 })],
         finishDart: { sector: 8, ring: 'D', points: 16 } },
@@ -402,7 +420,7 @@ describe('X01 Engine', () => {
           threeOf({ sector: 10, ring: 'S', points: 10 }),
           threeOf({ sector: 10, ring: 'S', points: 10 }),
         ],
-        finishDart: { sector: 25, ring: 'D', points: 50 } },
+        finishDart: { sector: 25, ring: 'IB', points: 50 } },
       { name: '40 double-out, 3 filler visits of S2 then D11 finish', checkOut: 'double', startingScore: 40,
         visits: [
           threeOf({ sector: 2, ring: 'S', points: 2 }),
@@ -445,7 +463,7 @@ describe('X01 Engine', () => {
           threeOf({ sector: 10, ring: 'S', points: 10 }),
           threeOf({ sector: 10, ring: 'S', points: 10 }),
         ],
-        finishDart: { sector: 25, ring: 'D', points: 50 } },
+        finishDart: { sector: 25, ring: 'IB', points: 50 } },
       { name: '40 double-out, 4 filler visits of S2 then D8 finish', checkOut: 'double', startingScore: 40,
         visits: [
           threeOf({ sector: 2, ring: 'S', points: 2 }),

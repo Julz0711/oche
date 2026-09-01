@@ -9,6 +9,43 @@ interface DartboardInputProps {
   visitDartCount?: number;
 }
 
+const CENTER = 200;
+
+/** Builds an SVG path for one non-overlapping annular wedge (a ring "slice"): the actual shape of one dartboard scoring band for one segment. */
+function annularWedgePath(innerRadius: number, outerRadius: number, startAngle: number, endAngle: number): string {
+  const point = (r: number, angle: number) => ({
+    x: CENTER + r * Math.cos(angle),
+    y: CENTER + r * Math.sin(angle),
+  });
+  const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
+
+  const outerStart = point(outerRadius, startAngle);
+  const outerEnd = point(outerRadius, endAngle);
+  const innerEnd = point(innerRadius, endAngle);
+  const innerStart = point(innerRadius, startAngle);
+
+  return [
+    `M ${outerStart.x} ${outerStart.y}`,
+    `A ${outerRadius} ${outerRadius} 0 ${largeArc} 1 ${outerEnd.x} ${outerEnd.y}`,
+    `L ${innerEnd.x} ${innerEnd.y}`,
+    `A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${innerStart.x} ${innerStart.y}`,
+    'Z',
+  ].join(' ');
+}
+
+// Radial bands, outer edge to center. Widened well beyond a real dartboard's proportions
+// (where double/treble rings are only ~2% of the radius) so double and treble are actually
+// tappable — dartboard segments are the plan's documented exception to the 44px touch-target
+// rule, but "smaller than 44px" isn't the same as "a few physical pixels wide."
+const RADIUS = {
+  boardEdge: 190,
+  doubleInner: 160,
+  outerSingleInner: 115,
+  trebleInner: 92,
+  innerSingleInner: 25,
+  outerBullInner: 12,
+};
+
 export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0 }: DartboardInputProps) {
   const segments = Array.from({ length: 20 }, (_, i) => i + 1);
   const order = Math.min(visitDartCount, 2) as 0 | 1 | 2;
@@ -36,56 +73,74 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0 }
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <svg viewBox="0 0 400 400" className="w-64 h-64">
-        {/* Dartboard circles and segments */}
-        <circle cx="200" cy="200" r="190" fill="var(--oche)" stroke="var(--chalk)" strokeWidth="1" />
+      <svg viewBox="0 0 400 400" className="w-80 h-80">
+        <circle cx={CENTER} cy={CENTER} r={RADIUS.boardEdge} fill="var(--oche)" stroke="var(--chalk)" strokeWidth="1" />
 
         {segments.map((segment) => {
-          const angle = ((segment - 6) * 18) * (Math.PI / 180);
-          const x = 200 + Math.cos(angle) * 150;
-          const y = 200 + Math.sin(angle) * 150;
+          const midAngle = (segment - 6) * 18 * (Math.PI / 180);
+          const startAngle = midAngle - 9 * (Math.PI / 180);
+          const endAngle = midAngle + 9 * (Math.PI / 180);
+          const labelPoint = {
+            x: CENTER + ((RADIUS.doubleInner + RADIUS.boardEdge) / 2) * Math.cos(midAngle),
+            y: CENTER + ((RADIUS.doubleInner + RADIUS.boardEdge) / 2) * Math.sin(midAngle),
+          };
+
           return (
             <g key={segment}>
-              {/* Treble ring */}
-              <circle
-                cx={x}
-                cy={y}
-                r="20"
-                fill="var(--wire)"
-                opacity="0.3"
-                onClick={() => handleSegmentClick(segment, 'T')}
-                className="cursor-pointer hover:opacity-60"
-              />
-              {/* Double ring */}
-              <circle
-                cx={x}
-                cy={y}
-                r="15"
+              <path
+                d={annularWedgePath(RADIUS.doubleInner, RADIUS.boardEdge, startAngle, endAngle)}
                 fill="var(--double)"
-                opacity="0.3"
+                opacity="0.5"
                 onClick={() => handleSegmentClick(segment, 'D')}
-                className="cursor-pointer hover:opacity-60"
+                className="cursor-pointer hover:opacity-80"
               />
-              {/* Single */}
-              <circle
-                cx={x}
-                cy={y}
-                r="10"
+              <path
+                d={annularWedgePath(RADIUS.outerSingleInner, RADIUS.doubleInner, startAngle, endAngle)}
                 fill="var(--slate)"
-                opacity="0.3"
+                opacity="0.5"
                 onClick={() => handleSegmentClick(segment, 'S')}
-                className="cursor-pointer hover:opacity-60"
+                className="cursor-pointer hover:opacity-80"
               />
-              <text x={x} y={y} textAnchor="middle" className="text-xs fill-chalk" dy="0.3em">
+              <path
+                d={annularWedgePath(RADIUS.trebleInner, RADIUS.outerSingleInner, startAngle, endAngle)}
+                fill="var(--wire)"
+                opacity="0.5"
+                onClick={() => handleSegmentClick(segment, 'T')}
+                className="cursor-pointer hover:opacity-80"
+              />
+              <path
+                d={annularWedgePath(RADIUS.innerSingleInner, RADIUS.trebleInner, startAngle, endAngle)}
+                fill="var(--slate)"
+                opacity="0.5"
+                onClick={() => handleSegmentClick(segment, 'S')}
+                className="cursor-pointer hover:opacity-80"
+              />
+              <text x={labelPoint.x} y={labelPoint.y} textAnchor="middle" className="text-xs fill-chalk pointer-events-none" dy="0.3em">
                 {segment}
               </text>
             </g>
           );
         })}
 
-        {/* Bulls */}
-        <circle cx="200" cy="200" r="12" fill="var(--treble)" onClick={() => handleSegmentClick(25, 'IB')} className="cursor-pointer" />
-        <circle cx="200" cy="200" r="8" fill="var(--wire)" onClick={() => handleSegmentClick(25, 'OB')} className="cursor-pointer" />
+        {/* Bulls: outer bull drawn first as the larger circle, inner bull drawn on top as the
+            smaller circle — so the visually and interactively innermost target (highest value,
+            50pts) really is the one you hit by tapping dead center. */}
+        <circle
+          cx={CENTER}
+          cy={CENTER}
+          r={RADIUS.outerBullInner}
+          fill="var(--wire)"
+          onClick={() => handleSegmentClick(25, 'OB')}
+          className="cursor-pointer hover:opacity-80"
+        />
+        <circle
+          cx={CENTER}
+          cy={CENTER}
+          r={RADIUS.outerBullInner * 0.45}
+          fill="var(--treble)"
+          onClick={() => handleSegmentClick(25, 'IB')}
+          className="cursor-pointer hover:opacity-80"
+        />
       </svg>
 
       <div className="flex gap-2">

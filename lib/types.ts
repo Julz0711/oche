@@ -149,6 +149,19 @@ export interface GameModule<TState = any, TSettings = any> {
    */
   winner: (state: TState) => PlayerId | null;
   /**
+   * Get the ordered list of player IDs in this match
+   */
+  players: (state: TState) => PlayerId[];
+  /**
+   * Get the player ID whose turn it currently is
+   */
+  currentPlayer: (state: TState) => PlayerId;
+  /**
+   * Progress within the current, still-open visit (e.g. how many darts have
+   * landed so far this turn, and the maximum for this game)
+   */
+  visitProgress: (state: TState) => { darts: number; max: number };
+  /**
    * React component to render one player's scoreboard slot
    */
   ScoreboardSlot: React.FC<{ state: TState; playerId: PlayerId }>;

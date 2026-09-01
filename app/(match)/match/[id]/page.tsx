@@ -2,10 +2,10 @@
 'use client';
 import { useEffect, useState, use } from 'react';
 import { useMatchStore } from '@/store/match';
-import { getGameModule } from '@/lib/games/registry';
+import { getGameModule, GameId } from '@/lib/games/registry';
 import { DartboardInput } from '@/components/organisms/DartboardInput';
 import { Button } from '@/components/atoms/Button';
-import { Throw, PlayerId, createPlayerId } from '@/lib/types';
+import { Throw, createPlayerId } from '@/lib/types';
 
 interface MatchPageProps {
   params: Promise<{ id: string }>;
@@ -14,12 +14,21 @@ interface MatchPageProps {
 export default function MatchPage({ params }: MatchPageProps) {
   const { gameState, gameModule } = useMatchStore();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const { id } = use(params);
 
   useEffect(() => {
     const init = async () => {
-      const module = await getGameModule('x01');
+      const res = await fetch(`/api/matches/${id}`);
+      if (!res.ok) {
+        setError('Match not found');
+        setLoading(false);
+        return;
+      }
+      const { gameId } = await res.json();
+
+      const module = await getGameModule(gameId as GameId);
       const initialState = module.init(
         [createPlayerId('player1'), createPlayerId('player2')],
         module.defaultSettings
@@ -38,11 +47,16 @@ export default function MatchPage({ params }: MatchPageProps) {
     useMatchStore.getState().undo();
   };
 
+  if (error) {
+    return <div className="min-h-screen bg-oche text-chalk flex items-center justify-center">{error}</div>;
+  }
+
   if (loading || !gameModule || !gameState) {
     return <div className="min-h-screen bg-oche text-chalk flex items-center justify-center">Loading...</div>;
   }
 
   const isComplete = gameModule.isComplete(gameState);
+  const visitProgress = gameModule.visitProgress(gameState);
 
   return (
     <div className="min-h-screen bg-oche text-chalk p-4 flex flex-col">
@@ -55,14 +69,14 @@ export default function MatchPage({ params }: MatchPageProps) {
 
       {/* Scoreboard */}
       <div className="grid grid-cols-2 gap-2 mb-6">
-        {gameState.players.map((playerId: PlayerId) => (
+        {gameModule.players(gameState).map((playerId) => (
           <gameModule.ScoreboardSlot key={playerId} state={gameState} playerId={playerId} />
         ))}
       </div>
 
       {/* Dartboard input */}
       <div className="flex-1 flex items-center justify-center">
-        <DartboardInput onThrow={handleThrow} disabled={isComplete} />
+        <DartboardInput onThrow={handleThrow} disabled={isComplete} visitDartCount={visitProgress.darts} />
       </div>
 
       {/* Match end */}

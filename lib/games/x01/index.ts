@@ -6,6 +6,15 @@ import { computeStats, statTiles } from './stats';
 import { ScoreboardSlot } from './components';
 import { Dices } from 'lucide-react';
 
+const players = (state: X01State): PlayerId[] => state.players;
+
+const currentPlayer = (state: X01State): PlayerId => state.players[state.currentPlayerIndex];
+
+const visitProgress = (state: X01State): { darts: number; max: number } => ({
+  darts: state.currentVisit.length,
+  max: 3,
+});
+
 const X01Module: GameModule<X01State, X01Settings> = {
   id: 'x01',
   name: 'X01',
@@ -22,6 +31,10 @@ const X01Module: GameModule<X01State, X01Settings> = {
   undo,
   isComplete,
   winner,
+
+  players,
+  currentPlayer,
+  visitProgress,
 
   ScoreboardSlot,
   primaryMetric: (state: X01State, playerId: PlayerId) => ({

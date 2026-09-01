@@ -72,7 +72,7 @@ function HistoryPanel({
 }
 
 export default function MatchPage({ params }: MatchPageProps) {
-  const { gameState, gameModule } = useMatchStore();
+  const { gameState, gameModule, settings } = useMatchStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -125,7 +125,7 @@ export default function MatchPage({ params }: MatchPageProps) {
   const players = gameModule.players(gameState);
   const [leftPlayer, rightPlayer] = players;
   const currentPlayerId = gameModule.currentPlayer(gameState);
-  const info = gameModule.matchInfo(gameState, useMatchStore.getState().settings);
+  const info = gameModule.matchInfo(gameState, settings);
   const currentPlayerHeatmap = gameModule.heatmap(gameState, currentPlayerId);
 
   return (
@@ -139,7 +139,7 @@ export default function MatchPage({ params }: MatchPageProps) {
 
       {/* Top row: score / match info / score */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {leftPlayer && <gameModule.ScoreboardSlot state={gameState} playerId={leftPlayer} />}
+        {leftPlayer && <gameModule.ScoreboardSlot state={gameState} playerId={leftPlayer} settings={settings} />}
         <div className="bg-slate rounded p-3 flex items-center justify-center gap-4">
           {info.map((entry) => (
             <div key={entry.label} className="text-center">
@@ -148,7 +148,7 @@ export default function MatchPage({ params }: MatchPageProps) {
             </div>
           ))}
         </div>
-        {rightPlayer && <gameModule.ScoreboardSlot state={gameState} playerId={rightPlayer} />}
+        {rightPlayer && <gameModule.ScoreboardSlot state={gameState} playerId={rightPlayer} settings={settings} />}
       </div>
 
       {/* Middle row: history / board+keypad / history */}

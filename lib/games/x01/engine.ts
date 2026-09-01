@@ -6,6 +6,28 @@ function isDoubleRing(ring: Throw['ring']): boolean {
   return ring === 'D' || ring === 'IB';
 }
 
+/**
+ * Sums how many of a visit's darts actually count toward the score, given whether the
+ * player had already "opened" (landed a double) before this visit's darts started.
+ * Under double-in, darts before the opening double count for 0; the opening double and
+ * everything from it onward count normally. Under straight check-in, every dart counts
+ * (pass `startedOn: true`). Exported so the live-score UI preview can use the exact same
+ * logic as `applyThrow` itself, instead of a separately-maintained (and driftable) copy.
+ */
+export function computeVisitTotal(visit: Throw[], startedOn: boolean): { total: number; isOn: boolean } {
+  let isOn = startedOn;
+  let total = 0;
+  for (const dart of visit) {
+    if (isOn) {
+      total += dart.points;
+    } else if (isDoubleRing(dart.ring)) {
+      isOn = true;
+      total += dart.points;
+    }
+  }
+  return { total, isOn };
+}
+
 interface VisitHistoryEntry {
   playerId: PlayerId;
   throws: Throw[];
@@ -81,17 +103,7 @@ export function applyThrow(state: X01State, throw_: Throw, settings: X01Settings
   // Under double-in, darts thrown before the player lands a double score 0; the
   // double that opens the innings scores its own points, and everything after counts normally.
   const startedOn = settings.checkIn === 'straight' ? true : state.isOnDouble[currentPlayer];
-  let isOnAfterVisit = startedOn;
-  let visitTotal = 0;
-  for (const dart of newVisit) {
-    if (isOnAfterVisit) {
-      visitTotal += dart.points;
-    } else if (isDoubleRing(dart.ring)) {
-      isOnAfterVisit = true;
-      visitTotal += dart.points;
-    }
-    // else: dart doesn't count yet (not on a double), contributes 0
-  }
+  const { total: visitTotal, isOn: isOnAfterVisit } = computeVisitTotal(newVisit, startedOn);
 
   const scoreBeforeVisit = state.playerScores[currentPlayer];
   const newScore = scoreBeforeVisit - visitTotal;

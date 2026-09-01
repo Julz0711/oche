@@ -1,11 +1,21 @@
 // lib/games/x01/components.tsx
-import { X01State } from './engine';
+import { X01State, computeVisitTotal } from './engine';
+import { X01Settings } from './schema';
 import { PlayerId } from '@/lib/types';
 import { Numeral } from '@/components/atoms/Numeral';
 
-export function ScoreboardSlot({ state, playerId }: { state: X01State; playerId: PlayerId }) {
+export function ScoreboardSlot({
+  state,
+  playerId,
+  settings,
+}: {
+  state: X01State;
+  playerId: PlayerId;
+  settings: X01Settings;
+}) {
   const isCurrentPlayer = state.players[state.currentPlayerIndex] === playerId;
-  const pending = isCurrentPlayer ? state.currentVisit.reduce((sum, t) => sum + t.points, 0) : 0;
+  const startedOn = settings.checkIn === 'straight' ? true : state.isOnDouble[playerId];
+  const pending = isCurrentPlayer ? computeVisitTotal(state.currentVisit, startedOn).total : 0;
   const score = state.playerScores[playerId] - pending;
   const legsWon = state.legsWon[playerId];
 

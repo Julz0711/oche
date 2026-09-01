@@ -80,3 +80,53 @@ export const Loading: Story = {
     disabled: true,
   },
 };
+
+export const SecondarySmall: Story = {
+  args: {
+    variant: "secondary",
+    size: "sm",
+    children: "Secondary Small",
+  },
+};
+
+export const SecondaryLarge: Story = {
+  args: {
+    variant: "secondary",
+    size: "lg",
+    children: "Secondary Large",
+  },
+};
+
+export const GhostSmall: Story = {
+  args: {
+    variant: "ghost",
+    size: "sm",
+    children: "Ghost Small",
+  },
+};
+
+export const GhostLarge: Story = {
+  args: {
+    variant: "ghost",
+    size: "lg",
+    children: "Ghost Large",
+  },
+};
+
+export const SecondaryDisabled: Story = {
+  args: {
+    variant: "secondary",
+    size: "md",
+    children: "Secondary Disabled",
+    disabled: true,
+  },
+};
+
+export const GhostDisabled: Story = {
+  args: {
+    variant: "ghost",
+    size: "md",
+    children: "Ghost Disabled",
+    disabled: true,
+  },
+};

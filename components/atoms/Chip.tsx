@@ -5,7 +5,7 @@ type ChipVariant = "default" | "success" | "danger" | "accent";
 
 interface ChipProps {
   label: string;
-  value: string | number;
+  value?: string | number;
   variant?: ChipVariant;
   onClose?: () => void;
   className?: string;
@@ -31,6 +31,7 @@ export const Chip = React.forwardRef<HTMLDivElement, ChipProps>(
         `}
       >
         {label}
+        {value !== undefined && <span className="font-semibold">{value}</span>}
         {onClose && (
           <button
             onClick={onClose}

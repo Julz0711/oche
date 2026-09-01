@@ -8,6 +8,7 @@ import {
   ChevronDown,
   Menu,
 } from "lucide-react";
+import { tokens } from "../../lib/theme";
 import { Icon } from "./Icon";
 
 const meta: Meta<typeof Icon> = {
@@ -63,7 +64,7 @@ export const WithColor: Story = {
   args: {
     icon: X,
     size: 24,
-    color: "#C8102E",
+    color: tokens.treble,
   },
 };
 

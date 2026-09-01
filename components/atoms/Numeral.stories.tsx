@@ -94,3 +94,48 @@ export const NonTabular: Story = {
     tabular: false,
   },
 };
+
+export const XLarge: Story = {
+  args: {
+    value: "180",
+    size: "xl",
+    variant: "accent",
+    tabular: true,
+  },
+};
+
+export const TwoXLarge: Story = {
+  args: {
+    value: "999",
+    size: "2xl",
+    variant: "success",
+    tabular: true,
+  },
+};
+
+export const ThreeXLarge: Story = {
+  args: {
+    value: "180",
+    size: "3xl",
+    variant: "danger",
+    tabular: true,
+  },
+};
+
+export const ExtremeSmallValue: Story = {
+  args: {
+    value: "0",
+    size: "2xl",
+    variant: "default",
+    tabular: true,
+  },
+};
+
+export const LargeValue: Story = {
+  args: {
+    value: "501",
+    size: "3xl",
+    variant: "success",
+    tabular: true,
+  },
+};

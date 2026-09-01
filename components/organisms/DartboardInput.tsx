@@ -1,5 +1,6 @@
 // components/organisms/DartboardInput.tsx
 'use client';
+import { useState } from 'react';
 import { Throw } from '@/lib/types';
 
 interface DartboardInputProps {
@@ -11,7 +12,7 @@ interface DartboardInputProps {
 
 const CENTER = 200;
 
-/** Builds an SVG path for one non-overlapping annular wedge (a ring "slice"): the actual shape of one dartboard scoring band for one segment. */
+/** Builds an SVG path for one non-overlapping annular wedge (a ring "slice"): the actual shape of one dartboard scoring band for one segment. Purely decorative now — no click handling. */
 function annularWedgePath(innerRadius: number, outerRadius: number, startAngle: number, endAngle: number): string {
   const point = (r: number, angle: number) => ({
     x: CENTER + r * Math.cos(angle),
@@ -33,10 +34,6 @@ function annularWedgePath(innerRadius: number, outerRadius: number, startAngle: 
   ].join(' ');
 }
 
-// Radial bands, outer edge to center. Widened well beyond a real dartboard's proportions
-// (where double/treble rings are only ~2% of the radius) so double and treble are actually
-// tappable — dartboard segments are the plan's documented exception to the 44px touch-target
-// rule, but "smaller than 44px" isn't the same as "a few physical pixels wide."
 const RADIUS = {
   boardEdge: 190,
   doubleInner: 160,
@@ -45,38 +42,52 @@ const RADIUS = {
   innerSingleInner: 25,
 };
 
+/** A real dartboard's segment order, clockwise starting from the top (12 o'clock). Visual only now — this no longer affects scoring, just makes the decorative board look like a real one. */
+const BOARD_ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+
+type Modifier = 'S' | 'D' | 'T';
+
+const KEYPAD_NUMBERS = Array.from({ length: 20 }, (_, i) => i + 1);
+
 export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0 }: DartboardInputProps) {
-  const segments = Array.from({ length: 20 }, (_, i) => i + 1);
+  const [modifier, setModifier] = useState<Modifier>('S');
   const order = Math.min(visitDartCount, 2) as 0 | 1 | 2;
 
-  const handleSegmentClick = (sector: number, ring: 'S' | 'D' | 'T' | 'OB' | 'IB') => {
+  const throwSector = (sector: number) => {
     if (disabled) return;
-    const points = calculatePoints(sector, ring);
-    onThrow({
-      sector: sector as any,
-      ring,
-      points,
-      order,
-    });
+
+    if (sector === 25) {
+      // No real "triple bull" — DOUBLE gives inner bull (50), anything else gives outer bull (25).
+      const ring = modifier === 'D' ? 'IB' : 'OB';
+      const points = ring === 'IB' ? 50 : 25;
+      onThrow({ sector: 25 as any, ring, points, order });
+    } else {
+      const points = sector * (modifier === 'D' ? 2 : modifier === 'T' ? 3 : 1);
+      onThrow({ sector: sector as any, ring: modifier, points, order });
+    }
+
+    setModifier('S');
   };
 
   const handleMiss = () => {
     if (disabled) return;
-    onThrow({
-      sector: 0 as any,
-      ring: 'M',
-      points: 0,
-      order,
-    });
+    onThrow({ sector: 0 as any, ring: 'M', points: 0, order });
+    setModifier('S');
+  };
+
+  const toggleModifier = (target: Modifier) => {
+    if (disabled) return;
+    setModifier((current) => (current === target ? 'S' : target));
   };
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <svg viewBox="0 0 400 400" className="w-80 h-80">
+      {/* Decorative dartboard — visual reference only, not interactive */}
+      <svg viewBox="0 0 400 400" className="w-64 h-64">
         <circle cx={CENTER} cy={CENTER} r={RADIUS.boardEdge} fill="var(--oche)" stroke="var(--chalk)" strokeWidth="1" />
 
-        {segments.map((segment) => {
-          const midAngle = (segment - 6) * 18 * (Math.PI / 180);
+        {BOARD_ORDER.map((segment, i) => {
+          const midAngle = (i * 18 - 90) * (Math.PI / 180);
           const startAngle = midAngle - 9 * (Math.PI / 180);
           const endAngle = midAngle + 9 * (Math.PI / 180);
           const labelPoint = {
@@ -86,80 +97,73 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0 }
 
           return (
             <g key={segment}>
-              <path
-                d={annularWedgePath(RADIUS.doubleInner, RADIUS.boardEdge, startAngle, endAngle)}
-                fill="var(--double)"
-                opacity="0.5"
-                onClick={() => handleSegmentClick(segment, 'D')}
-                className="cursor-pointer hover:opacity-80"
-              />
-              <path
-                d={annularWedgePath(RADIUS.outerSingleInner, RADIUS.doubleInner, startAngle, endAngle)}
-                fill="var(--slate)"
-                opacity="0.5"
-                onClick={() => handleSegmentClick(segment, 'S')}
-                className="cursor-pointer hover:opacity-80"
-              />
-              <path
-                d={annularWedgePath(RADIUS.trebleInner, RADIUS.outerSingleInner, startAngle, endAngle)}
-                fill="var(--wire)"
-                opacity="0.5"
-                onClick={() => handleSegmentClick(segment, 'T')}
-                className="cursor-pointer hover:opacity-80"
-              />
-              <path
-                d={annularWedgePath(RADIUS.innerSingleInner, RADIUS.trebleInner, startAngle, endAngle)}
-                fill="var(--slate)"
-                opacity="0.5"
-                onClick={() => handleSegmentClick(segment, 'S')}
-                className="cursor-pointer hover:opacity-80"
-              />
-              <text x={labelPoint.x} y={labelPoint.y} textAnchor="middle" className="text-xs fill-chalk pointer-events-none" dy="0.3em">
+              <path d={annularWedgePath(RADIUS.doubleInner, RADIUS.boardEdge, startAngle, endAngle)} fill="var(--double)" opacity="0.5" />
+              <path d={annularWedgePath(RADIUS.outerSingleInner, RADIUS.doubleInner, startAngle, endAngle)} fill="var(--slate)" opacity="0.5" />
+              <path d={annularWedgePath(RADIUS.trebleInner, RADIUS.outerSingleInner, startAngle, endAngle)} fill="var(--wire)" opacity="0.5" />
+              <path d={annularWedgePath(RADIUS.innerSingleInner, RADIUS.trebleInner, startAngle, endAngle)} fill="var(--slate)" opacity="0.5" />
+              <text x={labelPoint.x} y={labelPoint.y} textAnchor="middle" className="text-xs fill-chalk" dy="0.3em">
                 {segment}
               </text>
             </g>
           );
         })}
 
-        {/* Bulls: the outer bull disk's radius matches the inner single band's inner edge
-            exactly (RADIUS.innerSingleInner), so there is no unclickable gap between the
-            segment wedges and the bull. Outer bull is drawn first as the larger circle,
-            inner bull drawn on top as the smaller circle — so the visually and interactively
-            innermost target (highest value, 50pts) really is the one you hit by tapping
-            dead center. */}
-        <circle
-          cx={CENTER}
-          cy={CENTER}
-          r={RADIUS.innerSingleInner}
-          fill="var(--wire)"
-          onClick={() => handleSegmentClick(25, 'OB')}
-          className="cursor-pointer hover:opacity-80"
-        />
-        <circle
-          cx={CENTER}
-          cy={CENTER}
-          r={RADIUS.innerSingleInner * 0.4}
-          fill="var(--treble)"
-          onClick={() => handleSegmentClick(25, 'IB')}
-          className="cursor-pointer hover:opacity-80"
-        />
+        <circle cx={CENTER} cy={CENTER} r={RADIUS.innerSingleInner} fill="var(--wire)" />
+        <circle cx={CENTER} cy={CENTER} r={RADIUS.innerSingleInner * 0.4} fill="var(--treble)" />
       </svg>
 
+      {/* Modifier toggles */}
       <div className="flex gap-2">
         <button
-          onClick={handleMiss}
+          onClick={() => toggleModifier('D')}
           disabled={disabled}
-          className="min-h-11 min-w-11 px-4 py-2 bg-slate text-chalk rounded hover:opacity-80"
+          aria-pressed={modifier === 'D'}
+          className={`min-h-11 min-w-11 px-4 py-2 rounded font-semibold transition-opacity ${
+            modifier === 'D' ? 'bg-wire text-oche' : 'bg-slate text-chalk'
+          } disabled:opacity-50`}
         >
-          MISS
+          DOUBLE
+        </button>
+        <button
+          onClick={() => toggleModifier('T')}
+          disabled={disabled}
+          aria-pressed={modifier === 'T'}
+          className={`min-h-11 min-w-11 px-4 py-2 rounded font-semibold transition-opacity ${
+            modifier === 'T' ? 'bg-wire text-oche' : 'bg-slate text-chalk'
+          } disabled:opacity-50`}
+        >
+          TRIPLE
         </button>
       </div>
+
+      {/* Number keypad */}
+      <div className="grid grid-cols-5 gap-2 max-w-md">
+        {KEYPAD_NUMBERS.map((n) => (
+          <button
+            key={n}
+            onClick={() => throwSector(n)}
+            disabled={disabled}
+            className="min-h-11 min-w-11 rounded bg-slate text-chalk font-semibold hover:opacity-80 disabled:opacity-50"
+          >
+            {n}
+          </button>
+        ))}
+        <button
+          onClick={() => throwSector(25)}
+          disabled={disabled}
+          className="min-h-11 min-w-11 rounded bg-treble text-chalk font-semibold hover:opacity-80 disabled:opacity-50 col-span-5"
+        >
+          BULL (25)
+        </button>
+      </div>
+
+      <button
+        onClick={handleMiss}
+        disabled={disabled}
+        className="min-h-11 min-w-11 px-4 py-2 bg-slate text-chalk rounded hover:opacity-80 disabled:opacity-50"
+      >
+        MISS
+      </button>
     </div>
   );
-}
-
-function calculatePoints(sector: number, ring: string): number {
-  const ringValues = { S: 1, D: 2, T: 3, OB: 1, IB: 2 };
-  const ringMultiplier = ringValues[ring as keyof typeof ringValues] || 1;
-  return sector * ringMultiplier;
 }

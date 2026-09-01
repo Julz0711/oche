@@ -43,7 +43,6 @@ const RADIUS = {
   outerSingleInner: 115,
   trebleInner: 92,
   innerSingleInner: 25,
-  outerBullInner: 12,
 };
 
 export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0 }: DartboardInputProps) {
@@ -122,13 +121,16 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0 }
           );
         })}
 
-        {/* Bulls: outer bull drawn first as the larger circle, inner bull drawn on top as the
-            smaller circle — so the visually and interactively innermost target (highest value,
-            50pts) really is the one you hit by tapping dead center. */}
+        {/* Bulls: the outer bull disk's radius matches the inner single band's inner edge
+            exactly (RADIUS.innerSingleInner), so there is no unclickable gap between the
+            segment wedges and the bull. Outer bull is drawn first as the larger circle,
+            inner bull drawn on top as the smaller circle — so the visually and interactively
+            innermost target (highest value, 50pts) really is the one you hit by tapping
+            dead center. */}
         <circle
           cx={CENTER}
           cy={CENTER}
-          r={RADIUS.outerBullInner}
+          r={RADIUS.innerSingleInner}
           fill="var(--wire)"
           onClick={() => handleSegmentClick(25, 'OB')}
           className="cursor-pointer hover:opacity-80"
@@ -136,7 +138,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0 }
         <circle
           cx={CENTER}
           cy={CENTER}
-          r={RADIUS.outerBullInner * 0.45}
+          r={RADIUS.innerSingleInner * 0.4}
           fill="var(--treble)"
           onClick={() => handleSegmentClick(25, 'IB')}
           className="cursor-pointer hover:opacity-80"

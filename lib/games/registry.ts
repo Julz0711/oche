@@ -46,9 +46,9 @@ export type GameId = keyof typeof gameRegistry;
  * const state = x01Module.init([playerId1, playerId2], { startingScore: 501 });
  */
 export async function getGameModule(gameId: GameId): Promise<GameModule<any, any>> {
-  const loader = gameRegistry[gameId];
-  if (!loader) {
+  if (!Object.prototype.hasOwnProperty.call(gameRegistry, gameId)) {
     throw new Error(`Unknown game: ${gameId}`);
   }
+  const loader = gameRegistry[gameId];
   return loader();
 }

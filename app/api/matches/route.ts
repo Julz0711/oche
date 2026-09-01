@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   }
 
   const gameId = (body as { gameId?: unknown })?.gameId;
-  if (typeof gameId !== 'string' || !(gameId in gameRegistry)) {
+  if (typeof gameId !== 'string' || !Object.prototype.hasOwnProperty.call(gameRegistry, gameId)) {
     return NextResponse.json({ error: 'Invalid or unrecognized gameId' }, { status: 400 });
   }
 

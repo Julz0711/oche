@@ -52,8 +52,17 @@ The current heat map (built during M1's UI-polish rounds) shades each ring segme
 - Any change to `lib/stats/engine.ts`'s existing stubs — they remain unused stubs, unchanged, still waiting on real persisted data.
 - Cricket or any second game module (M4, per the parent spec's own sequencing — stats views should stay generic, but nothing here needs to *prove* that with a second game yet).
 
-## 6. Testing
+## 6. Board click-to-throw, restored alongside the keypad
+
+**Context:** the dartboard was click-to-throw in an earlier M1 polish round, then the user asked for it to be replaced with a numeric keypad (tapping was unpleasant and the board's numbers were misaligned at the time). Since then the board has been fixed — real segment ordering, correct sizing, proper wedge geometry, dividing lines. The user has now asked whether board-clicking can come back, confirmed as an *addition* to the keypad, not a replacement: both remain available, whichever is faster in the moment.
+
+**Design:** `HeatmapBoard` (section 4) stays purely decorative with no click handlers — it's shared with the post-match screen, which must never be interactive. `DartboardInput` (the live in-match component) layers a transparent, click-only overlay of the same wedge shapes on top of the rendered `HeatmapBoard`, reusing the same geometry-generating logic (`annularWedgePath`, `RADIUS`, `BOARD_ORDER`) so the two layers can never visually drift apart. Clicking a wedge fires the same `onThrow` callback the keypad already uses, computing sector/ring/points identically to how the keypad's number+modifier combination does today — including the same guard against an impossible "triple bull" click. The current DOUBLE/TRIPLE modifier toggle applies to board clicks exactly as it does to keypad taps (clicking sector 20 while DOUBLE is active scores a D20, the same as pressing "20" on the keypad with DOUBLE active) — one shared `throwSector`-style function serves both input paths, rather than two separate implementations of the same scoring logic.
+
+**Bull region:** the outer/inner bull click regions reuse the same two concentric circles `HeatmapBoard` already renders, matching the same 25/50-point split and the same triple-bull guard (clicking the bull while TRIPLE is active does nothing, exactly like the keypad's BULL button).
+
+## 7. Testing
 
 - `matchStats` (X01's implementation) gets a table-driven unit test suite analogous to `engine.test.ts`'s style: hand-constructed `X01State.visitHistory` fixtures covering the corrected `checkoutRate` logic (a bust at 380 remaining does NOT count as an attempt; a bust at 100 remaining DOES; a non-bust visit ending exactly at 0 counts as a hit), plus regression coverage for the four pre-existing fields carried over from `computeStats`'s logic.
 - `HeatmapBoard` is a pure presentational component; a couple of Storybook-style or direct-render sanity checks (does it render 20 segments + bulls, does an empty heatmap render the neutral-grey baseline with no heat) are enough — no need for exhaustive visual regression tooling given this MVP's existing testing posture (only the engine has real automated tests today).
 - Manual/Playwright-driven verification of the post-match screen's actual rendered appearance, consistent with how every UI-facing fix this session has been verified.
+- Board click-to-throw: Playwright-driven verification that clicking each ring band (single, double, treble, both bulls) fires the correct `Throw`, that the DOUBLE/TRIPLE toggle affects board clicks the same way it affects keypad taps, that a triple-bull click is blocked exactly like the keypad's BULL button, and that the post-match screen's `HeatmapBoard` instances remain fully inert (no `onThrow` firing) after a match completes.

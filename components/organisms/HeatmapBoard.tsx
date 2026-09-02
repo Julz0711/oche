@@ -30,7 +30,9 @@ function heatOpacity(ratio: number): number {
 }
 
 export function HeatmapBoard({ heatmap = {} }: HeatmapBoardProps) {
-  const maxHeat = Math.max(1, ...Object.values(heatmap));
+  // Misses ("M0") are never rendered, so they must not count toward the normalization ceiling —
+  // otherwise a heavy-miss match caps every hit well below red.
+  const maxHeat = Math.max(1, ...Object.entries(heatmap).filter(([key]) => !key.startsWith('M')).map(([, v]) => v));
   const ratioOf = (key: string) => (heatmap[key] ?? 0) / maxHeat;
 
   return (

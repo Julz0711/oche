@@ -1,6 +1,6 @@
 // components/organisms/PostMatchStats.tsx
 'use client';
-import { GameModule, PlayerId } from '@/lib/types';
+import { GameModule, PlayerId, StatTileDef } from '@/lib/types';
 import { HeatmapBoard } from './HeatmapBoard';
 import { Button } from '@/components/atoms/Button';
 
@@ -36,7 +36,7 @@ export function PostMatchStats({ gameModule, state, settings, players, winnerId 
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                {gameModule.statTiles.map((tile: { label: string; key: string; value: (s: any) => string | number }) => (
+                {gameModule.statTiles.map((tile: StatTileDef<any>) => (
                   <div key={tile.key} className="text-center">
                     <div className="text-[10px] font-bold uppercase tracking-widest text-sisal">{tile.label}</div>
                     <div className="text-xl font-display font-bold">{tile.value(stats)}</div>

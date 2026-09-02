@@ -23,10 +23,15 @@ const matchInfo = (state: X01State, settings: X01Settings): { label: string; val
 const visitHistory = (
   state: X01State,
   playerId: PlayerId
-): { throws: Throw[]; scoreAfter: number; busted: boolean }[] =>
+): { throws: Throw[]; scoreBefore: number; scoreAfter: number; busted: boolean }[] =>
   state.visitHistory
     .filter((entry) => entry.playerId === playerId && entry.legNumberBefore === state.currentLegNumber)
-    .map((entry) => ({ throws: entry.throws, scoreAfter: entry.scoreAfter, busted: entry.busted }))
+    .map((entry) => ({
+      throws: entry.throws,
+      scoreBefore: entry.scoreBefore,
+      scoreAfter: entry.scoreAfter,
+      busted: entry.busted,
+    }))
     .reverse();
 
 const heatmap = (state: X01State, playerId: PlayerId): Record<string, number> => {

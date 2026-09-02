@@ -170,7 +170,10 @@ export interface GameModule<TState = any, TSettings = any> {
    * A player's completed visits within the current "round" of play (for X01, the current leg),
    * newest first. Used to render a per-player recent-activity panel.
    */
-  visitHistory: (state: TState, playerId: PlayerId) => { throws: Throw[]; scoreAfter: number; busted: boolean }[];
+  visitHistory: (
+    state: TState,
+    playerId: PlayerId
+  ) => { throws: Throw[]; scoreBefore: number; scoreAfter: number; busted: boolean }[];
   /**
    * Hit-frequency map for a player's darts across the whole match so far, keyed as
    * `${ring}${sector}` (e.g. "D20", "T19", "IB25"). Used to render a heatmap.

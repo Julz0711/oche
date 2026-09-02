@@ -54,7 +54,7 @@ function HistoryPanel({
   inProgress,
 }: {
   playerId: PlayerId;
-  visits: { throws: Throw[]; scoreAfter: number; busted: boolean }[];
+  visits: { throws: Throw[]; scoreBefore: number; scoreAfter: number; busted: boolean }[];
   inProgress: Throw[];
 }) {
   return (
@@ -84,6 +84,7 @@ function HistoryPanel({
               {visit.throws.map((t, j) => (
                 <DartBadge key={j} t={t} />
               ))}
+              <span className="ml-auto text-sm font-bold text-chalk">{visit.scoreBefore - visit.scoreAfter}</span>
             </div>
             {visit.busted && (
               <div className="flex items-center gap-1 text-[10px] font-bold uppercase text-treble">

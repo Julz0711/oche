@@ -15,6 +15,16 @@ export const tokens = {
   double: "#1B7F5A",    // Green (double hits, success)
 } as const;
 
+// Heat-scale tokens — data visualization only, never used for UI chrome or brand color.
+// Kept here for documentation/reference; not wired into Tailwind's `colors` extension,
+// since these should never appear as bg-*/text-* utility classes — only as raw var()
+// values inside heat-map rendering (see components/organisms/HeatmapBoard.tsx).
+export const heatScale = {
+  cold: "#2563EB",
+  mid: "#EAB308",
+  hot: "#DC2626",
+} as const;
+
 // Type Scale (Font Sizes in px)
 export const fontSize = {
   xs: "12px",

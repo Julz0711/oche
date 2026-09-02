@@ -14,6 +14,11 @@
   --wire: #C0A15C;
   --treble: #C8102E;
   --double: #1B7F5A;
+  /* Heat-scale tokens — data visualization only (dartboard hit-density heat maps).
+     Never use these for UI chrome, buttons, or any of the 7 brand/gameplay tokens' jobs. */
+  --heat-cold: #2563EB;
+  --heat-mid: #EAB308;
+  --heat-hot: #DC2626;
 }
 
 /**

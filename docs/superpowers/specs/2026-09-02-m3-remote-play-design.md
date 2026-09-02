@@ -76,6 +76,46 @@ Behavior:
 
 This is the identity used for `hostId`, each `players[]` entry, and to authorize every remote-match write (join, start, throw, undo). It intentionally does not build the account-claiming flow described in the parent spec's §5 — that remains future work.
 
+## 3a. New GameModule Accessor: `lastCompletedVisit` (addendum)
+
+*Added after the initial approval, during implementation planning — see §5's note for why `visitHistory` doesn't work for this.* This is the one place M3 needs to touch the `GameModule` interface and the X01 module; the pure engine (`engine.ts`) itself is untouched.
+
+`lib/types.ts` gains one new method on `GameModule<TState, TSettings>`:
+
+```ts
+/**
+ * The single most recently completed visit for a player, regardless of which leg it belonged
+ * to (unlike `visitHistory`, which is scoped to the current leg for UI display). Returns null
+ * if the player has no completed visits yet in this match. Exists for remote-play's server-side
+ * Visit persistence, which needs a leg-boundary-safe read even when the completed visit also
+ * ended a leg.
+ */
+lastCompletedVisit: (
+  state: TState,
+  playerId: PlayerId
+) => { throws: Throw[]; scoreBefore: number; scoreAfter: number; busted: boolean; isCheckout: boolean } | null;
+```
+
+`lib/games/x01/index.ts` implements it purely from the already-existing `state.visitHistory` (no leg filter, and reusing the already-existing `wasCheckout` field on each entry):
+
+```ts
+const lastCompletedVisit = (
+  state: X01State,
+  playerId: PlayerId
+): { throws: Throw[]; scoreBefore: number; scoreAfter: number; busted: boolean; isCheckout: boolean } | null => {
+  const entries = state.visitHistory.filter((entry) => entry.playerId === playerId);
+  if (entries.length === 0) return null;
+  const latest = entries[entries.length - 1];
+  return {
+    throws: latest.throws,
+    scoreBefore: latest.scoreBefore,
+    scoreAfter: latest.scoreAfter,
+    busted: latest.busted,
+    isCheckout: latest.wasCheckout,
+  };
+};
+```
+
 ## 4. Lobby Flow
 
 1. **Create.** Dashboard gets a "Play Remote" button next to today's "New Match." `POST /api/matches` (existing route) is extended to accept `mode: 'local' | 'remote'`. For `'remote'`:
@@ -104,14 +144,16 @@ This is the identity used for `hostId`, each `players[]` entry, and to authorize
 2. Verify `identity.id === gameModule.currentPlayer(match.state)` — reject with 403 if it's not their turn. (This direct comparison works because `players` were seeded with the seated identities' own ids as `PlayerId`s at start time, per §4.) This is the enforcement point for the earlier decision that only the on-throw player can submit their own darts.
 3. `const newState = gameModule.applyThrow(match.state, throw_, match.settings)` — the same pure function local play calls directly.
 4. Persist `Match.state = newState` (every throw, including darts mid-visit — this alone is what makes reconnection mid-visit lossless; see §7).
-5. A `Visit` row represents one completed turn (`{ throws: Throw[], scoreBefore, scoreAfter, busted, isCheckout }`), matching the parent spec's Visit Log Data Model and the engine's own `visitHistory` — not one row per dart. So: if this throw caused `newState.visitHistory` to gain a new entry (i.e. the visit just completed — third dart, a bust, or an early checkout), insert one `Visit` row mirroring that newest `visitHistory` entry. A throw that's merely the 1st or 2nd dart of an in-progress visit writes no `Visit` row (its data still lives in `Match.state.currentVisit`, already persisted in step 4).
+5. A `Visit` row represents one completed turn (`{ throws: Throw[], scoreBefore, scoreAfter, busted, isCheckout }`), matching the parent spec's Visit Log Data Model — not one row per dart. Detecting "did this throw complete a visit" and reading back that visit's data **cannot use the existing `visitHistory` accessor**: it's deliberately filtered to the state's *current* leg for UI display (`lib/games/x01/index.ts`), and `currentLegNumber` advances in the very same `applyThrow` call that produces a leg-ending checkout's history entry — so by the time this route reads it back, `visitHistory(newState, playerId)` has already filtered out exactly the leg-ending visit it needs. Verified directly against `engine.ts`; see §3a below for the fix.
+   - A visit just completed iff `gameModule.visitProgress(newState).darts === 0` (the engine only ever resets the in-progress visit to empty when it commits a completed one — true for a 3rd dart, a bust, or an early checkout, and false for every throw that's merely the 1st or 2nd dart of an in-progress visit, which writes no `Visit` row; that dart's data still lives in `Match.state.currentVisit`, already persisted in step 4).
+   - If so, read the completed visit via the new `gameModule.lastCompletedVisit(newState, identity.id)` accessor (§3a) — not `visitHistory` — and insert one `Visit` row from it.
 6. If `gameModule.isComplete(newState)`: also set `status: 'complete'`, `winnerId: gameModule.winner(newState)`, `completedAt: new Date()`.
 7. Publish a `'state'` event with `{ state: newState, status }` on `match:${id}`.
 
 **`POST /api/matches/:id/undo`** (new route):
 - Verify requester is one of the two seated players (either can undo, per the approved design — no per-throw ownership check) and `status === 'live'`.
 - `const newState = gameModule.undo(match.state)`, persist.
-- `gameModule.undo` removes the last completed visit (or clears an in-progress one). If it removed a completed visit — i.e. `match.state.visitHistory` was longer than `newState.visitHistory` — delete the most recently inserted `Visit` row for this match so persisted history stays consistent with in-memory state. If undo only cleared an in-progress visit's darts (no `visitHistory` entry existed for it), there is no `Visit` row to delete.
+- Delete the most recently created `Visit` row for this match (`Visit.findOneAndDelete({ matchId }).sort({ createdAt: -1 })`) — no conditional logic needed. Verified against `engine.ts`: `undo` unconditionally pops exactly one completed visit when any exist (discarding an in-progress visit's uncommitted darts too, if one was started since — matching local play's existing "undo removes the last visit" semantics) and is a no-op otherwise; since a `Visit` row is written if and only if a visit actually completed (§5), "delete the newest row, if any" is exactly the correct inverse in every case, including the no-op case (nothing to delete).
 - Publish `'state'`.
 
 **Failed throws (client-side):** if the POST fails for any reason (network error, 403 stale-turn, 409 stale-status), the client shows an inline error near `DartboardInput` ("Couldn't send that throw — try again") and leaves the input active for the player to retry the same dart. No silent retry, no silent drop.
@@ -142,11 +184,11 @@ This is the identity used for `hostId`, each `players[]` entry, and to authorize
 - If `mode === 'remote'`, also call `useRemoteMatchSync(id)`.
 - Render branches on `status`: `'lobby'` → `<MatchLobby>` (new component: room code, share link, seated players, host-only Start button); `'live'` → the existing scoreboard/history/board UI, unchanged, except in remote mode `DartboardInput`'s `disabled` prop is also `true` whenever `gameModule.currentPlayer(gameState) !== you` (the store's `you` field, from §6/§7's `GET` snapshot) — the server enforces this regardless (§5); this is purely to avoid a pointless rejected request and give instant feedback; `'complete'` → the existing `PostMatchStats`, unchanged.
 
-**GameModule / X01 engine:** no changes. `applyThrow`, `undo`, `isComplete`, `winner`, and every accessor (`visitHistory`, `heatmap`, `matchStats`, etc.) operate purely on `TState` and have no notion of how that state arrived.
+**GameModule / X01 engine:** no changes to the pure engine (`engine.ts`) or to `applyThrow`, `undo`, `isComplete`, `winner`, or any existing accessor's behavior. The one addition is the new `lastCompletedVisit` accessor from §3a, purely additive and read-only — it doesn't change what any other accessor returns.
 
 ## 8. Testing
 
-- No changes to the existing X01 engine test suite (40 tests) or `matchStats` tests (4 tests) — the engine is untouched.
+- No changes to the existing X01 engine test suite (40 tests) or `matchStats` tests (4 tests) — the engine is untouched. The new `lastCompletedVisit` accessor (§3a) gets its own small test covering the specific case that motivated it: a visit that ends a leg must still be returned, even though `visitHistory` would no longer include it once the leg number has advanced.
 - New integration-level tests around the API routes: turn enforcement (rejecting a throw from the wrong seat), undo permission (either seated player, rejected for non-participants), room-code join edge cases (already full, already seated, unknown code), and the identity helper (session vs. cookie vs. fresh-cookie-issued paths).
 - Ably itself is not unit-tested (thin pub/sub transport); the sync loop gets a manual two-browser-session live-verification pass, consistent with how UI-facing work has been verified throughout this project.
 

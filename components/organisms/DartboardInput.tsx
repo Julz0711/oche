@@ -2,6 +2,7 @@
 'use client';
 import { useState } from 'react';
 import { Throw } from '@/lib/types';
+import { CENTER, RADIUS, BOARD_ORDER, annularWedgePath, segmentAngles } from '@/lib/dartboard-geometry';
 
 interface DartboardInputProps {
   onThrow: (throw_: Throw) => void;
@@ -11,41 +12,6 @@ interface DartboardInputProps {
   /** Hit-frequency map (key: `${ring}${sector}`) for the current player, used to shade the decorative board. Defaults to empty (uniform, unshaded board). */
   heatmap?: Record<string, number>;
 }
-
-const CENTER = 200;
-
-/** Builds an SVG path for one non-overlapping annular wedge (a ring "slice"): the actual shape of one dartboard scoring band for one segment. Purely decorative now — no click handling. */
-function annularWedgePath(innerRadius: number, outerRadius: number, startAngle: number, endAngle: number): string {
-  const point = (r: number, angle: number) => ({
-    x: CENTER + r * Math.cos(angle),
-    y: CENTER + r * Math.sin(angle),
-  });
-  const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
-
-  const outerStart = point(outerRadius, startAngle);
-  const outerEnd = point(outerRadius, endAngle);
-  const innerEnd = point(innerRadius, endAngle);
-  const innerStart = point(innerRadius, startAngle);
-
-  return [
-    `M ${outerStart.x} ${outerStart.y}`,
-    `A ${outerRadius} ${outerRadius} 0 ${largeArc} 1 ${outerEnd.x} ${outerEnd.y}`,
-    `L ${innerEnd.x} ${innerEnd.y}`,
-    `A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${innerStart.x} ${innerStart.y}`,
-    'Z',
-  ].join(' ');
-}
-
-const RADIUS = {
-  boardEdge: 190,
-  doubleInner: 160,
-  outerSingleInner: 115,
-  trebleInner: 92,
-  innerSingleInner: 25,
-};
-
-/** A real dartboard's segment order, clockwise starting from the top (12 o'clock). Visual only now — this no longer affects scoring, just makes the decorative board look like a real one. */
-const BOARD_ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
 
 type Modifier = 'S' | 'D' | 'T';
 
@@ -95,9 +61,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
         <circle cx={CENTER} cy={CENTER} r={RADIUS.boardEdge} fill="var(--oche)" stroke="var(--chalk)" strokeWidth="1" />
 
         {BOARD_ORDER.map((segment, i) => {
-          const midAngle = (i * 18 - 90) * (Math.PI / 180);
-          const startAngle = midAngle - 9 * (Math.PI / 180);
-          const endAngle = midAngle + 9 * (Math.PI / 180);
+          const { startAngle, endAngle, midAngle } = segmentAngles(i);
           const labelPoint = {
             x: CENTER + ((RADIUS.doubleInner + RADIUS.boardEdge) / 2) * Math.cos(midAngle),
             y: CENTER + ((RADIUS.doubleInner + RADIUS.boardEdge) / 2) * Math.sin(midAngle),

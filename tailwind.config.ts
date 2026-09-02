@@ -12,8 +12,11 @@ const config: Config = {
       colors: tokens,
       fontSize,
       fontFamily: {
-        display: fontFamily.display.split(",").map((f) => f.trim()),
-        sans: fontFamily.sans.split(",").map((f) => f.trim()),
+        // next/font only ever exposes the actual (hashed) family name via this CSS
+        // variable, set on <html> in app/layout.tsx — the literal names below are
+        // just a fallback for if that variable is ever unset.
+        display: ["var(--font-display)", ...fontFamily.display.split(",").map((f) => f.trim())],
+        sans: ["var(--font-sans)", ...fontFamily.sans.split(",").map((f) => f.trim())],
       },
     },
   },

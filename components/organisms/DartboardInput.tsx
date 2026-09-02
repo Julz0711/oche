@@ -15,8 +15,11 @@ interface DartboardInputProps {
 }
 
 type Modifier = 'S' | 'D' | 'T';
+type BoardRing = 'S' | 'D' | 'T';
 
 const KEYPAD_NUMBERS = Array.from({ length: 20 }, (_, i) => i + 1);
+
+const HIGHLIGHT_CLASS = 'fill-transparent hover:fill-wire/20 active:fill-wire/50 transition-colors cursor-pointer';
 
 export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, heatmap = {} }: DartboardInputProps) {
   const [modifier, setModifier] = useState<Modifier>('S');
@@ -37,6 +40,14 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
     }
 
     setModifier('S');
+  };
+
+  /** Board clicks detect the ring from where on the segment was clicked, independent of the DOUBLE/TRIPLE toggle (which only drives the keypad). */
+  const throwAt = (sector: number, ring: BoardRing | 'OB' | 'IB') => {
+    if (disabled) return;
+    const points =
+      ring === 'OB' ? 25 : ring === 'IB' ? 50 : sector * (ring === 'D' ? 2 : ring === 'T' ? 3 : 1);
+    onThrow({ sector: sector as any, ring, points, order });
   };
 
   const handleMiss = () => {
@@ -60,23 +71,39 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
         <svg viewBox="0 0 400 400" className="absolute inset-0 w-full h-full">
           {BOARD_ORDER.map((segment, i) => {
             const { startAngle, endAngle } = segmentAngles(i);
+            const bands: { ring: BoardRing; inner: number; outer: number }[] = [
+              { ring: 'S', inner: RADIUS.innerSingleInner, outer: RADIUS.trebleInner },
+              { ring: 'T', inner: RADIUS.trebleInner, outer: RADIUS.outerSingleInner },
+              { ring: 'S', inner: RADIUS.outerSingleInner, outer: RADIUS.doubleInner },
+              { ring: 'D', inner: RADIUS.doubleInner, outer: RADIUS.boardEdge },
+            ];
             return (
-              <path
-                key={segment}
-                d={annularWedgePath(RADIUS.innerSingleInner, RADIUS.boardEdge, startAngle, endAngle)}
-                fill="transparent"
-                className={disabled ? '' : 'cursor-pointer'}
-                onClick={() => throwSector(segment)}
-              />
+              <g key={segment}>
+                {bands.map((band, bi) => (
+                  <path
+                    key={bi}
+                    d={annularWedgePath(band.inner, band.outer, startAngle, endAngle)}
+                    className={disabled ? 'fill-transparent' : HIGHLIGHT_CLASS}
+                    onClick={() => throwAt(segment, band.ring)}
+                  />
+                ))}
+              </g>
             );
           })}
+          {/* Outer bull (25) drawn first, inner bull (50) drawn on top so it captures its own clicks */}
           <circle
             cx={CENTER}
             cy={CENTER}
             r={RADIUS.innerSingleInner}
-            fill="transparent"
-            className={disabled ? '' : 'cursor-pointer'}
-            onClick={() => throwSector(25)}
+            className={disabled ? 'fill-transparent' : HIGHLIGHT_CLASS}
+            onClick={() => throwAt(25, 'OB')}
+          />
+          <circle
+            cx={CENTER}
+            cy={CENTER}
+            r={RADIUS.innerSingleInner * 0.4}
+            className={disabled ? 'fill-transparent' : HIGHLIGHT_CLASS}
+            onClick={() => throwAt(25, 'IB')}
           />
         </svg>
       </div>
@@ -127,7 +154,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
         <button
           onClick={handleMiss}
           disabled={disabled}
-          className="min-h-14 px-2 rounded-full font-bold text-lg bg-slate text-sisal border border-sisal/30 hover:opacity-80 disabled:opacity-50"
+          className="min-h-14 px-2 rounded-full font-bold text-lg bg-slate text-sisal border border-sisal/30 hover:opacity-80 disabled:opacity-50 transition-transform active:scale-95"
         >
           MISS
         </button>

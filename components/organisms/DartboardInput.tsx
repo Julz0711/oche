@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Throw } from '@/lib/types';
 import { CENTER, RADIUS, BOARD_ORDER, annularWedgePath, segmentAngles } from '@/lib/dartboard-geometry';
+import { HeatmapBoard } from './HeatmapBoard';
 
 interface DartboardInputProps {
   onThrow: (throw_: Throw) => void;
@@ -20,11 +21,6 @@ const KEYPAD_NUMBERS = Array.from({ length: 20 }, (_, i) => i + 1);
 export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, heatmap = {} }: DartboardInputProps) {
   const [modifier, setModifier] = useState<Modifier>('S');
   const order = Math.min(visitDartCount, 2) as 0 | 1 | 2;
-  const maxHeat = Math.max(1, ...Object.values(heatmap));
-  const heatOpacity = (key: string) => {
-    const count = heatmap[key] ?? 0;
-    return 0.08 + (count / maxHeat) * 0.92; // 0.08 (unhit) to 1.0 (most-hit) — wide range so hot spots really pop
-  };
 
   const throwSector = (sector: number) => {
     if (disabled) return;
@@ -56,69 +52,34 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
 
   return (
     <div className="flex flex-col items-center gap-4 w-full">
-      {/* Decorative dartboard — visual reference only, not interactive */}
-      <svg viewBox="0 0 400 400" className="w-full max-w-md aspect-square">
-        <circle cx={CENTER} cy={CENTER} r={RADIUS.boardEdge} fill="var(--oche)" stroke="var(--chalk)" strokeWidth="1" />
-
-        {BOARD_ORDER.map((segment, i) => {
-          const { startAngle, endAngle, midAngle } = segmentAngles(i);
-          const labelPoint = {
-            x: CENTER + ((RADIUS.doubleInner + RADIUS.boardEdge) / 2) * Math.cos(midAngle),
-            y: CENTER + ((RADIUS.doubleInner + RADIUS.boardEdge) / 2) * Math.sin(midAngle),
-          };
-
-          return (
-            <g key={segment}>
+      {/* Dartboard: HeatmapBoard renders the visual (grey structure + heat), a transparent
+          overlay on top makes it clickable — an alternative to the keypad below, not a
+          replacement for it. */}
+      <div className="relative w-full max-w-md">
+        <HeatmapBoard heatmap={heatmap} />
+        <svg viewBox="0 0 400 400" className="absolute inset-0 w-full h-full">
+          {BOARD_ORDER.map((segment, i) => {
+            const { startAngle, endAngle } = segmentAngles(i);
+            return (
               <path
-                d={annularWedgePath(RADIUS.doubleInner, RADIUS.boardEdge, startAngle, endAngle)}
-                fill="var(--double)"
-                fillOpacity={heatOpacity(`D${segment}`)}
-                stroke="var(--oche)" strokeWidth="2"
+                key={segment}
+                d={annularWedgePath(RADIUS.innerSingleInner, RADIUS.boardEdge, startAngle, endAngle)}
+                fill="transparent"
+                className={disabled ? '' : 'cursor-pointer'}
+                onClick={() => throwSector(segment)}
               />
-              <path
-                d={annularWedgePath(RADIUS.outerSingleInner, RADIUS.doubleInner, startAngle, endAngle)}
-                fill="var(--slate)"
-                fillOpacity={heatOpacity(`S${segment}`)}
-                stroke="var(--oche)" strokeWidth="2"
-              />
-              <path
-                d={annularWedgePath(RADIUS.trebleInner, RADIUS.outerSingleInner, startAngle, endAngle)}
-                fill="var(--treble)"
-                fillOpacity={heatOpacity(`T${segment}`)}
-                stroke="var(--oche)" strokeWidth="2"
-              />
-              <path
-                d={annularWedgePath(RADIUS.innerSingleInner, RADIUS.trebleInner, startAngle, endAngle)}
-                fill="var(--slate)"
-                fillOpacity={heatOpacity(`S${segment}`)}
-                stroke="var(--oche)" strokeWidth="2"
-              />
-              <text x={labelPoint.x} y={labelPoint.y} textAnchor="middle" className="text-xs fill-chalk" dy="0.3em">
-                {segment}
-              </text>
-            </g>
-          );
-        })}
-
-        <circle
-          cx={CENTER}
-          cy={CENTER}
-          r={RADIUS.innerSingleInner}
-          fill="var(--wire)"
-          fillOpacity={heatOpacity('OB25')}
-          stroke="var(--oche)"
-          strokeWidth="2"
-        />
-        <circle
-          cx={CENTER}
-          cy={CENTER}
-          r={RADIUS.innerSingleInner * 0.4}
-          fill="var(--treble)"
-          fillOpacity={heatOpacity('IB25')}
-          stroke="var(--oche)"
-          strokeWidth="2"
-        />
-      </svg>
+            );
+          })}
+          <circle
+            cx={CENTER}
+            cy={CENTER}
+            r={RADIUS.innerSingleInner}
+            fill="transparent"
+            className={disabled ? '' : 'cursor-pointer'}
+            onClick={() => throwSector(25)}
+          />
+        </svg>
+      </div>
 
       {/* Number keypad */}
       <div className="grid grid-cols-5 gap-3 max-w-md w-full">

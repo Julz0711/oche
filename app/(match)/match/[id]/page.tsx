@@ -185,7 +185,7 @@ export default function MatchPage({ params }: MatchPageProps) {
       </div>
 
       {/* Middle row: history / board+keypad / history */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 flex-1">
+      <div className="grid grid-cols-1 md:grid-cols-[0.8fr_1.4fr_0.8fr] gap-3 flex-1">
         {leftPlayer && (
           <HistoryPanel
             playerId={leftPlayer}

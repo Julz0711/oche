@@ -62,9 +62,10 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
 
   const throwSector = (sector: number) => {
     if (disabled) return;
+    if (sector === 25 && modifier === 'T') return; // no such throw as a "triple bull" — the BULL button is disabled for this case below, but guard here too
 
     if (sector === 25) {
-      // No real "triple bull" — DOUBLE gives inner bull (50), anything else gives outer bull (25).
+      // DOUBLE gives inner bull (50); anything else (only 'S' can reach here now) gives outer bull (25).
       const ring = modifier === 'D' ? 'IB' : 'OB';
       const points = ring === 'IB' ? 50 : 25;
       onThrow({ sector: 25 as any, ring, points, order });
@@ -119,14 +120,35 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
         <circle cx={CENTER} cy={CENTER} r={RADIUS.innerSingleInner * 0.4} fill="var(--treble)" opacity={heatOpacity('IB25')} />
       </svg>
 
-      {/* Modifier toggles */}
-      <div className="flex gap-2">
+      {/* Number keypad */}
+      <div className="grid grid-cols-5 gap-3 max-w-md w-full">
+        {KEYPAD_NUMBERS.map((n) => (
+          <button
+            key={n}
+            onClick={() => throwSector(n)}
+            disabled={disabled}
+            className="min-h-14 min-w-14 rounded-full bg-slate text-chalk text-lg font-bold hover:opacity-80 disabled:opacity-50 transition-transform active:scale-95"
+          >
+            {n}
+          </button>
+        ))}
+        <button
+          onClick={() => throwSector(25)}
+          disabled={disabled || modifier === 'T'}
+          className="min-h-14 min-w-14 rounded-full bg-treble text-chalk text-lg font-bold hover:opacity-80 disabled:opacity-50 col-span-5 transition-transform active:scale-95"
+        >
+          BULL (25)
+        </button>
+      </div>
+
+      {/* Modifiers + miss, grouped in one row below the keypad */}
+      <div className="grid grid-cols-3 gap-3 max-w-md w-full">
         <button
           onClick={() => toggleModifier('D')}
           disabled={disabled}
           aria-pressed={modifier === 'D'}
-          className={`min-h-11 min-w-11 px-4 py-2 rounded-full font-semibold transition-colors ${
-            modifier === 'D' ? 'bg-double text-chalk' : 'bg-slate text-chalk'
+          className={`min-h-14 px-2 rounded-full font-bold text-lg transition-colors ${
+            modifier === 'D' ? 'bg-double text-chalk' : 'bg-double/15 text-double border border-double/40'
           } disabled:opacity-50`}
         >
           DOUBLE
@@ -135,42 +157,20 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
           onClick={() => toggleModifier('T')}
           disabled={disabled}
           aria-pressed={modifier === 'T'}
-          className={`min-h-11 min-w-11 px-4 py-2 rounded-full font-semibold transition-colors ${
-            modifier === 'T' ? 'bg-treble text-chalk' : 'bg-slate text-chalk'
+          className={`min-h-14 px-2 rounded-full font-bold text-lg transition-colors ${
+            modifier === 'T' ? 'bg-treble text-chalk' : 'bg-treble/15 text-treble border border-treble/40'
           } disabled:opacity-50`}
         >
           TRIPLE
         </button>
-      </div>
-
-      {/* Number keypad */}
-      <div className="grid grid-cols-5 gap-2 max-w-md">
-        {KEYPAD_NUMBERS.map((n) => (
-          <button
-            key={n}
-            onClick={() => throwSector(n)}
-            disabled={disabled}
-            className="min-h-11 min-w-11 rounded-full bg-slate text-chalk font-semibold hover:opacity-80 disabled:opacity-50 transition-transform active:scale-95"
-          >
-            {n}
-          </button>
-        ))}
         <button
-          onClick={() => throwSector(25)}
+          onClick={handleMiss}
           disabled={disabled}
-          className="min-h-11 min-w-11 rounded-full bg-treble text-chalk font-semibold hover:opacity-80 disabled:opacity-50 col-span-5 transition-transform active:scale-95"
+          className="min-h-14 px-2 rounded-full font-bold text-lg bg-slate text-sisal border border-sisal/30 hover:opacity-80 disabled:opacity-50"
         >
-          BULL (25)
+          MISS
         </button>
       </div>
-
-      <button
-        onClick={handleMiss}
-        disabled={disabled}
-        className="min-h-11 min-w-11 px-4 py-2 bg-slate text-chalk rounded-full hover:opacity-80 disabled:opacity-50"
-      >
-        MISS
-      </button>
     </div>
   );
 }

@@ -105,10 +105,34 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
 
           return (
             <g key={segment}>
-              <path d={annularWedgePath(RADIUS.doubleInner, RADIUS.boardEdge, startAngle, endAngle)} fill="var(--double)" opacity={heatOpacity(`D${segment}`)} />
-              <path d={annularWedgePath(RADIUS.outerSingleInner, RADIUS.doubleInner, startAngle, endAngle)} fill="var(--slate)" opacity={heatOpacity(`S${segment}`)} />
-              <path d={annularWedgePath(RADIUS.trebleInner, RADIUS.outerSingleInner, startAngle, endAngle)} fill="var(--wire)" opacity={heatOpacity(`T${segment}`)} />
-              <path d={annularWedgePath(RADIUS.innerSingleInner, RADIUS.trebleInner, startAngle, endAngle)} fill="var(--slate)" opacity={heatOpacity(`S${segment}`)} />
+              <path
+                d={annularWedgePath(RADIUS.doubleInner, RADIUS.boardEdge, startAngle, endAngle)}
+                fill="var(--double)"
+                fillOpacity={heatOpacity(`D${segment}`)}
+                stroke="var(--oche)"
+                strokeWidth="2"
+              />
+              <path
+                d={annularWedgePath(RADIUS.outerSingleInner, RADIUS.doubleInner, startAngle, endAngle)}
+                fill="var(--slate)"
+                fillOpacity={heatOpacity(`S${segment}`)}
+                stroke="var(--oche)"
+                strokeWidth="2"
+              />
+              <path
+                d={annularWedgePath(RADIUS.trebleInner, RADIUS.outerSingleInner, startAngle, endAngle)}
+                fill="var(--treble)"
+                fillOpacity={heatOpacity(`T${segment}`)}
+                stroke="var(--oche)"
+                strokeWidth="2"
+              />
+              <path
+                d={annularWedgePath(RADIUS.innerSingleInner, RADIUS.trebleInner, startAngle, endAngle)}
+                fill="var(--slate)"
+                fillOpacity={heatOpacity(`S${segment}`)}
+                stroke="var(--oche)"
+                strokeWidth="2"
+              />
               <text x={labelPoint.x} y={labelPoint.y} textAnchor="middle" className="text-xs fill-chalk" dy="0.3em">
                 {segment}
               </text>
@@ -116,8 +140,24 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
           );
         })}
 
-        <circle cx={CENTER} cy={CENTER} r={RADIUS.innerSingleInner} fill="var(--wire)" opacity={heatOpacity('OB25')} />
-        <circle cx={CENTER} cy={CENTER} r={RADIUS.innerSingleInner * 0.4} fill="var(--treble)" opacity={heatOpacity('IB25')} />
+        <circle
+          cx={CENTER}
+          cy={CENTER}
+          r={RADIUS.innerSingleInner}
+          fill="var(--wire)"
+          fillOpacity={heatOpacity('OB25')}
+          stroke="var(--oche)"
+          strokeWidth="2"
+        />
+        <circle
+          cx={CENTER}
+          cy={CENTER}
+          r={RADIUS.innerSingleInner * 0.4}
+          fill="var(--treble)"
+          fillOpacity={heatOpacity('IB25')}
+          stroke="var(--oche)"
+          strokeWidth="2"
+        />
       </svg>
 
       {/* Number keypad */}

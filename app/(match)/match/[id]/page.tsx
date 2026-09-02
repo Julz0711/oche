@@ -51,6 +51,8 @@ function DartBadge({ t }: { t: Throw }) {
   );
 }
 
+const HISTORY_VISIBLE_LIMIT = 9;
+
 function HistoryPanel({
   playerId,
   visits,
@@ -60,12 +62,16 @@ function HistoryPanel({
   visits: { throws: Throw[]; scoreBefore: number; scoreAfter: number; busted: boolean }[];
   inProgress: Throw[];
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasMore = visits.length > HISTORY_VISIBLE_LIMIT;
+  const visibleVisits = expanded ? visits : visits.slice(0, HISTORY_VISIBLE_LIMIT);
+
   return (
-    <div className="rounded-2xl bg-slate p-4 flex flex-col gap-3 min-h-[240px]">
-      <div className="text-xs font-bold uppercase tracking-widest text-sisal">{playerId}</div>
+    <div className="rounded-2xl bg-slate p-4 flex flex-col gap-3 min-h-[240px] max-h-[520px]">
+      <div className="text-xs font-bold uppercase tracking-widest text-sisal shrink-0">{playerId}</div>
 
       {inProgress.length > 0 && (
-        <div className="flex gap-2 flex-wrap p-2 rounded-xl bg-wire/10 border border-wire/40">
+        <div className="flex gap-2 flex-wrap p-2 rounded-xl bg-wire/10 border border-wire/40 shrink-0">
           {inProgress.map((t, j) => (
             <DartBadge key={j} t={t} />
           ))}
@@ -76,8 +82,8 @@ function HistoryPanel({
         <div className="flex-1 flex items-center justify-center text-sisal/50 text-sm">—</div>
       )}
 
-      <div className="flex flex-col gap-2">
-        {visits.map((visit, i) => (
+      <div className="flex flex-col gap-2 overflow-y-auto">
+        {visibleVisits.map((visit, i) => (
           <div key={i} className="flex flex-col gap-1">
             <div
               className={`flex items-center gap-2 flex-wrap rounded-xl p-2 ${
@@ -96,6 +102,23 @@ function HistoryPanel({
             )}
           </div>
         ))}
+
+        {hasMore && !expanded && (
+          <button
+            onClick={() => setExpanded(true)}
+            className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk py-1"
+          >
+            Show more ({visits.length - HISTORY_VISIBLE_LIMIT})
+          </button>
+        )}
+        {expanded && hasMore && (
+          <button
+            onClick={() => setExpanded(false)}
+            className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk py-1"
+          >
+            Show less
+          </button>
+        )}
       </div>
     </div>
   );

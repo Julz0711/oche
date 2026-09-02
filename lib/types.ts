@@ -180,6 +180,12 @@ export interface GameModule<TState = any, TSettings = any> {
    */
   heatmap: (state: TState, playerId: PlayerId) => Record<string, number>;
   /**
+   * Single-match statistics for a player, computed from in-memory match state (no persistence
+   * required). Distinct from `computeStats`, which operates on persisted `Visit[]` records for
+   * future cross-match aggregate stats.
+   */
+  matchStats: (state: TState, playerId: PlayerId, settings: TSettings) => GameStats;
+  /**
    * React component to render one player's scoreboard slot
    */
   ScoreboardSlot: React.FC<{ state: TState; playerId: PlayerId; settings: TSettings }>;

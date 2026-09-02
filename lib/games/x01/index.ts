@@ -3,6 +3,7 @@ import { GameModule, PlayerId, Throw } from '@/lib/types';
 import { X01State, init as initEngine, applyThrow, undo, isComplete, winner } from './engine';
 import { X01Settings, X01SettingsSchema, X01DefaultSettings } from './schema';
 import { computeStats, statTiles } from './stats';
+import { matchStats } from './matchStats';
 import { ScoreboardSlot } from './components';
 import { Dices } from 'lucide-react';
 
@@ -70,6 +71,7 @@ const X01Module: GameModule<X01State, X01Settings> = {
   matchInfo,
   visitHistory,
   heatmap,
+  matchStats,
 
   ScoreboardSlot,
   primaryMetric: (state: X01State, playerId: PlayerId) => ({

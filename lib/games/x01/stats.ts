@@ -16,7 +16,7 @@ export interface X01Stats extends GameStats {
   treblesRate: number;
 }
 
-const EMPTY_STATS: X01Stats = {
+export const EMPTY_X01_STATS: X01Stats = {
   avg3Dart: 0,
   firstNineAvg: 0,
   checkoutRate: 0,
@@ -32,7 +32,7 @@ const EMPTY_STATS: X01Stats = {
 
 export function computeStats(visits: Visit[], settings: X01Settings): X01Stats {
   if (visits.length === 0) {
-    return { ...EMPTY_STATS };
+    return { ...EMPTY_X01_STATS };
   }
 
   let totalPoints = 0;
@@ -129,5 +129,15 @@ export const statTiles: StatTileDef<X01Stats>[] = [
     label: 'Best leg',
     key: 'bestLeg',
     value: (stats) => (stats.bestLeg ? `${stats.bestLeg}` : '—'),
+  },
+  {
+    label: 'Highest checkout',
+    key: 'highestCheckout',
+    value: (stats) => (stats.highestCheckout ? `${stats.highestCheckout}` : '—'),
+  },
+  {
+    label: 'Doubles %',
+    key: 'doublesRate',
+    value: (stats) => `${stats.doublesRate.toFixed(0)}%`,
   },
 ];

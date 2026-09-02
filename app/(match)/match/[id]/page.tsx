@@ -4,6 +4,7 @@ import { useEffect, useState, use } from 'react';
 import { useMatchStore } from '@/store/match';
 import { getGameModule, GameId } from '@/lib/games/registry';
 import { DartboardInput } from '@/components/organisms/DartboardInput';
+import { PostMatchStats } from '@/components/organisms/PostMatchStats';
 import { Button } from '@/components/atoms/Button';
 import { Throw, PlayerId, createPlayerId } from '@/lib/types';
 import { Target, Ban, Undo2 } from 'lucide-react';
@@ -165,9 +166,11 @@ export default function MatchPage({ params }: MatchPageProps) {
     >
       <header className="flex items-center justify-between">
         <h1 className="text-xl font-display font-bold">{gameModule.name}</h1>
-        <Button onClick={handleUndo} size="sm" variant="ghost">
-          <Undo2 className="w-4 h-4 mr-1" /> Undo
-        </Button>
+        {!isComplete && (
+          <Button onClick={handleUndo} size="sm" variant="ghost">
+            <Undo2 className="w-4 h-4 mr-1" /> Undo
+          </Button>
+        )}
       </header>
 
       {/* Top row: score / match info / score */}
@@ -186,40 +189,44 @@ export default function MatchPage({ params }: MatchPageProps) {
       </div>
 
       {/* Middle row: history / board+keypad / history */}
-      <div className="grid grid-cols-1 md:grid-cols-[0.8fr_1.4fr_0.8fr] gap-3 flex-1">
-        {leftPlayer && (
-          <HistoryPanel
-            playerId={leftPlayer}
-            visits={gameModule.visitHistory(gameState, leftPlayer)}
-            inProgress={leftPlayer === currentPlayerId ? visitProgress.throws : []}
-          />
-        )}
+      {!isComplete && (
+        <div className="grid grid-cols-1 md:grid-cols-[0.8fr_1.4fr_0.8fr] gap-3 flex-1">
+          {leftPlayer && (
+            <HistoryPanel
+              playerId={leftPlayer}
+              visits={gameModule.visitHistory(gameState, leftPlayer)}
+              inProgress={leftPlayer === currentPlayerId ? visitProgress.throws : []}
+            />
+          )}
 
-        <div className="flex flex-col items-center justify-center gap-4 w-full">
-          <DartboardInput
-            onThrow={handleThrow}
-            disabled={isComplete}
-            visitDartCount={visitProgress.darts}
-            heatmap={currentPlayerHeatmap}
-          />
+          <div className="flex flex-col items-center justify-center gap-4 w-full">
+            <DartboardInput
+              onThrow={handleThrow}
+              disabled={isComplete}
+              visitDartCount={visitProgress.darts}
+              heatmap={currentPlayerHeatmap}
+            />
+          </div>
+
+          {rightPlayer && (
+            <HistoryPanel
+              playerId={rightPlayer}
+              visits={gameModule.visitHistory(gameState, rightPlayer)}
+              inProgress={rightPlayer === currentPlayerId ? visitProgress.throws : []}
+            />
+          )}
         </div>
-
-        {rightPlayer && (
-          <HistoryPanel
-            playerId={rightPlayer}
-            visits={gameModule.visitHistory(gameState, rightPlayer)}
-            inProgress={rightPlayer === currentPlayerId ? visitProgress.throws : []}
-          />
-        )}
-      </div>
+      )}
 
       {/* Match end */}
       {isComplete && (
-        <div className="rounded-2xl bg-slate p-4 text-center border border-wire/40">
-          <p className="text-lg font-display font-bold mb-2">Match Complete!</p>
-          <p className="mb-4">Winner: {gameModule.winner(gameState)}</p>
-          <Button onClick={() => (window.location.href = '/')}>Back to Dashboard</Button>
-        </div>
+        <PostMatchStats
+          gameModule={gameModule}
+          state={gameState}
+          settings={settings}
+          players={players}
+          winnerId={gameModule.winner(gameState)}
+        />
       )}
     </div>
   );

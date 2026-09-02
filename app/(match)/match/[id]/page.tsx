@@ -67,7 +67,7 @@ function HistoryPanel({
   const visibleVisits = expanded ? visits : visits.slice(0, HISTORY_VISIBLE_LIMIT);
 
   return (
-    <div className="rounded-2xl bg-slate p-4 flex flex-col gap-3 min-h-[240px] max-h-[520px]">
+    <div className="rounded-2xl bg-slate p-4 flex flex-col gap-3 min-h-[240px]">
       <div className="text-xs font-bold uppercase tracking-widest text-sisal shrink-0">{playerId}</div>
 
       {inProgress.length > 0 && (
@@ -82,7 +82,7 @@ function HistoryPanel({
         <div className="flex-1 flex items-center justify-center text-sisal/50 text-sm">—</div>
       )}
 
-      <div className="flex flex-col gap-2 overflow-y-auto">
+      <div className="flex flex-col gap-2">
         {visibleVisits.map((visit, i) => (
           <div key={i} className="flex flex-col gap-1">
             <div

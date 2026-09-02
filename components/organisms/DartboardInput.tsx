@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Throw } from '@/lib/types';
 import { CENTER, RADIUS, BOARD_ORDER, annularWedgePath, segmentAngles } from '@/lib/dartboard-geometry';
+import { computePoints } from '@/lib/scoring';
 import { HeatmapBoard } from './HeatmapBoard';
 
 interface DartboardInputProps {
@@ -32,11 +33,9 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
     if (sector === 25) {
       // DOUBLE gives inner bull (50); anything else (only 'S' can reach here now) gives outer bull (25).
       const ring = modifier === 'D' ? 'IB' : 'OB';
-      const points = ring === 'IB' ? 50 : 25;
-      onThrow({ sector: 25 as any, ring, points, order });
+      onThrow({ sector: 25 as any, ring, points: computePoints(25, ring), order });
     } else {
-      const points = sector * (modifier === 'D' ? 2 : modifier === 'T' ? 3 : 1);
-      onThrow({ sector: sector as any, ring: modifier, points, order });
+      onThrow({ sector: sector as any, ring: modifier, points: computePoints(sector, modifier), order });
     }
 
     setModifier('S');
@@ -45,9 +44,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
   /** Board clicks detect the ring from where on the segment was clicked, independent of the DOUBLE/TRIPLE toggle (which only drives the keypad). */
   const throwAt = (sector: number, ring: BoardRing | 'OB' | 'IB') => {
     if (disabled) return;
-    const points =
-      ring === 'OB' ? 25 : ring === 'IB' ? 50 : sector * (ring === 'D' ? 2 : ring === 'T' ? 3 : 1);
-    onThrow({ sector: sector as any, ring, points, order });
+    onThrow({ sector: sector as any, ring, points: computePoints(sector, ring), order });
   };
 
   const handleMiss = () => {

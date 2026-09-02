@@ -8,6 +8,7 @@ import { canSubmitThrow, newlyCompletedVisit } from '@/lib/matchThrows';
 import { publishMatchEvent } from '@/lib/realtime';
 import { getGameModule, GameId } from '@/lib/games/registry';
 import { createPlayerId, Throw } from '@/lib/types';
+import { computePoints, isValidRing, isValidSector } from '@/lib/scoring';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -25,6 +26,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!throw_ || typeof throw_.sector !== 'number' || typeof throw_.ring !== 'string') {
     return NextResponse.json({ error: 'Invalid throw' }, { status: 400 });
   }
+  if (!isValidRing(throw_.ring)) {
+    return NextResponse.json({ error: 'Invalid ring' }, { status: 400 });
+  }
+  if (!isValidSector(throw_.sector, throw_.ring)) {
+    return NextResponse.json({ error: 'Invalid sector' }, { status: 400 });
+  }
+  // Server is the source of truth for scoring: never trust the client-supplied `points` field.
+  const points = computePoints(throw_.sector, throw_.ring);
+  const trustedThrow: Throw = { ...throw_, points };
 
   await connectDB();
   const match = await Match.findById(id);
@@ -44,7 +54,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   const playerId = createPlayerId(identity.id);
-  const newState = gameModule.applyThrow(match.state, throw_, match.settings);
+  const newState = gameModule.applyThrow(match.state, trustedThrow, match.settings);
 
   const visit = newlyCompletedVisit(gameModule, newState, playerId);
   if (visit) {

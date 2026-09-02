@@ -10,6 +10,7 @@ import { Throw, PlayerId, createPlayerId } from '@/lib/types';
 import { Target, Ban, Undo2 } from 'lucide-react';
 import { useRemoteMatchSync } from '@/hooks/useRemoteMatchSync';
 import { MatchLobby } from '@/components/organisms/MatchLobby';
+import { identityIdOf, MatchPlayerDoc } from '@/lib/matchLobby';
 
 interface MatchPageProps {
   params: Promise<{ id: string }>;
@@ -55,10 +56,14 @@ const HISTORY_VISIBLE_LIMIT = 9;
 
 function HistoryPanel({
   playerId,
+  displayName,
   visits,
   inProgress,
 }: {
   playerId: PlayerId;
+  /** Friendly name to show instead of the raw playerId (a guest UUID in remote mode). Falls
+   *  back to `playerId` when no match is found (e.g. local mode, where `players` is empty). */
+  displayName?: string;
   visits: { throws: Throw[]; scoreBefore: number; scoreAfter: number; busted: boolean }[];
   inProgress: Throw[];
 }) {
@@ -68,7 +73,9 @@ function HistoryPanel({
 
   return (
     <div className="rounded-2xl bg-slate p-4 flex flex-col gap-3 min-h-[240px]">
-      <div className="text-xs font-bold uppercase tracking-widest text-sisal shrink-0">{playerId}</div>
+      <div className="text-xs font-bold uppercase tracking-widest text-sisal shrink-0">
+        {displayName ?? playerId}
+      </div>
 
       {inProgress.length > 0 && (
         <div className="flex gap-2 flex-wrap p-2 rounded-xl bg-wire/10 border border-wire/40 shrink-0">
@@ -235,6 +242,13 @@ export default function MatchPage({ params }: MatchPageProps) {
   const info = gameModule.matchInfo(gameState, settings);
   const currentPlayerHeatmap = gameModule.heatmap(gameState, currentPlayerId);
 
+  // PlayerId -> display name lookup, built from the lobby snapshot's `players` field. Empty in
+  // local mode (where `players` is []), so lookups simply miss and callers fall back to the raw
+  // playerId — byte-identical to today's local-mode rendering.
+  const displayNames = new Map<string, string>(
+    (lobbyPlayers as MatchPlayerDoc[]).map((p) => [identityIdOf(p), p.name])
+  );
+
   return (
     <div
       className="min-h-screen bg-oche text-chalk p-4 flex flex-col gap-4"
@@ -273,6 +287,7 @@ export default function MatchPage({ params }: MatchPageProps) {
           {leftPlayer && (
             <HistoryPanel
               playerId={leftPlayer}
+              displayName={displayNames.get(leftPlayer)}
               visits={gameModule.visitHistory(gameState, leftPlayer)}
               inProgress={leftPlayer === currentPlayerId ? visitProgress.throws : []}
             />
@@ -298,6 +313,7 @@ export default function MatchPage({ params }: MatchPageProps) {
           {rightPlayer && (
             <HistoryPanel
               playerId={rightPlayer}
+              displayName={displayNames.get(rightPlayer)}
               visits={gameModule.visitHistory(gameState, rightPlayer)}
               inProgress={rightPlayer === currentPlayerId ? visitProgress.throws : []}
             />

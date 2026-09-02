@@ -180,6 +180,17 @@ export interface GameModule<TState = any, TSettings = any> {
    */
   heatmap: (state: TState, playerId: PlayerId) => Record<string, number>;
   /**
+   * The single most recently completed visit for a player, regardless of which leg it belonged
+   * to (unlike `visitHistory`, which is scoped to the current leg for UI display). Returns null
+   * if the player has no completed visits yet in this match. Exists for remote-play's
+   * server-side Visit persistence, which needs a leg-boundary-safe read even when the completed
+   * visit also ended a leg.
+   */
+  lastCompletedVisit: (
+    state: TState,
+    playerId: PlayerId
+  ) => { throws: Throw[]; scoreBefore: number; scoreAfter: number; busted: boolean; isCheckout: boolean } | null;
+  /**
    * Single-match statistics for a player, computed from in-memory match state (no persistence
    * required). Distinct from `computeStats`, which operates on persisted `Visit[]` records for
    * future cross-match aggregate stats.

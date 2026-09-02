@@ -48,6 +48,22 @@ const heatmap = (state: X01State, playerId: PlayerId): Record<string, number> =>
   return counts;
 };
 
+const lastCompletedVisit = (
+  state: X01State,
+  playerId: PlayerId
+): { throws: Throw[]; scoreBefore: number; scoreAfter: number; busted: boolean; isCheckout: boolean } | null => {
+  const entries = state.visitHistory.filter((entry) => entry.playerId === playerId);
+  if (entries.length === 0) return null;
+  const latest = entries[entries.length - 1];
+  return {
+    throws: latest.throws,
+    scoreBefore: latest.scoreBefore,
+    scoreAfter: latest.scoreAfter,
+    busted: latest.busted,
+    isCheckout: latest.wasCheckout,
+  };
+};
+
 const X01Module: GameModule<X01State, X01Settings> = {
   id: 'x01',
   name: 'X01',
@@ -71,6 +87,7 @@ const X01Module: GameModule<X01State, X01Settings> = {
   matchInfo,
   visitHistory,
   heatmap,
+  lastCompletedVisit,
   matchStats,
 
   ScoreboardSlot,

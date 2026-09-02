@@ -55,10 +55,10 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
   const [modifier, setModifier] = useState<Modifier>('S');
   const order = Math.min(visitDartCount, 2) as 0 | 1 | 2;
   const maxHeat = Math.max(1, ...Object.values(heatmap));
-  const heatRatio = (key: string) => (heatmap[key] ?? 0) / maxHeat;
-  const heatOpacity = (key: string) => 0.08 + heatRatio(key) * 0.92; // 0.08 (unhit) to 1.0 (most-hit) — wide range so hot spots really pop
-  /** Hot wedges (relative to the current max) get a bright gold glow instead of the plain divider, so the busiest spots are unmistakable at a glance. */
-  const heatStroke = (key: string) => (heatRatio(key) > 0.5 ? { stroke: 'var(--wire)', strokeWidth: '3' } : { stroke: 'var(--oche)', strokeWidth: '2' });
+  const heatOpacity = (key: string) => {
+    const count = heatmap[key] ?? 0;
+    return 0.08 + (count / maxHeat) * 0.92; // 0.08 (unhit) to 1.0 (most-hit) — wide range so hot spots really pop
+  };
 
   const throwSector = (sector: number) => {
     if (disabled) return;
@@ -109,25 +109,25 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
                 d={annularWedgePath(RADIUS.doubleInner, RADIUS.boardEdge, startAngle, endAngle)}
                 fill="var(--double)"
                 fillOpacity={heatOpacity(`D${segment}`)}
-                {...heatStroke(`D${segment}`)}
+                stroke="var(--oche)" strokeWidth="2"
               />
               <path
                 d={annularWedgePath(RADIUS.outerSingleInner, RADIUS.doubleInner, startAngle, endAngle)}
                 fill="var(--slate)"
                 fillOpacity={heatOpacity(`S${segment}`)}
-                {...heatStroke(`S${segment}`)}
+                stroke="var(--oche)" strokeWidth="2"
               />
               <path
                 d={annularWedgePath(RADIUS.trebleInner, RADIUS.outerSingleInner, startAngle, endAngle)}
                 fill="var(--treble)"
                 fillOpacity={heatOpacity(`T${segment}`)}
-                {...heatStroke(`T${segment}`)}
+                stroke="var(--oche)" strokeWidth="2"
               />
               <path
                 d={annularWedgePath(RADIUS.innerSingleInner, RADIUS.trebleInner, startAngle, endAngle)}
                 fill="var(--slate)"
                 fillOpacity={heatOpacity(`S${segment}`)}
-                {...heatStroke(`S${segment}`)}
+                stroke="var(--oche)" strokeWidth="2"
               />
               <text x={labelPoint.x} y={labelPoint.y} textAnchor="middle" className="text-xs fill-chalk" dy="0.3em">
                 {segment}
@@ -142,7 +142,8 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
           r={RADIUS.innerSingleInner}
           fill="var(--wire)"
           fillOpacity={heatOpacity('OB25')}
-          {...heatStroke('OB25')}
+          stroke="var(--oche)"
+          strokeWidth="2"
         />
         <circle
           cx={CENTER}
@@ -150,7 +151,8 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
           r={RADIUS.innerSingleInner * 0.4}
           fill="var(--treble)"
           fillOpacity={heatOpacity('IB25')}
-          {...heatStroke('IB25')}
+          stroke="var(--oche)"
+          strokeWidth="2"
         />
       </svg>
 

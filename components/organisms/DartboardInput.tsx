@@ -91,7 +91,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
   return (
     <div className="flex flex-col items-center gap-4">
       {/* Decorative dartboard — visual reference only, not interactive */}
-      <svg viewBox="0 0 400 400" className="w-64 h-64">
+      <svg viewBox="0 0 400 400" className="w-full max-w-md aspect-square">
         <circle cx={CENTER} cy={CENTER} r={RADIUS.boardEdge} fill="var(--oche)" stroke="var(--chalk)" strokeWidth="1" />
 
         {BOARD_ORDER.map((segment, i) => {

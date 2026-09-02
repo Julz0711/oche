@@ -8,6 +8,8 @@ import { PostMatchStats } from '@/components/organisms/PostMatchStats';
 import { Button } from '@/components/atoms/Button';
 import { Throw, PlayerId, createPlayerId } from '@/lib/types';
 import { Target, Ban, Undo2 } from 'lucide-react';
+import { useRemoteMatchSync } from '@/hooks/useRemoteMatchSync';
+import { MatchLobby } from '@/components/organisms/MatchLobby';
 
 interface MatchPageProps {
   params: Promise<{ id: string }>;
@@ -106,6 +108,16 @@ export default function MatchPage({ params }: MatchPageProps) {
 
   const { id } = use(params);
 
+  const { mode, status, players: lobbyPlayers, you, throwError, roomCode } = useMatchStore();
+  useRemoteMatchSync(mode === 'remote' ? id : null);
+  const [starting, setStarting] = useState(false);
+
+  const handleStart = async () => {
+    setStarting(true);
+    await fetch(`/api/matches/${id}/start`, { method: 'POST' });
+    setStarting(false);
+  };
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -115,14 +127,35 @@ export default function MatchPage({ params }: MatchPageProps) {
           setLoading(false);
           return;
         }
-        const { gameId } = await res.json();
+        const snapshot = await res.json();
+        const module = await getGameModule(snapshot.gameId as GameId);
 
-        const module = await getGameModule(gameId as GameId);
-        const initialState = module.init(
-          [createPlayerId('player1'), createPlayerId('player2')],
-          module.defaultSettings
-        );
-        useMatchStore.getState().setMatch(id, module, initialState, module.defaultSettings);
+        if (snapshot.mode === 'remote') {
+          useMatchStore.getState().setMatch({
+            matchId: id,
+            gameModule: module,
+            gameState: snapshot.state,
+            settings: snapshot.settings ?? module.defaultSettings,
+            mode: 'remote',
+            status: snapshot.status,
+            players: snapshot.players,
+            you: snapshot.you,
+            roomCode: snapshot.roomCode,
+          });
+        } else {
+          const initialState = module.init(
+            [createPlayerId('player1'), createPlayerId('player2')],
+            module.defaultSettings
+          );
+          useMatchStore.getState().setMatch({
+            matchId: id,
+            gameModule: module,
+            gameState: initialState,
+            settings: module.defaultSettings,
+            mode: 'local',
+            status: 'live',
+          });
+        }
         setLoading(false);
       } catch {
         setError('Unable to load this match');
@@ -144,7 +177,30 @@ export default function MatchPage({ params }: MatchPageProps) {
     return <div className="min-h-screen bg-oche text-chalk flex items-center justify-center">{error}</div>;
   }
 
-  if (loading || !gameModule || !gameState) {
+  if (loading || !gameModule) {
+    return <div className="min-h-screen bg-oche text-chalk flex items-center justify-center">Loading...</div>;
+  }
+
+  if (mode === 'remote' && status === 'lobby') {
+    const isHost =
+      lobbyPlayers.length > 0 &&
+      you !== null &&
+      ((lobbyPlayers[0] as any).userId === you || (lobbyPlayers[0] as any).guestId === you);
+
+    return (
+      <div className="min-h-screen bg-oche text-chalk p-4 flex items-center justify-center">
+        <MatchLobby
+          roomCode={roomCode ?? ''}
+          players={lobbyPlayers as { name: string }[]}
+          isHost={isHost}
+          onStart={handleStart}
+          starting={starting}
+        />
+      </div>
+    );
+  }
+
+  if (!gameState) {
     return <div className="min-h-screen bg-oche text-chalk flex items-center justify-center">Loading...</div>;
   }
 
@@ -200,9 +256,17 @@ export default function MatchPage({ params }: MatchPageProps) {
           )}
 
           <div className="flex flex-col items-center justify-center gap-4 w-full">
+            {throwError && (
+              <div className="text-sm text-treble bg-treble/10 border border-treble/40 rounded-xl px-3 py-2 flex items-center gap-2">
+                {throwError}
+                <button onClick={() => useMatchStore.getState().clearThrowError()} className="underline">
+                  Dismiss
+                </button>
+              </div>
+            )}
             <DartboardInput
               onThrow={handleThrow}
-              disabled={isComplete}
+              disabled={isComplete || (mode === 'remote' && gameModule.currentPlayer(gameState) !== you)}
               visitDartCount={visitProgress.darts}
               heatmap={currentPlayerHeatmap}
             />

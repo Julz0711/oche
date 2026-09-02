@@ -1,65 +1,131 @@
 // store/match.ts
 import { create } from 'zustand';
-import { GameModule, PlayerId, Visit } from '@/lib/types';
+import { GameModule, PlayerId, Throw, Visit } from '@/lib/types';
+
+type MatchMode = 'local' | 'remote';
+type MatchStatus = 'lobby' | 'live' | 'complete';
 
 interface MatchStore {
   matchId: string | null;
+  mode: MatchMode;
+  status: MatchStatus;
   gameModule: GameModule<any, any> | null;
-  gameState: any; // X01State | CricketState | ...
-  settings: any; // the settings object used to init gameState; required by applyThrow
+  gameState: any;
+  settings: any;
+  players: unknown[];
+  you: string | null;
+  roomCode: string | null;
   visitLog: Visit[];
   currentPlayer: PlayerId | null;
+  throwError: string | null;
 
-  // Actions
-  setMatch: (matchId: string, gameModule: GameModule<any, any>, initialState: any, settings: any) => void;
-  applyThrow: (throw_: any) => void;
-  undo: () => void;
+  setMatch: (opts: {
+    matchId: string;
+    gameModule: GameModule<any, any>;
+    gameState: any;
+    settings: any;
+    mode?: MatchMode;
+    status?: MatchStatus;
+    players?: unknown[];
+    you?: string | null;
+    roomCode?: string | null;
+  }) => void;
+  setGameState: (gameState: any, status?: MatchStatus) => void;
+  setPlayers: (players: unknown[]) => void;
+  applyThrow: (throw_: Throw) => Promise<void>;
+  undo: () => Promise<void>;
   addVisit: (visit: Visit) => void;
+  clearThrowError: () => void;
   reset: () => void;
 }
 
-export const useMatchStore = create<MatchStore>((set) => ({
+export const useMatchStore = create<MatchStore>((set, get) => ({
   matchId: null,
+  mode: 'local',
+  status: 'live',
   gameModule: null,
   gameState: null,
   settings: null,
+  players: [],
+  you: null,
+  roomCode: null,
   visitLog: [],
   currentPlayer: null,
+  throwError: null,
 
-  setMatch: (matchId, gameModule, initialState, settings) =>
-    set({
-      matchId,
-      gameModule,
-      gameState: initialState,
-      settings,
-    }),
+  setMatch: ({
+    matchId,
+    gameModule,
+    gameState,
+    settings,
+    mode = 'local',
+    status = 'live',
+    players = [],
+    you = null,
+    roomCode = null,
+  }) => set({ matchId, gameModule, gameState, settings, mode, status, players, you, roomCode }),
 
-  applyThrow: (throw_) =>
-    set((state) => {
-      if (!state.gameModule || !state.gameState) return state;
+  setGameState: (gameState, status) => set((state) => ({ gameState, status: status ?? state.status })),
+
+  setPlayers: (players) => set({ players }),
+
+  applyThrow: async (throw_) => {
+    const state = get();
+    if (!state.gameModule || !state.gameState || !state.matchId) return;
+
+    if (state.mode === 'local') {
       const newGameState = state.gameModule.applyThrow(state.gameState, throw_, state.settings);
-      return { gameState: newGameState };
-    }),
+      set({ gameState: newGameState });
+      return;
+    }
 
-  undo: () =>
-    set((state) => {
-      if (!state.gameModule || !state.gameState) return state;
+    // remote: the store only updates once the server's Ably broadcast arrives (see the
+    // useRemoteMatchSync hook) — no optimistic local mutation for this milestone.
+    set({ throwError: null });
+    const res = await fetch(`/api/matches/${state.matchId}/throws`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ throw: throw_ }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      set({ throwError: body.error ?? "Couldn't send that throw — try again" });
+    }
+  },
+
+  undo: async () => {
+    const state = get();
+    if (!state.gameModule || !state.gameState || !state.matchId) return;
+
+    if (state.mode === 'local') {
       const newGameState = state.gameModule.undo(state.gameState);
-      return { gameState: newGameState };
-    }),
+      set({ gameState: newGameState });
+      return;
+    }
+
+    await fetch(`/api/matches/${state.matchId}/undo`, { method: 'POST' });
+  },
 
   addVisit: (visit) =>
     set((state) => ({
       visitLog: [...state.visitLog, visit],
     })),
 
+  clearThrowError: () => set({ throwError: null }),
+
   reset: () =>
     set({
       matchId: null,
+      mode: 'local',
+      status: 'live',
       gameModule: null,
       gameState: null,
       settings: null,
+      players: [],
+      you: null,
+      roomCode: null,
       visitLog: [],
       currentPlayer: null,
+      throwError: null,
     }),
 }));

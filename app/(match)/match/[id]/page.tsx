@@ -194,7 +194,7 @@ export default function MatchPage({ params }: MatchPageProps) {
           />
         )}
 
-        <div className="flex flex-col items-center justify-center gap-4">
+        <div className="flex flex-col items-center justify-center gap-4 w-full">
           <DartboardInput
             onThrow={handleThrow}
             disabled={isComplete}

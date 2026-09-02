@@ -125,8 +125,8 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
           onClick={() => toggleModifier('D')}
           disabled={disabled}
           aria-pressed={modifier === 'D'}
-          className={`min-h-11 min-w-11 px-4 py-2 rounded font-semibold transition-opacity ${
-            modifier === 'D' ? 'bg-wire text-oche' : 'bg-slate text-chalk'
+          className={`min-h-11 min-w-11 px-4 py-2 rounded-full font-semibold transition-colors ${
+            modifier === 'D' ? 'bg-double text-chalk' : 'bg-slate text-chalk'
           } disabled:opacity-50`}
         >
           DOUBLE
@@ -135,8 +135,8 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
           onClick={() => toggleModifier('T')}
           disabled={disabled}
           aria-pressed={modifier === 'T'}
-          className={`min-h-11 min-w-11 px-4 py-2 rounded font-semibold transition-opacity ${
-            modifier === 'T' ? 'bg-wire text-oche' : 'bg-slate text-chalk'
+          className={`min-h-11 min-w-11 px-4 py-2 rounded-full font-semibold transition-colors ${
+            modifier === 'T' ? 'bg-treble text-chalk' : 'bg-slate text-chalk'
           } disabled:opacity-50`}
         >
           TRIPLE
@@ -150,7 +150,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
             key={n}
             onClick={() => throwSector(n)}
             disabled={disabled}
-            className="min-h-11 min-w-11 rounded bg-slate text-chalk font-semibold hover:opacity-80 disabled:opacity-50"
+            className="min-h-11 min-w-11 rounded-full bg-slate text-chalk font-semibold hover:opacity-80 disabled:opacity-50 transition-transform active:scale-95"
           >
             {n}
           </button>
@@ -158,7 +158,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
         <button
           onClick={() => throwSector(25)}
           disabled={disabled}
-          className="min-h-11 min-w-11 rounded bg-treble text-chalk font-semibold hover:opacity-80 disabled:opacity-50 col-span-5"
+          className="min-h-11 min-w-11 rounded-full bg-treble text-chalk font-semibold hover:opacity-80 disabled:opacity-50 col-span-5 transition-transform active:scale-95"
         >
           BULL (25)
         </button>
@@ -167,7 +167,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
       <button
         onClick={handleMiss}
         disabled={disabled}
-        className="min-h-11 min-w-11 px-4 py-2 bg-slate text-chalk rounded hover:opacity-80 disabled:opacity-50"
+        className="min-h-11 min-w-11 px-4 py-2 bg-slate text-chalk rounded-full hover:opacity-80 disabled:opacity-50"
       >
         MISS
       </button>

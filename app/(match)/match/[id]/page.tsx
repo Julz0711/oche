@@ -6,23 +6,46 @@ import { getGameModule, GameId } from '@/lib/games/registry';
 import { DartboardInput } from '@/components/organisms/DartboardInput';
 import { Button } from '@/components/atoms/Button';
 import { Throw, PlayerId, createPlayerId } from '@/lib/types';
+import { Target, Ban, Undo2 } from 'lucide-react';
 
 interface MatchPageProps {
   params: Promise<{ id: string }>;
 }
 
-function formatDart(t: Throw): string {
-  if (t.ring === 'M') return 'MISS';
-  if (t.ring === 'IB') return 'D-BULL';
-  if (t.ring === 'OB') return 'BULL';
-  return `${t.ring}${t.sector}`;
-}
-
-/** Doubles and triples get distinct colors; everything else stays neutral. */
-function dartColorClass(t: Throw): string {
-  if (t.ring === 'D' || t.ring === 'IB') return 'bg-double text-chalk';
-  if (t.ring === 'T') return 'bg-treble text-chalk';
-  return 'bg-oche text-chalk';
+/** A single dart, rendered as a small colored circle rather than a text label. */
+function DartBadge({ t }: { t: Throw }) {
+  if (t.ring === 'M') {
+    return (
+      <span className="w-9 h-9 flex items-center justify-center rounded-full bg-oche border border-sisal/30 text-sisal text-xs font-bold">
+        ×
+      </span>
+    );
+  }
+  if (t.ring === 'IB') {
+    return (
+      <span className="w-9 h-9 flex items-center justify-center rounded-full bg-double text-chalk text-xs font-bold ring-2 ring-wire">
+        50
+      </span>
+    );
+  }
+  if (t.ring === 'OB') {
+    return (
+      <span className="w-9 h-9 flex items-center justify-center rounded-full bg-wire text-oche text-xs font-bold">
+        25
+      </span>
+    );
+  }
+  const colorClass =
+    t.ring === 'D'
+      ? 'bg-double text-chalk'
+      : t.ring === 'T'
+        ? 'bg-treble text-chalk'
+        : 'bg-oche text-chalk border border-sisal/30';
+  return (
+    <span className={`w-9 h-9 flex items-center justify-center rounded-full text-sm font-bold ${colorClass}`}>
+      {t.sector}
+    </span>
+  );
 }
 
 function HistoryPanel({
@@ -35,38 +58,41 @@ function HistoryPanel({
   inProgress: Throw[];
 }) {
   return (
-    <div className="bg-slate rounded p-4 flex flex-col gap-4 min-h-[240px]">
-      <div className="text-sm font-semibold text-sisal uppercase">{playerId} — this leg</div>
+    <div className="rounded-2xl bg-slate p-4 flex flex-col gap-3 min-h-[240px]">
+      <div className="text-xs font-bold uppercase tracking-widest text-sisal">{playerId}</div>
 
       {inProgress.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <div className="text-xs text-wire uppercase">In progress</div>
-          <div className="flex gap-2 flex-wrap">
-            {inProgress.map((t, j) => (
-              <span key={j} className={`px-3 py-2 rounded text-sm font-semibold ${dartColorClass(t)}`}>
-                {formatDart(t)}
-              </span>
-            ))}
-          </div>
+        <div className="flex gap-2 flex-wrap p-2 rounded-xl bg-wire/10 border border-wire/40">
+          {inProgress.map((t, j) => (
+            <DartBadge key={j} t={t} />
+          ))}
         </div>
       )}
 
       {visits.length === 0 && inProgress.length === 0 && (
-        <div className="text-sm text-sisal opacity-60">No visits yet</div>
+        <div className="flex-1 flex items-center justify-center text-sisal/50 text-sm">—</div>
       )}
 
-      {visits.map((visit, i) => (
-        <div key={i} className="flex flex-col gap-2">
-          <div className="flex gap-2 flex-wrap">
-            {visit.throws.map((t, j) => (
-              <span key={j} className={`px-3 py-2 rounded text-sm font-semibold ${dartColorClass(t)}`}>
-                {formatDart(t)}
-              </span>
-            ))}
+      <div className="flex flex-col gap-2">
+        {visits.map((visit, i) => (
+          <div key={i} className="flex flex-col gap-1">
+            <div
+              className={`flex items-center gap-2 flex-wrap rounded-xl p-2 ${
+                visit.busted ? 'bg-treble/10 border border-treble/40' : ''
+              }`}
+            >
+              {visit.throws.map((t, j) => (
+                <DartBadge key={j} t={t} />
+              ))}
+            </div>
+            {visit.busted && (
+              <div className="flex items-center gap-1 text-[10px] font-bold uppercase text-treble">
+                <Ban className="w-3 h-3" /> bust
+              </div>
+            )}
           </div>
-          {visit.busted && <div className="text-xs font-semibold text-treble">BUST</div>}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -129,22 +155,29 @@ export default function MatchPage({ params }: MatchPageProps) {
   const currentPlayerHeatmap = gameModule.heatmap(gameState, currentPlayerId);
 
   return (
-    <div className="min-h-screen bg-oche text-chalk p-4 flex flex-col gap-4">
+    <div
+      className="min-h-screen bg-oche text-chalk p-4 flex flex-col gap-4"
+      style={{
+        backgroundImage:
+          'radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--wire) 8%, transparent), transparent 60%)',
+      }}
+    >
       <header className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">{gameModule.name}</h1>
+        <h1 className="text-xl font-display font-bold">{gameModule.name}</h1>
         <Button onClick={handleUndo} size="sm" variant="ghost">
-          ↶ Undo
+          <Undo2 className="w-4 h-4 mr-1" /> Undo
         </Button>
       </header>
 
       {/* Top row: score / match info / score */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {leftPlayer && <gameModule.ScoreboardSlot state={gameState} playerId={leftPlayer} settings={settings} />}
-        <div className="bg-slate rounded p-3 flex items-center justify-center gap-4">
+        <div className="rounded-2xl bg-slate p-3 flex items-center justify-center gap-3 border border-wire/30">
+          <Target className="w-6 h-6 text-wire shrink-0" />
           {info.map((entry) => (
-            <div key={entry.label} className="text-center">
-              <div className="text-xs text-sisal uppercase">{entry.label}</div>
-              <div className="text-lg font-bold">{entry.value}</div>
+            <div key={entry.label} className="text-center leading-tight">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-sisal">{entry.label}</div>
+              <div className="text-xl font-display font-bold">{entry.value}</div>
             </div>
           ))}
         </div>
@@ -181,8 +214,8 @@ export default function MatchPage({ params }: MatchPageProps) {
 
       {/* Match end */}
       {isComplete && (
-        <div className="bg-slate p-4 rounded text-center">
-          <p className="text-lg font-bold mb-2">Match Complete!</p>
+        <div className="rounded-2xl bg-slate p-4 text-center border border-wire/40">
+          <p className="text-lg font-display font-bold mb-2">Match Complete!</p>
           <p className="mb-4">Winner: {gameModule.winner(gameState)}</p>
           <Button onClick={() => (window.location.href = '/')}>Back to Dashboard</Button>
         </div>

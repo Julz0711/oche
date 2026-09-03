@@ -42,9 +42,22 @@ export function useRemoteMatchSync(matchId: string | null) {
       }
     });
 
+    // Fallback poll for the lobby wait only: Ably's realtime push can be unavailable (no
+    // ABLY_API_KEY configured, a token/connection failure) and a host stuck on "waiting for
+    // player…" with no feedback is the worst version of that gap. Once the match leaves 'lobby'
+    // this stops itself — live play stays on the real-time push path, not polling.
+    const lobbyPoll = setInterval(() => {
+      if (useMatchStore.getState().status === 'lobby') {
+        refetchSnapshot();
+      } else {
+        clearInterval(lobbyPoll);
+      }
+    }, 3000);
+
     return () => {
       channel.unsubscribe();
       client.close();
+      clearInterval(lobbyPoll);
     };
   }, [matchId]);
 }

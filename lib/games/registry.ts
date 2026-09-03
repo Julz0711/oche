@@ -19,12 +19,9 @@ export const gameRegistry = {
   x01: async () => import('./x01').then((m) => m.default),
 
   /**
-   * Cricket - Strategic darts game
-   * Planned for future release
+   * Cricket - Standard Cricket: close 20-15 and Bull, score the most points
    */
-  cricket: async () => {
-    throw new Error('Cricket not implemented yet');
-  },
+  cricket: async () => import('./cricket').then((m) => m.default),
 } as const;
 
 /**

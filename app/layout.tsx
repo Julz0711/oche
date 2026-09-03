@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Inter_Tight } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
+import { PwaRegistration } from "@/components/PwaRegistration";
 import "./globals.css";
 
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${bricolageGrotesque.variable} ${interTight.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <PwaRegistration />
         <SessionProvider>{children}</SessionProvider>
       </body>
     </html>

@@ -27,6 +27,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Not a participant in this match' }, { status: 403 });
   }
 
-  const tokenRequest = await createMatchToken(matchId, identity.id);
+  let tokenRequest;
+  try {
+    tokenRequest = await createMatchToken(matchId, identity.id);
+  } catch (err) {
+    console.error('Ably token request failed:', err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Ably token request failed' },
+      { status: 500 }
+    );
+  }
   return applyIdentityCookie(NextResponse.json(tokenRequest), newGuestCookie);
 }

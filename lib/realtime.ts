@@ -20,9 +20,20 @@ export type MatchEvent =
   | { name: 'lobby'; data: { players: unknown[] } }
   | { name: 'state'; data: { state: unknown; status: string; winnerId?: string | null } };
 
+/**
+ * Best-effort broadcast: by the time this is called, the authoritative DB write it's announcing
+ * has already committed, so a publish failure (missing ABLY_API_KEY, a transient Ably outage,
+ * network blip) must never fail the caller's response or roll back what already succeeded —
+ * clients without connectivity to this event still recover via useRemoteMatchSync's
+ * reconnect-triggered refetch. Errors are logged, never thrown.
+ */
 export async function publishMatchEvent(matchId: string, event: MatchEvent): Promise<void> {
-  const channel = getRestClient().channels.get(matchChannelName(matchId));
-  await channel.publish(event.name, event.data);
+  try {
+    const channel = getRestClient().channels.get(matchChannelName(matchId));
+    await channel.publish(event.name, event.data);
+  } catch (err) {
+    console.error(`publishMatchEvent failed for match ${matchId}, event '${event.name}':`, err);
+  }
 }
 
 export async function createMatchToken(matchId: string, clientId: string) {

@@ -324,11 +324,13 @@ export default function MatchPage({ params }: MatchPageProps) {
       {/* Match end */}
       {isComplete && (
         <PostMatchStats
+          matchId={id}
           gameModule={gameModule}
           state={gameState}
           settings={settings}
           players={players}
           winnerId={gameModule.winner(gameState)}
+          displayNames={displayNames}
         />
       )}
     </div>

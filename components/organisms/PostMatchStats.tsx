@@ -3,16 +3,43 @@
 import { GameModule, PlayerId, StatTileDef } from '@/lib/types';
 import { HeatmapBoard } from './HeatmapBoard';
 import { Button } from '@/components/atoms/Button';
+import { ShareResultButton, ShareResultPlayer } from './ShareResultButton';
 
 interface PostMatchStatsProps {
+  matchId: string;
   gameModule: GameModule<any, any>;
   state: any;
   settings: any;
   players: PlayerId[];
   winnerId: PlayerId | null;
+  displayNames: Map<string, string>;
 }
 
-export function PostMatchStats({ gameModule, state, settings, players, winnerId }: PostMatchStatsProps) {
+export function PostMatchStats({
+  matchId,
+  gameModule,
+  state,
+  settings,
+  players,
+  winnerId,
+  displayNames,
+}: PostMatchStatsProps) {
+  const headlineTile = gameModule.statTiles[0];
+  const matchInfoText = gameModule
+    .matchInfo(state, settings)
+    .map((info: { label: string; value: string }) => `${info.label} ${info.value}`)
+    .join(' · ');
+
+  const sharePlayers: ShareResultPlayer[] = players.map((playerId) => {
+    const stats = gameModule.matchStats(state, playerId, settings);
+    return {
+      name: displayNames.get(playerId) ?? playerId,
+      isWinner: playerId === winnerId,
+      statLabel: headlineTile.label,
+      statValue: String(headlineTile.value(stats)),
+    };
+  });
+
   return (
     <div className="rounded-2xl bg-slate p-4 border border-wire/40 flex flex-col gap-4">
       <p className="text-lg font-display font-bold text-center">Match Complete!</p>
@@ -31,7 +58,7 @@ export function PostMatchStats({ gameModule, state, settings, players, winnerId 
               }`}
             >
               <div className="text-sm font-bold uppercase tracking-widest text-sisal">
-                {playerId}
+                {displayNames.get(playerId) ?? playerId}
                 {isWinner ? ' — Winner' : ''}
               </div>
 
@@ -50,7 +77,15 @@ export function PostMatchStats({ gameModule, state, settings, players, winnerId 
         })}
       </div>
 
-      <Button onClick={() => (window.location.href = '/')}>Back to Dashboard</Button>
+      <div className="flex gap-3 justify-center">
+        <ShareResultButton
+          matchId={matchId}
+          gameName={gameModule.name}
+          matchInfo={matchInfoText}
+          players={sharePlayers}
+        />
+        <Button onClick={() => (window.location.href = '/')}>Back to Dashboard</Button>
+      </div>
     </div>
   );
 }

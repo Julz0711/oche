@@ -7,8 +7,24 @@ import { getIdentity } from '@/lib/identity';
 import { canSubmitThrow, newlyCompletedVisit } from '@/lib/matchThrows';
 import { publishMatchEvent } from '@/lib/realtime';
 import { getGameModule, GameId } from '@/lib/games/registry';
-import { createPlayerId, Throw } from '@/lib/types';
-import { computePoints, isValidRing, isValidSector } from '@/lib/scoring';
+import { createPlayerId, Throw, Ring } from '@/lib/types';
+
+const VALID_RINGS: readonly Ring[] = ['S', 'D', 'T', 'OB', 'IB', 'M'];
+
+/** Type guard for the six valid Ring values — basic request-shape hygiene, not anti-cheat (no
+ *  engine trusts a client-supplied `points` value regardless of how well-formed the throw is). */
+function isValidRing(ring: unknown): ring is Ring {
+  return typeof ring === 'string' && (VALID_RINGS as readonly string[]).includes(ring);
+}
+
+/** Whether `sector` is legal for the given `ring`. OB/IB are fixed-value bull rings — the client
+ *  encodes both with `sector: 25`, but the sector value doesn't affect them, so any sector is
+ *  accepted. M (miss) is likewise sector-irrelevant. S/D/T require a sector in the 1-20 range. */
+function isValidSector(sector: unknown, ring: Ring): boolean {
+  if (typeof sector !== 'number' || !Number.isInteger(sector)) return false;
+  if (ring === 'OB' || ring === 'IB' || ring === 'M') return true;
+  return sector >= 1 && sector <= 20;
+}
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -32,9 +48,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!isValidSector(throw_.sector, throw_.ring)) {
     return NextResponse.json({ error: 'Invalid sector' }, { status: 400 });
   }
-  // Server is the source of truth for scoring: never trust the client-supplied `points` field.
-  const points = computePoints(throw_.sector, throw_.ring);
-  const trustedThrow: Throw = { ...throw_, points };
 
   await connectDB();
   const match = await Match.findById(id);
@@ -54,7 +67,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   const playerId = createPlayerId(identity.id);
-  const newState = gameModule.applyThrow(match.state, trustedThrow, match.settings);
+  // Points are never trusted from the client — every GameModule's applyThrow derives the real
+  // score itself from sector+ring+its own state, so whatever points value throw_ carries here is
+  // ignored by the engine entirely.
+  const newState = gameModule.applyThrow(match.state, throw_, match.settings);
 
   const visit = newlyCompletedVisit(gameModule, newState, playerId);
   if (visit) {

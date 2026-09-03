@@ -18,6 +18,11 @@ const interTight = Inter_Tight({
 export const metadata: Metadata = {
   title: "Oche",
   description: "Real-time darts scoring web app",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Oche',
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

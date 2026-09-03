@@ -42,6 +42,18 @@ describe('X01 Engine', () => {
       expect(state.playerScores[player1]).toBe(361); // 501 - 140
       expect(state.currentPlayerIndex).toBe(1);
     });
+
+    it('ignores a forged points value and derives the real score from sector+ring', () => {
+      const state = init([player1, player2], X01DefaultSettings);
+      const forged = { sector: 20 as const, ring: 'S' as const, points: 999, order: 0 as const };
+      const dart2 = { sector: 1 as const, ring: 'S' as const, points: 1, order: 1 as const };
+      const dart3 = { sector: 1 as const, ring: 'S' as const, points: 1, order: 2 as const };
+      let after = applyThrow(state, forged, X01DefaultSettings);
+      after = applyThrow(after, dart2, X01DefaultSettings);
+      after = applyThrow(after, dart3, X01DefaultSettings);
+      expect(after.playerScores[player1]).toBe(501 - 20 - 1 - 1); // real single-20 value, not the forged 999
+      expect(after.visitHistory[0].throws[0].points).toBe(20); // the stored throw also carries the trusted value
+    });
   });
 
   describe('applyThrow: bust detection', () => {

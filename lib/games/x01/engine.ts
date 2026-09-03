@@ -28,6 +28,16 @@ export function computeVisitTotal(visit: Throw[], startedOn: boolean): { total: 
   return { total, isOn };
 }
 
+/** Derives a dart's real point value from its sector+ring — the single source of truth for X01
+ *  scoring. Never trust an incoming Throw's `points` field; always recompute it here, so a
+ *  forged value (e.g. from a malicious API client) has no effect on the resulting score. */
+function computeDartPoints(sector: Throw['sector'], ring: Throw['ring']): number {
+  if (ring === 'M') return 0;
+  if (ring === 'OB') return 25;
+  if (ring === 'IB') return 50;
+  return sector * (ring === 'D' ? 2 : ring === 'T' ? 3 : 1);
+}
+
 interface VisitHistoryEntry {
   playerId: PlayerId;
   throws: Throw[];
@@ -97,7 +107,8 @@ export function init(players: PlayerId[], settings: X01Settings): X01State {
  */
 export function applyThrow(state: X01State, throw_: Throw, settings: X01Settings): X01State {
   const currentPlayer = state.players[state.currentPlayerIndex];
-  const newVisit = [...state.currentVisit, throw_];
+  const trustedThrow: Throw = { ...throw_, points: computeDartPoints(throw_.sector, throw_.ring) };
+  const newVisit = [...state.currentVisit, trustedThrow];
 
   // Walk the visit's darts so far to figure out how many points actually count.
   // Under double-in, darts thrown before the player lands a double score 0; the
@@ -109,7 +120,7 @@ export function applyThrow(state: X01State, throw_: Throw, settings: X01Settings
   const newScore = scoreBeforeVisit - visitTotal;
 
   const isFinishAttempt = newScore === 0;
-  const validFinish = isFinishAttempt && isValidCheckout(throw_, settings);
+  const validFinish = isFinishAttempt && isValidCheckout(trustedThrow, settings);
 
   const isBust =
     newScore < 0 ||

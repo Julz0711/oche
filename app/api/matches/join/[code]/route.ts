@@ -6,6 +6,7 @@ import { auth } from '@/lib/auth';
 import { getIdentity, applyIdentityCookie } from '@/lib/identity';
 import { canJoinLobby, isSeated, seatFor } from '@/lib/matchLobby';
 import { publishMatchEvent } from '@/lib/realtime';
+import { getGameModule, GameId } from '@/lib/games/registry';
 
 // Room codes are reused once a match completes (see app/api/matches/route.ts's creation logic),
 // so any lookup by roomCode alone must be scoped to still-open matches — otherwise a completed
@@ -20,24 +21,39 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cod
   await connectDB();
   const { identity, newGuestCookie } = await getIdentity(req);
   const session = await auth();
-  const seatDoc = seatFor(identity, session?.user?.name ?? 'Guest', 1);
+
+  // A match's gameId never changes after creation, so reading it up front (outside the atomic
+  // write below) is race-free — it's only used to look up this game's max player count.
+  const preMatch = await Match.findOne({ roomCode, status: OPEN_STATUS_FILTER }).sort({ createdAt: -1 });
+  if (!preMatch) {
+    return NextResponse.json({ error: 'Room not found' }, { status: 404 });
+  }
+  if (isSeated(preMatch.players, identity)) {
+    return applyIdentityCookie(NextResponse.json({ id: preMatch._id.toString() }), newGuestCookie);
+  }
+
+  const gameModule = await getGameModule(preMatch.gameId as GameId);
+  const maxPlayers = gameModule.playerRange[1];
+  const playerDoc = seatFor(identity, session?.user?.name ?? 'Guest');
 
   // Atomic conditional write: only seats this identity if the match is still an open lobby with
-  // at most one player currently seated. This closes the check-then-act race where two
-  // near-simultaneous joins (e.g. React Strict Mode's double-invoked effect) could both read
-  // players.length === 1 before either write lands, and both push — overfilling the match.
+  // fewer than this game's max players currently seated. This closes the check-then-act race
+  // where two near-simultaneous joins (e.g. React Strict Mode's double-invoked effect) could
+  // both read the same players.length before either write lands, and both push — overfilling
+  // the match. `$expr`+`$size` generalizes the old "seat 1 must be empty" 2-player-only check to
+  // any max, while keeping the same single-atomic-operation guarantee.
   const seatedMatch = await Match.findOneAndUpdate(
     {
       roomCode,
       status: 'lobby',
-      'players.1': { $exists: false },
+      $expr: { $lt: [{ $size: '$players' }, maxPlayers] },
       // Exclude matches where this identity is already seated — otherwise a host re-hitting
-      // their own join link before anyone else joins would match this same condition (only one
-      // seat filled) and get double-seated. The idempotent "already seated" case is instead
-      // handled entirely by the fallback re-fetch below via isSeated.
+      // their own join link before anyone else joins would match this same condition and get
+      // double-seated. The idempotent "already seated" case is handled by the checks above and
+      // the fallback re-fetch below via isSeated.
       players: { $not: { $elemMatch: { $or: [{ userId: identity.id }, { guestId: identity.id }] } } },
     },
-    { $push: { players: seatDoc } },
+    { $push: { players: playerDoc } },
     { new: true }
   );
 
@@ -60,7 +76,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cod
     return applyIdentityCookie(NextResponse.json({ id: match._id.toString() }), newGuestCookie);
   }
 
-  const check = canJoinLobby({ status: match.status, players: match.players }, identity);
+  const check = canJoinLobby({ status: match.status, players: match.players }, identity, gameModule.playerRange);
   if (!check.ok) {
     return NextResponse.json({ error: check.error }, { status: check.status });
   }

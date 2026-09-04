@@ -69,7 +69,7 @@ const CricketModule: GameModule<CricketState, CricketSettings> = {
   name: 'Cricket',
   description: 'Close all numbers, score the most points',
   icon: Target,
-  playerRange: [2, 4],
+  playerRange: [2, 8],
   status: 'stable',
 
   settingsSchema: CricketSettingsSchema,

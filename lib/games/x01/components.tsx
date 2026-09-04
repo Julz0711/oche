@@ -9,10 +9,12 @@ export function ScoreboardSlot({
   state,
   playerId,
   settings,
+  displayName,
 }: {
   state: X01State;
   playerId: PlayerId;
   settings: X01Settings;
+  displayName?: string;
 }) {
   const isCurrentPlayer = state.players[state.currentPlayerIndex] === playerId;
   const startedOn = settings.checkIn === 'straight' ? true : state.isOnDouble[playerId];
@@ -31,7 +33,7 @@ export function ScoreboardSlot({
       {isCurrentPlayer && (
         <Crosshair className="absolute top-4 right-4 w-4 h-4 text-wire" aria-label="On throw" />
       )}
-      <div className="text-xs font-bold uppercase tracking-widest text-sisal">{playerId}</div>
+      <div className="text-xs font-bold uppercase tracking-widest text-sisal">{displayName ?? playerId}</div>
       <Numeral value={score} size="4xl" className="font-display leading-none block mt-1" />
       <div className="flex items-center gap-3 mt-3">
         {setsEnabled && (

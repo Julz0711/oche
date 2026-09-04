@@ -24,10 +24,12 @@ function MarkIndicator({ marks }: { marks: Marks }) {
 export function ScoreboardSlot({
   state,
   playerId,
+  displayName,
 }: {
   state: CricketState;
   playerId: PlayerId;
   settings: CricketSettings;
+  displayName?: string;
 }) {
   const isCurrentPlayer = state.players[state.currentPlayerIndex] === playerId;
   const legsWon = state.legsWon[playerId];
@@ -41,7 +43,7 @@ export function ScoreboardSlot({
       {isCurrentPlayer && (
         <Crosshair className="absolute top-3 right-3 w-4 h-4 text-wire" aria-label="On throw" />
       )}
-      <div className="text-xs font-bold uppercase tracking-widest text-sisal mb-2">{playerId}</div>
+      <div className="text-xs font-bold uppercase tracking-widest text-sisal mb-2">{displayName ?? playerId}</div>
 
       <div className="flex flex-col gap-1">
         {CRICKET_NUMBERS.map((n) => (

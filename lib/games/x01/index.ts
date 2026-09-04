@@ -73,7 +73,7 @@ const X01Module: GameModule<X01State, X01Settings> = {
   name: 'X01',
   description: 'Classic 301, 501, 701 darts',
   icon: Dices,
-  playerRange: [2, 4],
+  playerRange: [2, 8],
   status: 'stable',
 
   settingsSchema: X01SettingsSchema,

@@ -199,7 +199,7 @@ export interface GameModule<TState = any, TSettings = any> {
   /**
    * React component to render one player's scoreboard slot
    */
-  ScoreboardSlot: React.FC<{ state: TState; playerId: PlayerId; settings: TSettings }>;
+  ScoreboardSlot: React.FC<{ state: TState; playerId: PlayerId; settings: TSettings; displayName?: string }>;
   /**
    * Get the primary metric to display for a player in the scoreboard
    */

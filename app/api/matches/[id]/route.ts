@@ -30,6 +30,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       state: match.state ?? null,
       settings: match.settings ?? null,
       players: match.players,
+      hostId: match.hostId ?? null,
       roomCode: match.roomCode ?? null,
       you: isSeated(match.players, identity) ? identity.id : null,
     }),

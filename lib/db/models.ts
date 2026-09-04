@@ -12,7 +12,6 @@ const MatchSchema = new mongoose.Schema({
       userId: String,
       guestId: String,
       name: String,
-      seat: Number,
       isGuest: Boolean,
     },
   ],

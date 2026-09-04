@@ -1,25 +1,52 @@
 // components/organisms/MatchLobby.tsx
 'use client';
 import { Button } from '@/components/atoms/Button';
-import { Copy, Crosshair } from 'lucide-react';
+import { Copy, Crosshair, ChevronUp, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import { identityIdOf, MatchPlayerDoc } from '@/lib/matchLobby';
 
 interface MatchLobbyProps {
+  matchId: string;
   roomCode: string;
-  players: { name: string }[];
+  players: MatchPlayerDoc[];
+  /** [min, max] players this game supports — drives the "waiting for player" placeholders,
+   *  the join-progress counter, and when Start becomes enabled. */
+  playerRange: [number, number];
   isHost: boolean;
   onStart: () => void;
   starting: boolean;
 }
 
-export function MatchLobby({ roomCode, players, isHost, onStart, starting }: MatchLobbyProps) {
+export function MatchLobby({ matchId, roomCode, players, playerRange, isHost, onStart, starting }: MatchLobbyProps) {
   const [copied, setCopied] = useState(false);
+  const [reordering, setReordering] = useState(false);
   const joinUrl = typeof window !== 'undefined' ? `${window.location.origin}/join/${roomCode}` : '';
+  const [minPlayers, maxPlayers] = playerRange;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(joinUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
+  };
+
+  const handleMove = async (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= players.length) return;
+    const reordered = [...players];
+    [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+
+    setReordering(true);
+    try {
+      await fetch(`/api/matches/${matchId}/reorder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order: reordered.map(identityIdOf) }),
+      });
+      // The server's broadcast 'lobby' event (received via useRemoteMatchSync) updates the
+      // `players` prop for every connected client, including this one — no local state to sync.
+    } finally {
+      setReordering(false);
+    }
   };
 
   return (
@@ -41,24 +68,58 @@ export function MatchLobby({ roomCode, players, isHost, onStart, starting }: Mat
         <span className="truncate">{copied ? 'Copied!' : joinUrl}</span>
       </button>
 
+      <div className="w-full flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-sisal">
+        <span>Players</span>
+        <span>
+          {players.length}/{maxPlayers} joined · min {minPlayers}
+        </span>
+      </div>
+
       <div className="flex flex-col gap-2 w-full">
-        {[0, 1].map((seat) => {
-          const player = players[seat];
-          return (
+        {players.map((player, index) => (
+          <div
+            key={identityIdOf(player)}
+            className="flex items-center gap-2 rounded-xl p-3 bg-double/15 text-double font-bold"
+          >
+            <span className="flex-1 text-left truncate">{player.name}</span>
+            {isHost && players.length > 1 && (
+              <div className="flex flex-col gap-0.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleMove(index, -1)}
+                  disabled={index === 0 || reordering}
+                  aria-label={`Move ${player.name} up`}
+                  className="w-6 h-5 flex items-center justify-center rounded bg-oche text-sisal disabled:opacity-30 hover:opacity-80"
+                >
+                  <ChevronUp className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleMove(index, 1)}
+                  disabled={index === players.length - 1 || reordering}
+                  aria-label={`Move ${player.name} down`}
+                  className="w-6 h-5 flex items-center justify-center rounded bg-oche text-sisal disabled:opacity-30 hover:opacity-80"
+                >
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {players.length < minPlayers &&
+          Array.from({ length: minPlayers - players.length }).map((_, i) => (
             <div
-              key={seat}
-              className={`rounded-xl p-3 text-center font-bold ${
-                player ? 'bg-double/15 text-double' : 'bg-oche text-sisal/50 border border-sisal/20'
-              }`}
+              key={`empty-${i}`}
+              className="rounded-xl p-3 text-center font-bold bg-oche text-sisal/50 border border-sisal/20"
             >
-              {player ? player.name : 'Waiting for player…'}
+              Waiting for player…
             </div>
-          );
-        })}
+          ))}
       </div>
 
       {isHost && (
-        <Button onClick={onStart} disabled={players.length < 2 || starting}>
+        <Button onClick={onStart} disabled={players.length < minPlayers || starting}>
           {starting ? 'Starting…' : 'Start Match'}
         </Button>
       )}

@@ -26,29 +26,6 @@ const GAME_ACCENT: Record<GameId, { selected: string; badge: string }> = {
   cricket: { selected: 'border-double bg-double/15', badge: 'bg-double text-chalk' },
 };
 
-/** The app's dartboard-ring mark (same concentric nesting as the PWA icon set), rendered as
- *  plain nested divs so it can carry a live ambient glow — the dashboard's signature element. */
-function RingMark({ size = 56 }: { size?: number }) {
-  return (
-    <div
-      className="ring-mark-glow rounded-full flex items-center justify-center shrink-0"
-      style={{ width: size, height: size, background: 'var(--wire)' }}
-    >
-      <div
-        className="rounded-full flex items-center justify-center"
-        style={{ width: size * 0.66, height: size * 0.66, background: 'var(--oche)' }}
-      >
-        <div
-          className="rounded-full flex items-center justify-center"
-          style={{ width: size * 0.4, height: size * 0.4, background: 'var(--wire)' }}
-        >
-          <div className="rounded-full" style={{ width: size * 0.18, height: size * 0.18, background: 'var(--chalk)' }} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function GameCard({ game, selected, onSelect }: { game: GameOption; selected: boolean; onSelect: () => void }) {
   const accent = GAME_ACCENT[game.id];
   const Icon = game.icon;
@@ -191,14 +168,11 @@ export default function Dashboard() {
       }}
     >
       <div className="w-full max-w-3xl flex flex-col gap-6 md:gap-8 pt-6 md:pt-12">
-        <header className="flex items-center gap-4">
-          <RingMark size={56} />
-          <div className="flex flex-col">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold tracking-tight leading-none">
-              OCHE
-            </h1>
-            <p className="text-sisal text-sm md:text-base mt-1">Pick a game, grab your darts</p>
-          </div>
+        <header className="flex flex-col">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold tracking-tight leading-none">
+            OCHE
+          </h1>
+          <p className="text-sisal text-sm md:text-base mt-1">Pick a game, grab your darts</p>
         </header>
 
         {games === null ? (
@@ -256,6 +230,19 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="flex flex-col gap-2">
                 <Button
+                  onClick={() => handleCreateMatch(selectedGameId, 'remote')}
+                  disabled={creating !== null}
+                  className="min-h-16 md:min-h-20 rounded-2xl text-xl md:text-2xl w-full"
+                >
+                  {creating === 'remote' ? 'Starting…' : 'Play Online'}
+                </Button>
+                <span className="text-center text-[11px] font-bold uppercase tracking-widest text-sisal">
+                  Room code
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Button
                   variant="secondary"
                   onClick={() => handleCreateMatch(selectedGameId, 'local')}
                   disabled={creating !== null}
@@ -265,19 +252,6 @@ export default function Dashboard() {
                 </Button>
                 <span className="text-center text-[11px] font-bold uppercase tracking-widest text-sisal">
                   Same device
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Button
-                  onClick={() => handleCreateMatch(selectedGameId, 'remote')}
-                  disabled={creating !== null}
-                  className="min-h-16 md:min-h-20 rounded-2xl text-xl md:text-2xl w-full"
-                >
-                  {creating === 'remote' ? 'Starting…' : 'Play Online'}
-                </Button>
-                <span className="text-center text-[11px] font-bold uppercase tracking-widest text-sisal">
-                  Room code
                 </span>
               </div>
             </div>

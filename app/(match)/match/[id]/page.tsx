@@ -7,7 +7,7 @@ import { DartboardInput } from '@/components/organisms/DartboardInput';
 import { PostMatchStats } from '@/components/organisms/PostMatchStats';
 import { Button } from '@/components/atoms/Button';
 import { Throw, PlayerId, createPlayerId } from '@/lib/types';
-import { Target, Ban, Undo2 } from 'lucide-react';
+import { Target, Ban, Undo2, Crosshair } from 'lucide-react';
 import { useRemoteMatchSync } from '@/hooks/useRemoteMatchSync';
 import { MatchLobby } from '@/components/organisms/MatchLobby';
 import { identityIdOf, MatchPlayerDoc } from '@/lib/matchLobby';
@@ -138,7 +138,7 @@ export default function MatchPage({ params }: MatchPageProps) {
 
   const { id } = use(params);
 
-  const { mode, status, players: lobbyPlayers, you, throwError, roomCode } = useMatchStore();
+  const { mode, status, players: lobbyPlayers, you, hostId, throwError, roomCode } = useMatchStore();
   useRemoteMatchSync(mode === 'remote' ? id : null);
   const [starting, setStarting] = useState(false);
 
@@ -170,6 +170,7 @@ export default function MatchPage({ params }: MatchPageProps) {
             status: snapshot.status,
             players: snapshot.players,
             you: snapshot.you,
+            hostId: snapshot.hostId,
             roomCode: snapshot.roomCode,
           });
         } else {
@@ -210,16 +211,17 @@ export default function MatchPage({ params }: MatchPageProps) {
   }
 
   if (mode === 'remote' && status === 'lobby') {
-    const isHost =
-      lobbyPlayers.length > 0 &&
-      you !== null &&
-      ((lobbyPlayers[0] as any).userId === you || (lobbyPlayers[0] as any).guestId === you);
+    // hostId is a fixed field set at creation — independent of a player's position in
+    // `lobbyPlayers`, which the host can rearrange via the reorder endpoint.
+    const isHost = hostId !== null && you !== null && hostId === you;
 
     return (
       <div className="min-h-screen bg-oche text-chalk p-4 flex items-center justify-center">
         <MatchLobby
+          matchId={id}
           roomCode={roomCode ?? ''}
-          players={lobbyPlayers as { name: string }[]}
+          players={lobbyPlayers as MatchPlayerDoc[]}
+          playerRange={gameModule.playerRange}
           isHost={isHost}
           onStart={handleStart}
           starting={starting}
@@ -247,6 +249,13 @@ export default function MatchPage({ params }: MatchPageProps) {
     (lobbyPlayers as MatchPlayerDoc[]).map((p) => [identityIdOf(p), p.name])
   );
 
+  // In remote mode, `you` (this client's identity id) is always one of `players` once the match
+  // is live — remote matches support up to 8 players, so the live screen focuses on your own
+  // scoreboard/history/dartboard and shows everyone else as a compact list, rather than the
+  // fixed 2-up layout local mode uses (which only ever has exactly 2 players).
+  const youPlayerId = mode === 'remote' ? (players.find((p) => p === you) ?? null) : null;
+  const otherPlayers = youPlayerId ? players.filter((p) => p !== youPlayerId) : [];
+
   return (
     <div
       className="min-h-screen bg-oche text-chalk p-4 flex flex-col gap-4"
@@ -264,59 +273,151 @@ export default function MatchPage({ params }: MatchPageProps) {
         )}
       </header>
 
-      {/* Top row: score / match info / score */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {leftPlayer && <gameModule.ScoreboardSlot state={gameState} playerId={leftPlayer} settings={settings} />}
-        <div className="rounded-2xl bg-slate p-3 flex items-center justify-center gap-3 border border-wire/30">
-          <Target className="w-6 h-6 text-wire shrink-0" />
-          {info.map((entry) => (
-            <div key={entry.label} className="text-center leading-tight">
-              <div className="text-[10px] font-bold uppercase tracking-widest text-sisal">{entry.label}</div>
-              <div className="text-xl font-display font-bold">{entry.value}</div>
+      {mode === 'remote' && youPlayerId ? (
+        <>
+          {/* Top row: your score / match info */}
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
+            <gameModule.ScoreboardSlot
+              state={gameState}
+              playerId={youPlayerId}
+              settings={settings}
+              displayName={displayNames.get(youPlayerId)}
+            />
+            <div className="rounded-2xl bg-slate p-3 flex items-center justify-center gap-3 border border-wire/30 md:min-w-[180px]">
+              <Target className="w-6 h-6 text-wire shrink-0" />
+              {info.map((entry) => (
+                <div key={entry.label} className="text-center leading-tight">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-sisal">{entry.label}</div>
+                  <div className="text-xl font-display font-bold">{entry.value}</div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        {rightPlayer && <gameModule.ScoreboardSlot state={gameState} playerId={rightPlayer} settings={settings} />}
-      </div>
-
-      {/* Middle row: history / board+keypad / history */}
-      {!isComplete && (
-        <div className="grid grid-cols-1 md:grid-cols-[0.8fr_1.4fr_0.8fr] gap-3 flex-1">
-          {leftPlayer && (
-            <HistoryPanel
-              playerId={leftPlayer}
-              displayName={displayNames.get(leftPlayer)}
-              visits={gameModule.visitHistory(gameState, leftPlayer)}
-              inProgress={leftPlayer === currentPlayerId ? visitProgress.throws : []}
-            />
-          )}
-
-          <div className="flex flex-col items-center justify-center gap-4 w-full">
-            {throwError && (
-              <div className="text-sm text-treble bg-treble/10 border border-treble/40 rounded-xl px-3 py-2 flex items-center gap-2">
-                {throwError}
-                <button onClick={() => useMatchStore.getState().clearThrowError()} className="underline">
-                  Dismiss
-                </button>
-              </div>
-            )}
-            <DartboardInput
-              onThrow={handleThrow}
-              disabled={isComplete || (mode === 'remote' && gameModule.currentPlayer(gameState) !== you)}
-              visitDartCount={visitProgress.darts}
-              heatmap={currentPlayerHeatmap}
-            />
           </div>
 
-          {rightPlayer && (
-            <HistoryPanel
-              playerId={rightPlayer}
-              displayName={displayNames.get(rightPlayer)}
-              visits={gameModule.visitHistory(gameState, rightPlayer)}
-              inProgress={rightPlayer === currentPlayerId ? visitProgress.throws : []}
-            />
+          {/* Middle row: your history + board+keypad on the left, everyone else compact on the right */}
+          {!isComplete && (
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-3 flex-1">
+              <div className="flex flex-col gap-3">
+                <HistoryPanel
+                  playerId={youPlayerId}
+                  displayName={displayNames.get(youPlayerId)}
+                  visits={gameModule.visitHistory(gameState, youPlayerId)}
+                  inProgress={youPlayerId === currentPlayerId ? visitProgress.throws : []}
+                />
+
+                <div className="flex flex-col items-center justify-center gap-4 w-full">
+                  {throwError && (
+                    <div className="text-sm text-treble bg-treble/10 border border-treble/40 rounded-xl px-3 py-2 flex items-center gap-2">
+                      {throwError}
+                      <button onClick={() => useMatchStore.getState().clearThrowError()} className="underline">
+                        Dismiss
+                      </button>
+                    </div>
+                  )}
+                  <DartboardInput
+                    onThrow={handleThrow}
+                    disabled={isComplete || currentPlayerId !== you}
+                    visitDartCount={visitProgress.darts}
+                    heatmap={currentPlayerHeatmap}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 md:max-h-[640px] overflow-y-auto">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-sisal px-1">Opponents</div>
+                {otherPlayers.map((playerId) => {
+                  const metric = gameModule.primaryMetric(gameState, playerId);
+                  const isTurn = playerId === currentPlayerId;
+                  return (
+                    <div
+                      key={playerId}
+                      className={`rounded-xl p-3 flex items-center justify-between gap-2 ${
+                        isTurn ? 'bg-wire/10 border border-wire/40' : 'bg-slate'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        {isTurn && <Crosshair className="w-3.5 h-3.5 text-wire shrink-0" />}
+                        <span className="text-sm font-bold truncate">{displayNames.get(playerId) ?? playerId}</span>
+                      </div>
+                      <span className="text-lg font-display font-bold shrink-0">{metric.value}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           )}
-        </div>
+        </>
+      ) : (
+        <>
+          {/* Top row: score / match info / score — local mode's fixed 2-player layout */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {leftPlayer && (
+              <gameModule.ScoreboardSlot
+                state={gameState}
+                playerId={leftPlayer}
+                settings={settings}
+                displayName={displayNames.get(leftPlayer)}
+              />
+            )}
+            <div className="rounded-2xl bg-slate p-3 flex items-center justify-center gap-3 border border-wire/30">
+              <Target className="w-6 h-6 text-wire shrink-0" />
+              {info.map((entry) => (
+                <div key={entry.label} className="text-center leading-tight">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-sisal">{entry.label}</div>
+                  <div className="text-xl font-display font-bold">{entry.value}</div>
+                </div>
+              ))}
+            </div>
+            {rightPlayer && (
+              <gameModule.ScoreboardSlot
+                state={gameState}
+                playerId={rightPlayer}
+                settings={settings}
+                displayName={displayNames.get(rightPlayer)}
+              />
+            )}
+          </div>
+
+          {/* Middle row: history / board+keypad / history */}
+          {!isComplete && (
+            <div className="grid grid-cols-1 md:grid-cols-[0.8fr_1.4fr_0.8fr] gap-3 flex-1">
+              {leftPlayer && (
+                <HistoryPanel
+                  playerId={leftPlayer}
+                  displayName={displayNames.get(leftPlayer)}
+                  visits={gameModule.visitHistory(gameState, leftPlayer)}
+                  inProgress={leftPlayer === currentPlayerId ? visitProgress.throws : []}
+                />
+              )}
+
+              <div className="flex flex-col items-center justify-center gap-4 w-full">
+                {throwError && (
+                  <div className="text-sm text-treble bg-treble/10 border border-treble/40 rounded-xl px-3 py-2 flex items-center gap-2">
+                    {throwError}
+                    <button onClick={() => useMatchStore.getState().clearThrowError()} className="underline">
+                      Dismiss
+                    </button>
+                  </div>
+                )}
+                <DartboardInput
+                  onThrow={handleThrow}
+                  disabled={isComplete}
+                  visitDartCount={visitProgress.darts}
+                  heatmap={currentPlayerHeatmap}
+                />
+              </div>
+
+              {rightPlayer && (
+                <HistoryPanel
+                  playerId={rightPlayer}
+                  displayName={displayNames.get(rightPlayer)}
+                  visits={gameModule.visitHistory(gameState, rightPlayer)}
+                  inProgress={rightPlayer === currentPlayerId ? visitProgress.throws : []}
+                />
+              )}
+            </div>
+          )}
+        </>
       )}
 
       {/* Match end */}

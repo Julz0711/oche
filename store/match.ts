@@ -14,6 +14,9 @@ interface MatchStore {
   settings: any;
   players: unknown[];
   you: string | null;
+  /** The identity id of the match's host — a fixed field set at creation, independent of any
+   *  player's position in `players` (which the host can rearrange via the reorder endpoint). */
+  hostId: string | null;
   roomCode: string | null;
   visitLog: Visit[];
   currentPlayer: PlayerId | null;
@@ -28,6 +31,7 @@ interface MatchStore {
     status?: MatchStatus;
     players?: unknown[];
     you?: string | null;
+    hostId?: string | null;
     roomCode?: string | null;
   }) => void;
   setGameState: (gameState: any, status?: MatchStatus) => void;
@@ -48,6 +52,7 @@ export const useMatchStore = create<MatchStore>((set, get) => ({
   settings: null,
   players: [],
   you: null,
+  hostId: null,
   roomCode: null,
   visitLog: [],
   currentPlayer: null,
@@ -62,8 +67,9 @@ export const useMatchStore = create<MatchStore>((set, get) => ({
     status = 'live',
     players = [],
     you = null,
+    hostId = null,
     roomCode = null,
-  }) => set({ matchId, gameModule, gameState, settings, mode, status, players, you, roomCode }),
+  }) => set({ matchId, gameModule, gameState, settings, mode, status, players, you, hostId, roomCode }),
 
   setGameState: (gameState, status) => set((state) => ({ gameState, status: status ?? state.status })),
 
@@ -123,6 +129,7 @@ export const useMatchStore = create<MatchStore>((set, get) => ({
       settings: null,
       players: [],
       you: null,
+      hostId: null,
       roomCode: null,
       visitLog: [],
       currentPlayer: null,

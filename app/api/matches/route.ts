@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     roomCode,
     settings,
     hostId: identity.id,
-    players: [seatFor(identity, session?.user?.name ?? 'Guest', 0)],
+    players: [seatFor(identity, session?.user?.name ?? 'Guest')],
   });
 
   return applyIdentityCookie(NextResponse.json({ id: match._id.toString(), roomCode }), newGuestCookie);

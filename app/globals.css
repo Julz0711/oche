@@ -44,3 +44,28 @@ body {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
+
+/**
+ * Ring Mark Glow
+ * Ambient pulse on the dashboard's dartboard-ring brand mark. Static glow is the resting
+ * state (respects prefers-reduced-motion); the animation only layers on top when motion is OK.
+ */
+.ring-mark-glow {
+  box-shadow: 0 0 16px 2px color-mix(in srgb, var(--wire) 45%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ring-mark-glow {
+    animation: ring-glow 3s ease-in-out infinite;
+  }
+}
+
+@keyframes ring-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 16px 2px color-mix(in srgb, var(--wire) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 28px 6px color-mix(in srgb, var(--wire) 65%, transparent);
+  }
+}

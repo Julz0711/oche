@@ -7,9 +7,10 @@ import { DartboardInput } from '@/components/organisms/DartboardInput';
 import { PostMatchStats } from '@/components/organisms/PostMatchStats';
 import { Button } from '@/components/atoms/Button';
 import { Throw, PlayerId, createPlayerId } from '@/lib/types';
-import { Target, Ban, Undo2, Crosshair } from 'lucide-react';
+import { Target, Ban, Undo2, Crosshair, BarChart3 } from 'lucide-react';
 import { useRemoteMatchSync } from '@/hooks/useRemoteMatchSync';
 import { MatchLobby } from '@/components/organisms/MatchLobby';
+import { LiveStatsDrawer } from '@/components/organisms/LiveStatsDrawer';
 import { identityIdOf, MatchPlayerDoc } from '@/lib/matchLobby';
 
 interface MatchPageProps {
@@ -145,6 +146,7 @@ export default function MatchPage({ params }: MatchPageProps) {
   // remote mode's opponents panel only, at most one open at a time.
   const [expandedOpponent, setExpandedOpponent] = useState<PlayerId | null>(null);
   const [showAllOpponentVisits, setShowAllOpponentVisits] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
 
   const handleStart = async () => {
     setStarting(true);
@@ -274,9 +276,14 @@ export default function MatchPage({ params }: MatchPageProps) {
       <header className="flex items-center justify-between">
         <h1 className="text-xl font-display font-bold">{gameModule.name}</h1>
         {!isComplete && (
-          <Button onClick={handleUndo} size="sm" variant="ghost">
-            <Undo2 className="w-4 h-4 mr-1" /> Undo
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setStatsOpen(true)} size="sm" variant="ghost">
+              <BarChart3 className="w-4 h-4 mr-1" /> Stats
+            </Button>
+            <Button onClick={handleUndo} size="sm" variant="ghost">
+              <Undo2 className="w-4 h-4 mr-1" /> Undo
+            </Button>
+          </div>
         )}
       </header>
 
@@ -538,6 +545,16 @@ export default function MatchPage({ params }: MatchPageProps) {
           displayNames={displayNames}
         />
       )}
+
+      <LiveStatsDrawer
+        open={statsOpen}
+        onClose={() => setStatsOpen(false)}
+        gameModule={gameModule}
+        state={gameState}
+        settings={settings}
+        players={players}
+        displayNames={displayNames}
+      />
     </div>
   );
 }

@@ -1,0 +1,84 @@
+// components/organisms/LiveStatsDrawer.tsx
+'use client';
+import { useEffect } from 'react';
+import { X } from 'lucide-react';
+import { GameModule, PlayerId } from '@/lib/types';
+import { PlayerStatTiles } from './PlayerStatTiles';
+
+interface LiveStatsDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  gameModule: GameModule<any, any>;
+  state: any;
+  settings: any;
+  players: PlayerId[];
+  winnerId?: PlayerId | null;
+  displayNames: Map<string, string>;
+}
+
+/** A bottom-sheet showing every player's live computed stats (3-dart avg, checkout %, MPR,
+ *  etc.) mid-match — the same `PlayerStatTiles` PostMatchStats shows at the end, so live and
+ *  final numbers can never disagree. Opened on demand from the match header; doesn't take up
+ *  permanent screen space. */
+export function LiveStatsDrawer({
+  open,
+  onClose,
+  gameModule,
+  state,
+  settings,
+  players,
+  winnerId = null,
+  displayNames,
+}: LiveStatsDrawerProps) {
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open, onClose]);
+
+  return (
+    <div
+      className={`fixed inset-0 z-40 flex items-end justify-center transition-opacity duration-200 ${
+        open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      }`}
+      aria-hidden={!open}
+    >
+      <div className="absolute inset-0 bg-oche/70" onClick={onClose} />
+
+      <div
+        className={`relative w-full max-w-2xl bg-slate rounded-t-3xl border-t border-wire/30 p-4 flex flex-col gap-4 max-h-[80vh] transition-transform duration-200 ${
+          open ? 'translate-y-0' : 'translate-y-full'
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-bold uppercase tracking-widest text-sisal">Live Stats</span>
+          <button
+            onClick={onClose}
+            aria-label="Close stats"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-oche text-sisal hover:text-chalk"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto">
+          {players.map((playerId) => (
+            <div key={playerId} className="rounded-2xl p-4 bg-oche">
+              <PlayerStatTiles
+                gameModule={gameModule}
+                state={state}
+                settings={settings}
+                playerId={playerId}
+                displayName={displayNames.get(playerId)}
+                isWinner={winnerId !== null && playerId === winnerId}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,9 +1,10 @@
 // components/organisms/PostMatchStats.tsx
 'use client';
-import { GameModule, PlayerId, StatTileDef } from '@/lib/types';
+import { GameModule, PlayerId } from '@/lib/types';
 import { HeatmapBoard } from './HeatmapBoard';
 import { Button } from '@/components/atoms/Button';
 import { ShareResultButton, ShareResultPlayer } from './ShareResultButton';
+import { PlayerStatTiles } from './PlayerStatTiles';
 
 interface PostMatchStatsProps {
   matchId: string;
@@ -46,7 +47,6 @@ export function PostMatchStats({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {players.map((playerId) => {
-          const stats = gameModule.matchStats(state, playerId, settings);
           const heatmap = gameModule.heatmap(state, playerId);
           const isWinner = playerId === winnerId;
 
@@ -57,20 +57,14 @@ export function PostMatchStats({
                 isWinner ? 'border-wire bg-wire/10' : 'border-transparent bg-oche'
               }`}
             >
-              <div className="text-sm font-bold uppercase tracking-widest text-sisal">
-                {displayNames.get(playerId) ?? playerId}
-                {isWinner ? ' — Winner' : ''}
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                {gameModule.statTiles.map((tile: StatTileDef<any>) => (
-                  <div key={tile.key} className="text-center">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-sisal">{tile.label}</div>
-                    <div className="text-xl font-display font-bold">{tile.value(stats)}</div>
-                  </div>
-                ))}
-              </div>
-
+              <PlayerStatTiles
+                gameModule={gameModule}
+                state={state}
+                settings={settings}
+                playerId={playerId}
+                displayName={displayNames.get(playerId)}
+                isWinner={isWinner}
+              />
               <HeatmapBoard heatmap={heatmap} />
             </div>
           );

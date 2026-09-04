@@ -41,9 +41,11 @@ export function HeatmapBoard({ heatmap = {} }: HeatmapBoardProps) {
 
       {BOARD_ORDER.map((segment, i) => {
         const { startAngle, endAngle, midAngle } = segmentAngles(i);
+        // Outside the board's outer edge (not on the double ring, where it used to compete
+        // with the heat overlay's color for legibility).
         const labelPoint = {
-          x: CENTER + ((RADIUS.doubleInner + RADIUS.boardEdge) / 2) * Math.cos(midAngle),
-          y: CENTER + ((RADIUS.doubleInner + RADIUS.boardEdge) / 2) * Math.sin(midAngle),
+          x: CENTER + (RADIUS.boardEdge + 18) * Math.cos(midAngle),
+          y: CENTER + (RADIUS.boardEdge + 18) * Math.sin(midAngle),
         };
 
         const doubleRatio = ratioOf(`D${segment}`);

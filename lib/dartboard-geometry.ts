@@ -1,11 +1,14 @@
 export const CENTER = 200;
 
+/** Scaled down from the board's previous full-viewBox size (boardEdge was 190) to open a real
+ *  margin outside the board for the sector-number labels, which used to sit on top of the
+ *  double ring itself. All radii keep the same proportions to each other, just smaller overall. */
 export const RADIUS = {
-  boardEdge: 190,
-  doubleInner: 160,
-  outerSingleInner: 115,
-  trebleInner: 92,
-  innerSingleInner: 25,
+  boardEdge: 165,
+  doubleInner: 139,
+  outerSingleInner: 100,
+  trebleInner: 80,
+  innerSingleInner: 22,
 };
 
 /** A real dartboard's segment order, clockwise starting from the top (12 o'clock). */

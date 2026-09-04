@@ -275,15 +275,17 @@ export default function MatchPage({ params }: MatchPageProps) {
 
       {mode === 'remote' && youPlayerId ? (
         <>
-          {/* Top row: your score / match info */}
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
+          {/* Top row: score / match info / score — same 3-equal-column layout as local mode.
+              The right slot, which used to be a single opponent's ScoreboardSlot, is now a
+              same-sized card listing every opponent's score compactly. */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <gameModule.ScoreboardSlot
               state={gameState}
               playerId={youPlayerId}
               settings={settings}
               displayName={displayNames.get(youPlayerId)}
             />
-            <div className="rounded-2xl bg-slate p-3 flex items-center justify-center gap-3 border border-wire/30 md:min-w-[180px]">
+            <div className="rounded-2xl bg-slate p-3 flex items-center justify-center gap-3 border border-wire/30">
               <Target className="w-6 h-6 text-wire shrink-0" />
               {info.map((entry) => (
                 <div key={entry.label} className="text-center leading-tight">
@@ -292,58 +294,67 @@ export default function MatchPage({ params }: MatchPageProps) {
                 </div>
               ))}
             </div>
+            <div className="rounded-2xl bg-slate p-5 border-2 border-transparent flex flex-col gap-2 justify-center">
+              {otherPlayers.map((playerId) => {
+                const metric = gameModule.primaryMetric(gameState, playerId);
+                const isTurn = playerId === currentPlayerId;
+                return (
+                  <div key={playerId} className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      {isTurn && <Crosshair className="w-3.5 h-3.5 text-wire shrink-0" />}
+                      <span className="text-xs font-bold uppercase tracking-widest text-sisal truncate">
+                        {displayNames.get(playerId) ?? playerId}
+                      </span>
+                    </div>
+                    <span className="text-lg font-display font-bold shrink-0">{metric.value}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Middle row: your history + board+keypad on the left, everyone else compact on the right */}
+          {/* Middle row: history / board+keypad / history — same 3-column layout as local mode.
+              The right slot shows whichever opponent is currently on throw, exactly like the
+              single opponent's HistoryPanel it replaces; when it's your own turn, that slot has
+              no opponent activity to show. */}
           {!isComplete && (
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-3 flex-1">
-              <div className="flex flex-col gap-3">
-                <HistoryPanel
-                  playerId={youPlayerId}
-                  displayName={displayNames.get(youPlayerId)}
-                  visits={gameModule.visitHistory(gameState, youPlayerId)}
-                  inProgress={youPlayerId === currentPlayerId ? visitProgress.throws : []}
+            <div className="grid grid-cols-1 md:grid-cols-[0.8fr_1.4fr_0.8fr] gap-3 flex-1">
+              <HistoryPanel
+                playerId={youPlayerId}
+                displayName={displayNames.get(youPlayerId)}
+                visits={gameModule.visitHistory(gameState, youPlayerId)}
+                inProgress={youPlayerId === currentPlayerId ? visitProgress.throws : []}
+              />
+
+              <div className="flex flex-col items-center justify-center gap-4 w-full">
+                {throwError && (
+                  <div className="text-sm text-treble bg-treble/10 border border-treble/40 rounded-xl px-3 py-2 flex items-center gap-2">
+                    {throwError}
+                    <button onClick={() => useMatchStore.getState().clearThrowError()} className="underline">
+                      Dismiss
+                    </button>
+                  </div>
+                )}
+                <DartboardInput
+                  onThrow={handleThrow}
+                  disabled={isComplete || currentPlayerId !== you}
+                  visitDartCount={visitProgress.darts}
+                  heatmap={currentPlayerHeatmap}
                 />
+              </div>
 
-                <div className="flex flex-col items-center justify-center gap-4 w-full">
-                  {throwError && (
-                    <div className="text-sm text-treble bg-treble/10 border border-treble/40 rounded-xl px-3 py-2 flex items-center gap-2">
-                      {throwError}
-                      <button onClick={() => useMatchStore.getState().clearThrowError()} className="underline">
-                        Dismiss
-                      </button>
-                    </div>
-                  )}
-                  <DartboardInput
-                    onThrow={handleThrow}
-                    disabled={isComplete || currentPlayerId !== you}
-                    visitDartCount={visitProgress.darts}
-                    heatmap={currentPlayerHeatmap}
-                  />
+              {currentPlayerId !== youPlayerId ? (
+                <HistoryPanel
+                  playerId={currentPlayerId}
+                  displayName={displayNames.get(currentPlayerId)}
+                  visits={gameModule.visitHistory(gameState, currentPlayerId)}
+                  inProgress={visitProgress.throws}
+                />
+              ) : (
+                <div className="rounded-2xl bg-slate p-4 flex items-center justify-center min-h-[240px] text-sisal/50 text-sm">
+                  Your throw
                 </div>
-              </div>
-
-              <div className="flex flex-col gap-2 md:max-h-[640px] overflow-y-auto">
-                <div className="text-[10px] font-bold uppercase tracking-widest text-sisal px-1">Opponents</div>
-                {otherPlayers.map((playerId) => {
-                  const metric = gameModule.primaryMetric(gameState, playerId);
-                  const isTurn = playerId === currentPlayerId;
-                  return (
-                    <div
-                      key={playerId}
-                      className={`rounded-xl p-3 flex items-center justify-between gap-2 ${
-                        isTurn ? 'bg-wire/10 border border-wire/40' : 'bg-slate'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        {isTurn && <Crosshair className="w-3.5 h-3.5 text-wire shrink-0" />}
-                        <span className="text-sm font-bold truncate">{displayNames.get(playerId) ?? playerId}</span>
-                      </div>
-                      <span className="text-lg font-display font-bold shrink-0">{metric.value}</span>
-                    </div>
-                  );
-                })}
-              </div>
+              )}
             </div>
           )}
         </>

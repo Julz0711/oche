@@ -25,6 +25,16 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
   const [modifier, setModifier] = useState<Modifier>('S');
   const order = Math.min(visitDartCount, 2) as 0 | 1 | 2;
 
+  // Briefly highlights the board region a keypad press corresponds to, so keypad throws get the
+  // same "where did that land" board feedback a direct board click already gives via its own
+  // hover/active states. 'S' matches both physical single-band wedges (inner and outer single),
+  // since a keypad press doesn't disambiguate which one — lighting up both is the honest answer.
+  const [flash, setFlash] = useState<{ sector: number; ring: BoardRing | 'OB' | 'IB' } | null>(null);
+  const flashRegion = (sector: number, ring: BoardRing | 'OB' | 'IB') => {
+    setFlash({ sector, ring });
+    setTimeout(() => setFlash(null), 220);
+  };
+
   const throwSector = (sector: number) => {
     if (disabled) return;
     if (sector === 25 && modifier === 'T') return; // no such throw as a "triple bull" — the BULL button is disabled for this case below, but guard here too
@@ -33,8 +43,10 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
       // DOUBLE gives inner bull (50); anything else (only 'S' can reach here now) gives outer bull (25).
       const ring = modifier === 'D' ? 'IB' : 'OB';
       onThrow({ sector: 25 as any, ring, points: 0, order });
+      flashRegion(25, ring);
     } else {
       onThrow({ sector: sector as any, ring: modifier, points: 0, order });
+      flashRegion(sector, modifier);
     }
 
     setModifier('S');
@@ -76,12 +88,19 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
             return (
               <g key={segment}>
                 {bands.map((band, bi) => (
-                  <path
-                    key={bi}
-                    d={annularWedgePath(band.inner, band.outer, startAngle, endAngle)}
-                    className={disabled ? 'fill-transparent' : HIGHLIGHT_CLASS}
-                    onClick={() => throwAt(segment, band.ring)}
-                  />
+                  <g key={bi}>
+                    <path
+                      d={annularWedgePath(band.inner, band.outer, startAngle, endAngle)}
+                      className={disabled ? 'fill-transparent' : HIGHLIGHT_CLASS}
+                      onClick={() => throwAt(segment, band.ring)}
+                    />
+                    {flash && flash.sector === segment && flash.ring === band.ring && (
+                      <path
+                        d={annularWedgePath(band.inner, band.outer, startAngle, endAngle)}
+                        className="fill-wire/60 pointer-events-none"
+                      />
+                    )}
+                  </g>
                 ))}
               </g>
             );
@@ -94,6 +113,9 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
             className={disabled ? 'fill-transparent' : HIGHLIGHT_CLASS}
             onClick={() => throwAt(25, 'OB')}
           />
+          {flash && flash.sector === 25 && flash.ring === 'OB' && (
+            <circle cx={CENTER} cy={CENTER} r={RADIUS.innerSingleInner} className="fill-wire/60 pointer-events-none" />
+          )}
           <circle
             cx={CENTER}
             cy={CENTER}
@@ -101,6 +123,14 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
             className={disabled ? 'fill-transparent' : HIGHLIGHT_CLASS}
             onClick={() => throwAt(25, 'IB')}
           />
+          {flash && flash.sector === 25 && flash.ring === 'IB' && (
+            <circle
+              cx={CENTER}
+              cy={CENTER}
+              r={RADIUS.innerSingleInner * 0.4}
+              className="fill-wire/60 pointer-events-none"
+            />
+          )}
         </svg>
       </div>
 

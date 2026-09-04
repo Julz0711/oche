@@ -41,47 +41,37 @@ function MatchInfoPanel({
   displayNames: Map<string, string>;
 }) {
   return (
-    <div className="rounded-2xl bg-slate p-4 flex flex-col gap-3 border-2 border-wire/30">
-      <div className="flex items-center justify-center gap-2">
-        <Target className="w-4 h-4 text-wire shrink-0" />
-        <span className="text-xs font-display font-bold uppercase tracking-wide">
+    <div className="rounded-2xl bg-slate p-3 flex flex-col gap-1.5 border-2 border-wire/30">
+      <div className="flex items-center justify-center gap-1.5">
+        <Target className="w-3.5 h-3.5 text-wire shrink-0" />
+        <span className="text-[11px] font-display font-bold uppercase tracking-wide">
           {info.map((entry) => `${entry.label} ${entry.value}`).join(' · ')}
         </span>
       </div>
 
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-1.5">
         {raceProgress.map((p) => (
-          <div key={p.playerId} className="flex flex-col gap-1">
+          <div key={p.playerId} className="flex flex-col gap-0.5">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-sisal truncate">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-sisal truncate">
                 {displayNames.get(p.playerId) ?? p.playerId}
               </span>
-              <span className="text-[10px] font-bold text-wire shrink-0">
-                {p.legs}/{p.legsTarget} legs
+              <span className="text-[9px] font-bold text-wire shrink-0">
+                {p.legs}/{p.legsTarget}
+                {p.setsTarget > 0 && <span className="text-double"> · {p.sets}/{p.setsTarget}</span>}
               </span>
             </div>
             <RaceBar value={p.legs} target={p.legsTarget} colorClass="bg-wire" />
-
-            {p.setsTarget > 0 && (
-              <>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-sisal/60">Sets</span>
-                  <span className="text-[10px] font-bold text-double shrink-0">
-                    {p.sets}/{p.setsTarget}
-                  </span>
-                </div>
-                <RaceBar value={p.sets} target={p.setsTarget} colorClass="bg-double" />
-              </>
-            )}
+            {p.setsTarget > 0 && <RaceBar value={p.sets} target={p.setsTarget} colorClass="bg-double" />}
           </div>
         ))}
       </div>
 
-      <div className="flex items-center justify-center gap-1.5">
+      <div className="flex items-center justify-center gap-1">
         {Array.from({ length: visitProgress.max }, (_, i) => (
           <span
             key={i}
-            className={`w-3.5 h-3.5 rotate-45 rounded-[3px] ${
+            className={`w-2.5 h-2.5 rotate-45 rounded-[2px] ${
               i < visitProgress.darts ? 'bg-wire' : 'bg-oche border border-sisal/30'
             }`}
           />
@@ -375,7 +365,7 @@ export default function MatchPage({ params }: MatchPageProps) {
           {/* Top row: score / match info / score — same 3-equal-column layout as local mode.
               The right slot, which used to be a single opponent's ScoreboardSlot, is now a
               same-sized card listing every opponent's score compactly. */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
             <gameModule.ScoreboardSlot
               state={gameState}
               playerId={youPlayerId}
@@ -553,7 +543,7 @@ export default function MatchPage({ params }: MatchPageProps) {
         <>
           {/* Top row: score / match info / score — the original fixed 2-up layout, used for
               local mode (always 2 players) and 2-player remote matches alike */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
             {leftPlayer && (
               <gameModule.ScoreboardSlot
                 state={gameState}

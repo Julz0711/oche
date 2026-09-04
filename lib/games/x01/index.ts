@@ -25,6 +25,18 @@ const matchInfo = (state: X01State, settings: X01Settings): { label: string; val
       ]
     : [{ label: 'Leg', value: String(state.currentLegNumber) }];
 
+const raceProgress = (
+  state: X01State,
+  settings: X01Settings
+): { playerId: PlayerId; legs: number; legsTarget: number; sets: number; setsTarget: number }[] =>
+  state.players.map((playerId) => ({
+    playerId,
+    legs: state.legsWon[playerId],
+    legsTarget: settings.firstTo,
+    sets: state.setsWon[playerId],
+    setsTarget: settings.sets,
+  }));
+
 const visitHistory = (
   state: X01State,
   playerId: PlayerId
@@ -89,6 +101,7 @@ const X01Module: GameModule<X01State, X01Settings> = {
   currentPlayer,
   visitProgress,
   matchInfo,
+  raceProgress,
   visitHistory,
   heatmap,
   lastCompletedVisit,

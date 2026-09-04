@@ -16,39 +16,68 @@ interface MatchPageProps {
   params: Promise<{ id: string }>;
 }
 
-/** A small "riveted" HUD panel: the same match-info data (Leg/Set numbers from
- *  gameModule.matchInfo), styled with corner rivet accents and a real dart-pip readout — how
- *  many of this visit's (up to 3) darts have landed, from gameModule.visitProgress. Both are
- *  data the page already computes; nothing new is fetched or added to the GameModule contract. */
+/** A segmented status-bar track — the fill represents `value` out of `target`. */
+function RaceBar({ value, target, colorClass }: { value: number; target: number; colorClass: string }) {
+  const pct = target > 0 ? Math.min(100, (value / target) * 100) : 0;
+  return (
+    <div className="w-full h-2 rounded-full bg-oche overflow-hidden border border-sisal/20">
+      <div className={`h-full rounded-full ${colorClass} transition-all duration-300`} style={{ width: `${pct}%` }} />
+    </div>
+  );
+}
+
+/** The match-progress HUD panel between the scores: a legs (and sets, when the game uses them)
+ *  race-progress bar per player — from gameModule.raceProgress, generic across every game — plus
+ *  a real dart-pip readout for the current visit, from gameModule.visitProgress. */
 function MatchInfoPanel({
   info,
   visitProgress,
+  raceProgress,
+  displayNames,
 }: {
   info: { label: string; value: string }[];
   visitProgress: { darts: number; max: number };
+  raceProgress: { playerId: PlayerId; legs: number; legsTarget: number; sets: number; setsTarget: number }[];
+  displayNames: Map<string, string>;
 }) {
   return (
-    <div className="relative rounded-2xl bg-slate p-3 flex flex-col items-center justify-center gap-2 border-2 border-wire/30">
-      {[
-        'top-1.5 left-1.5',
-        'top-1.5 right-1.5',
-        'bottom-1.5 left-1.5',
-        'bottom-1.5 right-1.5',
-      ].map((pos) => (
-        <span key={pos} className={`absolute ${pos} w-1.5 h-1.5 rounded-full bg-wire/50`} />
-      ))}
+    <div className="rounded-2xl bg-slate p-4 flex flex-col gap-3 border-2 border-wire/30">
+      <div className="flex items-center justify-center gap-2">
+        <Target className="w-4 h-4 text-wire shrink-0" />
+        <span className="text-xs font-display font-bold uppercase tracking-wide">
+          {info.map((entry) => `${entry.label} ${entry.value}`).join(' · ')}
+        </span>
+      </div>
 
-      <div className="flex items-center justify-center gap-3">
-        <Target className="w-6 h-6 text-wire shrink-0" />
-        {info.map((entry) => (
-          <div key={entry.label} className="text-center leading-tight">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-sisal">{entry.label}</div>
-            <div className="text-xl font-display font-bold">{entry.value}</div>
+      <div className="flex flex-col gap-2.5">
+        {raceProgress.map((p) => (
+          <div key={p.playerId} className="flex flex-col gap-1">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-sisal truncate">
+                {displayNames.get(p.playerId) ?? p.playerId}
+              </span>
+              <span className="text-[10px] font-bold text-wire shrink-0">
+                {p.legs}/{p.legsTarget} legs
+              </span>
+            </div>
+            <RaceBar value={p.legs} target={p.legsTarget} colorClass="bg-wire" />
+
+            {p.setsTarget > 0 && (
+              <>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-sisal/60">Sets</span>
+                  <span className="text-[10px] font-bold text-double shrink-0">
+                    {p.sets}/{p.setsTarget}
+                  </span>
+                </div>
+                <RaceBar value={p.sets} target={p.setsTarget} colorClass="bg-double" />
+              </>
+            )}
           </div>
         ))}
       </div>
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center justify-center gap-1.5">
         {Array.from({ length: visitProgress.max }, (_, i) => (
           <span
             key={i}
@@ -291,6 +320,7 @@ export default function MatchPage({ params }: MatchPageProps) {
   const [leftPlayer, rightPlayer] = players;
   const currentPlayerId = gameModule.currentPlayer(gameState);
   const info = gameModule.matchInfo(gameState, settings);
+  const raceProgress = gameModule.raceProgress(gameState, settings);
   const currentPlayerHeatmap = gameModule.heatmap(gameState, currentPlayerId);
 
   // PlayerId -> display name lookup, built from the lobby snapshot's `players` field. Empty in
@@ -352,7 +382,12 @@ export default function MatchPage({ params }: MatchPageProps) {
               settings={settings}
               displayName={displayNames.get(youPlayerId)}
             />
-            <MatchInfoPanel info={info} visitProgress={visitProgress} />
+            <MatchInfoPanel
+              info={info}
+              visitProgress={visitProgress}
+              raceProgress={raceProgress}
+              displayNames={displayNames}
+            />
             <div className="rounded-2xl bg-slate p-5 border-2 border-transparent flex flex-col gap-2 justify-center">
               {otherPlayers.map((playerId) => {
                 const metric = gameModule.primaryMetric(gameState, playerId);
@@ -517,7 +552,12 @@ export default function MatchPage({ params }: MatchPageProps) {
                 displayName={displayNames.get(leftPlayer)}
               />
             )}
-            <MatchInfoPanel info={info} visitProgress={visitProgress} />
+            <MatchInfoPanel
+              info={info}
+              visitProgress={visitProgress}
+              raceProgress={raceProgress}
+              displayNames={displayNames}
+            />
             {rightPlayer && (
               <gameModule.ScoreboardSlot
                 state={gameState}

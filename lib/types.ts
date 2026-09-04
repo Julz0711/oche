@@ -167,6 +167,15 @@ export interface GameModule<TState = any, TSettings = any> {
    */
   matchInfo: (state: TState, settings: TSettings) => { label: string; value: string }[];
   /**
+   * Each player's race-style progress toward winning the match (legs, and sets when the game
+   * has them), for rendering generic head-to-head progress bars with no game-specific UI code.
+   * `setsTarget: 0` means this game/settings combination doesn't use sets.
+   */
+  raceProgress: (
+    state: TState,
+    settings: TSettings
+  ) => { playerId: PlayerId; legs: number; legsTarget: number; sets: number; setsTarget: number }[];
+  /**
    * A player's completed visits within the current "round" of play (for X01, the current leg),
    * newest first. Used to render a per-player recent-activity panel.
    */

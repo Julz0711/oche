@@ -141,6 +141,9 @@ export default function MatchPage({ params }: MatchPageProps) {
   const { mode, status, players: lobbyPlayers, you, hostId, throwError, roomCode } = useMatchStore();
   useRemoteMatchSync(mode === 'remote' ? id : null);
   const [starting, setStarting] = useState(false);
+  // Which opponent's compact row is expanded to show their fuller recent-throw history —
+  // remote mode's opponents panel only, at most one open at a time.
+  const [expandedOpponent, setExpandedOpponent] = useState<PlayerId | null>(null);
 
   const handleStart = async () => {
     setStarting(true);
@@ -343,18 +346,66 @@ export default function MatchPage({ params }: MatchPageProps) {
                 />
               </div>
 
-              {currentPlayerId !== youPlayerId ? (
-                <HistoryPanel
-                  playerId={currentPlayerId}
-                  displayName={displayNames.get(currentPlayerId)}
-                  visits={gameModule.visitHistory(gameState, currentPlayerId)}
-                  inProgress={visitProgress.throws}
-                />
-              ) : (
-                <div className="rounded-2xl bg-slate p-4 flex items-center justify-center min-h-[240px] text-sisal/50 text-sm">
-                  Your throw
-                </div>
-              )}
+              <div className="rounded-2xl bg-slate p-3 flex flex-col gap-3 min-h-[240px]">
+                {otherPlayers.map((playerId) => {
+                  const isTurn = playerId === currentPlayerId;
+                  const expanded = expandedOpponent === playerId;
+                  const lastVisit = gameModule.lastCompletedVisit(gameState, playerId);
+                  const lastThrows = isTurn ? visitProgress.throws : (lastVisit?.throws ?? []);
+
+                  return (
+                    <div key={playerId} className="flex flex-col gap-1.5">
+                      <button
+                        onClick={() => setExpandedOpponent(expanded ? null : playerId)}
+                        className="flex items-center gap-1.5 text-left"
+                      >
+                        {isTurn && <Crosshair className="w-3.5 h-3.5 text-wire shrink-0" />}
+                        <span className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk truncate">
+                          {displayNames.get(playerId) ?? playerId}
+                        </span>
+                      </button>
+
+                      {expanded ? (
+                        <div className="flex flex-col gap-1.5 max-h-[220px] overflow-y-auto">
+                          {gameModule.visitHistory(gameState, playerId).length === 0 && lastThrows.length === 0 ? (
+                            <span className="text-sisal/40 text-xs">No throws yet</span>
+                          ) : (
+                            <>
+                              {isTurn && lastThrows.length > 0 && (
+                                <div className="flex gap-1.5 flex-wrap p-1.5 rounded-lg bg-wire/10 border border-wire/40">
+                                  {lastThrows.map((t, i) => (
+                                    <DartBadge key={i} t={t} />
+                                  ))}
+                                </div>
+                              )}
+                              {gameModule.visitHistory(gameState, playerId).map((visit, i) => (
+                                <div
+                                  key={i}
+                                  className={`flex items-center gap-1.5 flex-wrap rounded-lg p-1.5 ${
+                                    visit.busted ? 'bg-treble/10 border border-treble/40' : ''
+                                  }`}
+                                >
+                                  {visit.throws.map((t, j) => (
+                                    <DartBadge key={j} t={t} />
+                                  ))}
+                                </div>
+                              ))}
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex gap-1.5 flex-wrap min-h-[36px] items-center">
+                          {lastThrows.length > 0 ? (
+                            lastThrows.map((t, i) => <DartBadge key={i} t={t} />)
+                          ) : (
+                            <span className="text-sisal/40 text-xs">No throws yet</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </>

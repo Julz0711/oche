@@ -210,6 +210,13 @@ export interface GameModule<TState = any, TSettings = any> {
    */
   ScoreboardSlot: React.FC<{ state: TState; playerId: PlayerId; settings: TSettings; displayName?: string }>;
   /**
+   * Optional per-game override for the "history" slot next to a player's dartboard column
+   * (same slot the generic dart-by-dart HistoryPanel occupies for games that don't provide
+   * this). Same props shape as ScoreboardSlot — a game that needs more room than the compact
+   * score slot allows (e.g. Cricket's full per-number marks breakdown) renders it here instead.
+   */
+  HistoryPanel?: React.FC<{ state: TState; playerId: PlayerId; settings: TSettings; displayName?: string }>;
+  /**
    * Get the primary metric to display for a player in the scoreboard
    */
   primaryMetric: (state: TState, playerId: PlayerId) => { label: string; value: string };

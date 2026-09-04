@@ -4,6 +4,7 @@ import { useEffect, useState, use } from 'react';
 import { useMatchStore } from '@/store/match';
 import { getGameModule, GameId } from '@/lib/games/registry';
 import { DartboardInput } from '@/components/organisms/DartboardInput';
+import { DartBadge } from '@/components/atoms/DartBadge';
 import { PostMatchStats } from '@/components/organisms/PostMatchStats';
 import { Throw, PlayerId, createPlayerId } from '@/lib/types';
 import { Target, Ban, Undo2, Crosshair, BarChart3 } from 'lucide-react';
@@ -82,40 +83,6 @@ function MatchInfoPanel({
 }
 
 /** A single dart, rendered as a small colored circle rather than a text label. */
-function DartBadge({ t }: { t: Throw }) {
-  if (t.ring === 'M') {
-    return (
-      <span className="w-9 h-9 flex items-center justify-center rounded-full bg-oche border border-sisal/30 text-sisal text-xs font-bold">
-        ×
-      </span>
-    );
-  }
-  if (t.ring === 'IB') {
-    return (
-      <span className="w-9 h-9 flex items-center justify-center rounded-full bg-double text-chalk text-xs font-bold ring-2 ring-wire">
-        50
-      </span>
-    );
-  }
-  if (t.ring === 'OB') {
-    return (
-      <span className="w-9 h-9 flex items-center justify-center rounded-full bg-wire text-oche text-xs font-bold">
-        25
-      </span>
-    );
-  }
-  const colorClass =
-    t.ring === 'D'
-      ? 'bg-double text-chalk'
-      : t.ring === 'T'
-        ? 'bg-treble text-chalk'
-        : 'bg-oche text-chalk border border-sisal/30';
-  return (
-    <span className={`w-9 h-9 flex items-center justify-center rounded-full text-sm font-bold ${colorClass}`}>
-      {t.sector}
-    </span>
-  );
-}
 
 const HISTORY_VISIBLE_LIMIT = 9;
 
@@ -408,12 +375,21 @@ export default function MatchPage({ params }: MatchPageProps) {
               no opponent activity to show. */}
           {!isComplete && (
             <div className="grid grid-cols-1 md:grid-cols-[0.8fr_1.4fr_0.8fr] gap-3 flex-1">
-              <HistoryPanel
-                playerId={youPlayerId}
-                displayName={displayNames.get(youPlayerId)}
-                visits={gameModule.visitHistory(gameState, youPlayerId)}
-                inProgress={youPlayerId === currentPlayerId ? visitProgress.throws : []}
-              />
+              {gameModule.HistoryPanel ? (
+                <gameModule.HistoryPanel
+                  state={gameState}
+                  playerId={youPlayerId}
+                  settings={settings}
+                  displayName={displayNames.get(youPlayerId)}
+                />
+              ) : (
+                <HistoryPanel
+                  playerId={youPlayerId}
+                  displayName={displayNames.get(youPlayerId)}
+                  visits={gameModule.visitHistory(gameState, youPlayerId)}
+                  inProgress={youPlayerId === currentPlayerId ? visitProgress.throws : []}
+                />
+              )}
 
               <div className="flex flex-col items-center justify-center gap-4 w-full">
                 {throwError && (
@@ -571,14 +547,22 @@ export default function MatchPage({ params }: MatchPageProps) {
           {/* Middle row: history / board+keypad / history */}
           {!isComplete && (
             <div className="grid grid-cols-1 md:grid-cols-[0.8fr_1.4fr_0.8fr] gap-3 flex-1">
-              {leftPlayer && (
-                <HistoryPanel
-                  playerId={leftPlayer}
-                  displayName={displayNames.get(leftPlayer)}
-                  visits={gameModule.visitHistory(gameState, leftPlayer)}
-                  inProgress={leftPlayer === currentPlayerId ? visitProgress.throws : []}
-                />
-              )}
+              {leftPlayer &&
+                (gameModule.HistoryPanel ? (
+                  <gameModule.HistoryPanel
+                    state={gameState}
+                    playerId={leftPlayer}
+                    settings={settings}
+                    displayName={displayNames.get(leftPlayer)}
+                  />
+                ) : (
+                  <HistoryPanel
+                    playerId={leftPlayer}
+                    displayName={displayNames.get(leftPlayer)}
+                    visits={gameModule.visitHistory(gameState, leftPlayer)}
+                    inProgress={leftPlayer === currentPlayerId ? visitProgress.throws : []}
+                  />
+                ))}
 
               <div className="flex flex-col items-center justify-center gap-4 w-full">
                 {throwError && (
@@ -597,14 +581,22 @@ export default function MatchPage({ params }: MatchPageProps) {
                 />
               </div>
 
-              {rightPlayer && (
-                <HistoryPanel
-                  playerId={rightPlayer}
-                  displayName={displayNames.get(rightPlayer)}
-                  visits={gameModule.visitHistory(gameState, rightPlayer)}
-                  inProgress={rightPlayer === currentPlayerId ? visitProgress.throws : []}
-                />
-              )}
+              {rightPlayer &&
+                (gameModule.HistoryPanel ? (
+                  <gameModule.HistoryPanel
+                    state={gameState}
+                    playerId={rightPlayer}
+                    settings={settings}
+                    displayName={displayNames.get(rightPlayer)}
+                  />
+                ) : (
+                  <HistoryPanel
+                    playerId={rightPlayer}
+                    displayName={displayNames.get(rightPlayer)}
+                    visits={gameModule.visitHistory(gameState, rightPlayer)}
+                    inProgress={rightPlayer === currentPlayerId ? visitProgress.throws : []}
+                  />
+                ))}
             </div>
           )}
         </>

@@ -4,7 +4,7 @@ import { CricketState, init as initEngine, applyThrow, undo, isComplete, winner 
 import { CricketSettings, CricketSettingsSchema, CricketDefaultSettings } from './schema';
 import { computeStats, statTiles } from './stats';
 import { matchStats } from './matchStats';
-import { ScoreboardSlot } from './components';
+import { ScoreboardSlot, HistoryPanel } from './components';
 import { Target } from 'lucide-react';
 
 const players = (state: CricketState): PlayerId[] => state.players;
@@ -104,6 +104,7 @@ const CricketModule: GameModule<CricketState, CricketSettings> = {
   matchStats,
 
   ScoreboardSlot,
+  HistoryPanel,
   primaryMetric: (state: CricketState, playerId: PlayerId) => ({
     label: 'Points',
     value: state.points[playerId].toString(),

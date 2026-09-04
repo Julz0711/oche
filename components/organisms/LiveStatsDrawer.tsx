@@ -49,16 +49,19 @@ export function LiveStatsDrawer({
       <div className="absolute inset-0 bg-oche/70" onClick={onClose} />
 
       <div
-        className={`relative w-full max-w-2xl bg-slate rounded-t-3xl border-t border-wire/30 p-4 flex flex-col gap-4 max-h-[80vh] transition-transform duration-200 ${
+        className={`relative w-full max-w-2xl bg-slate rounded-t-3xl border-t-2 border-x-2 border-wire/30 p-4 flex flex-col gap-4 max-h-[80vh] transition-transform duration-200 ${
           open ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
         <div className="flex items-center justify-between">
-          <span className="text-sm font-bold uppercase tracking-widest text-sisal">Live Stats</span>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-6 rounded-full bg-wire" />
+            <span className="text-sm font-bold uppercase tracking-widest text-sisal">Live Stats</span>
+          </div>
           <button
             onClick={onClose}
             aria-label="Close stats"
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-oche text-sisal hover:text-chalk"
+            className="w-8 h-8 flex items-center justify-center rounded-xl border-2 border-sisal/30 bg-oche text-sisal hover:text-chalk hover:border-wire transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -66,7 +69,12 @@ export function LiveStatsDrawer({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto">
           {players.map((playerId) => (
-            <div key={playerId} className="rounded-2xl p-4 bg-oche">
+            <div
+              key={playerId}
+              className={`rounded-2xl p-4 bg-oche border-2 ${
+                winnerId !== null && playerId === winnerId ? 'border-wire' : 'border-sisal/15'
+              }`}
+            >
               <PlayerStatTiles
                 gameModule={gameModule}
                 state={state}

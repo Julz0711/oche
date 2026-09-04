@@ -147,7 +147,7 @@ function HistoryPanel({
   const visibleVisits = expanded ? visits : visits.slice(0, HISTORY_VISIBLE_LIMIT);
 
   return (
-    <div className="rounded-2xl bg-slate p-4 flex flex-col gap-3 min-h-[240px]">
+    <div className="rounded-2xl bg-slate p-4 flex flex-col gap-3 min-h-[240px] border-2 border-sisal/15">
       <div className="text-xs font-bold uppercase tracking-widest text-sisal shrink-0">
         {displayName ?? playerId}
       </div>
@@ -168,8 +168,8 @@ function HistoryPanel({
         {visibleVisits.map((visit, i) => (
           <div key={i} className="flex flex-col gap-1">
             <div
-              className={`flex items-center gap-2 flex-wrap rounded-xl p-2 ${
-                visit.busted ? 'bg-treble/10 border border-treble/40' : ''
+              className={`flex items-center gap-2 flex-wrap rounded-xl p-2 border ${
+                visit.busted ? 'bg-treble/10 border-treble/40' : 'bg-oche border-sisal/10'
               }`}
             >
               {visit.throws.map((t, j) => (
@@ -188,7 +188,7 @@ function HistoryPanel({
         {hasMore && !expanded && (
           <button
             onClick={() => setExpanded(true)}
-            className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk py-1"
+            className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk hover:border-wire rounded-lg border border-sisal/20 px-2 py-1 transition-colors self-start"
           >
             Show more ({visits.length - HISTORY_VISIBLE_LIMIT})
           </button>
@@ -196,7 +196,7 @@ function HistoryPanel({
         {expanded && hasMore && (
           <button
             onClick={() => setExpanded(false)}
-            className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk py-1"
+            className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk hover:border-wire rounded-lg border border-sisal/20 px-2 py-1 transition-colors self-start"
           >
             Show less
           </button>
@@ -388,12 +388,17 @@ export default function MatchPage({ params }: MatchPageProps) {
               raceProgress={raceProgress}
               displayNames={displayNames}
             />
-            <div className="rounded-2xl bg-slate p-5 border-2 border-transparent flex flex-col gap-2 justify-center">
+            <div className="rounded-2xl bg-slate p-4 border-2 border-sisal/15 flex flex-col gap-2 justify-center">
               {otherPlayers.map((playerId) => {
                 const metric = gameModule.primaryMetric(gameState, playerId);
                 const isTurn = playerId === currentPlayerId;
                 return (
-                  <div key={playerId} className="flex items-center justify-between gap-2">
+                  <div
+                    key={playerId}
+                    className={`flex items-center justify-between gap-2 rounded-xl px-2.5 py-1.5 border ${
+                      isTurn ? 'bg-wire/10 border-wire/40' : 'bg-oche border-sisal/10'
+                    }`}
+                  >
                     <div className="flex items-center gap-1.5 min-w-0">
                       {isTurn && <Crosshair className="w-3.5 h-3.5 text-wire shrink-0" />}
                       <span className="text-xs font-bold uppercase tracking-widest text-sisal truncate">
@@ -437,7 +442,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                 />
               </div>
 
-              <div className="rounded-2xl bg-slate p-3 flex flex-col gap-3 min-h-[240px]">
+              <div className="rounded-2xl bg-slate p-3 flex flex-col gap-3 min-h-[240px] border-2 border-sisal/15">
                 {otherPlayers.map((playerId) => {
                   const isTurn = playerId === currentPlayerId;
                   const expanded = expandedOpponent === playerId;
@@ -445,7 +450,12 @@ export default function MatchPage({ params }: MatchPageProps) {
                   const lastThrows = isTurn ? visitProgress.throws : (lastVisit?.throws ?? []);
 
                   return (
-                    <div key={playerId} className="flex flex-col gap-1.5">
+                    <div
+                      key={playerId}
+                      className={`flex flex-col gap-1.5 rounded-xl p-2 border ${
+                        isTurn ? 'bg-wire/10 border-wire/40' : 'bg-oche border-sisal/10'
+                      }`}
+                    >
                       <button
                         onClick={() => {
                           setExpandedOpponent(expanded ? null : playerId);
@@ -481,8 +491,8 @@ export default function MatchPage({ params }: MatchPageProps) {
                                   {visibleVisits.map((visit, i) => (
                                     <div
                                       key={i}
-                                      className={`flex items-center gap-1.5 flex-wrap rounded-lg p-1.5 ${
-                                        visit.busted ? 'bg-treble/10 border border-treble/40' : ''
+                                      className={`flex items-center gap-1.5 flex-wrap rounded-lg p-1.5 border ${
+                                        visit.busted ? 'bg-treble/10 border-treble/40' : 'bg-oche border-sisal/10'
                                       }`}
                                     >
                                       {visit.throws.map((t, j) => (
@@ -496,7 +506,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                                   {hasMoreVisits && !showAllOpponentVisits && (
                                     <button
                                       onClick={() => setShowAllOpponentVisits(true)}
-                                      className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk py-1 text-left"
+                                      className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk hover:border-wire rounded-lg border border-sisal/20 px-2 py-1 transition-colors self-start"
                                     >
                                       Show more ({visits.length - HISTORY_VISIBLE_LIMIT})
                                     </button>
@@ -504,7 +514,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                                   {showAllOpponentVisits && hasMoreVisits && (
                                     <button
                                       onClick={() => setShowAllOpponentVisits(false)}
-                                      className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk py-1 text-left"
+                                      className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk hover:border-wire rounded-lg border border-sisal/20 px-2 py-1 transition-colors self-start"
                                     >
                                       Show less
                                     </button>

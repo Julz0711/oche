@@ -24,6 +24,20 @@ export function ScoreboardSlot({
   const setsWon = state.setsWon[playerId];
   const setsEnabled = settings.sets > 0;
 
+  // Live 3-dart average for the current leg only — same visits HistoryPanel shows (filtered to
+  // this leg), plus this player's own in-progress visit if it's their turn, so it updates dart
+  // by dart rather than only once a visit completes.
+  const legVisits = state.visitHistory.filter(
+    (entry) => entry.playerId === playerId && entry.legNumberBefore === state.currentLegNumber
+  );
+  let legDarts = legVisits.reduce((sum, entry) => sum + entry.throws.length, 0);
+  let legScored = legVisits.reduce((sum, entry) => sum + Math.abs(entry.scoreAfter - entry.scoreBefore), 0);
+  if (isCurrentPlayer) {
+    legDarts += state.currentVisit.length;
+    legScored += pending;
+  }
+  const legAvg3Dart = legDarts > 0 ? (legScored / legDarts) * 3 : 0;
+
   return (
     <div
       className={`relative rounded-2xl p-5 border-2 transition-colors duration-300 ${
@@ -35,7 +49,10 @@ export function ScoreboardSlot({
       )}
       <div className="text-xs font-bold uppercase tracking-widest text-sisal">{displayName ?? playerId}</div>
       <Numeral value={score} size="4xl" className="font-display leading-none block mt-1" />
-      <div className="flex items-center gap-3 mt-3">
+      <div className="text-[10px] font-bold uppercase tracking-widest text-sisal/70 mt-1">
+        Avg (leg) <span className="text-chalk">{legAvg3Dart.toFixed(1)}</span>
+      </div>
+      <div className="flex items-center gap-3 mt-2">
         {setsEnabled && (
           <div className="flex items-center gap-1.5 text-sisal">
             <Medal className="w-4 h-4" fill="currentColor" />

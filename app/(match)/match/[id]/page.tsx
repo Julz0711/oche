@@ -5,7 +5,6 @@ import { useMatchStore } from '@/store/match';
 import { getGameModule, GameId } from '@/lib/games/registry';
 import { DartboardInput } from '@/components/organisms/DartboardInput';
 import { PostMatchStats } from '@/components/organisms/PostMatchStats';
-import { Button } from '@/components/atoms/Button';
 import { Throw, PlayerId, createPlayerId } from '@/lib/types';
 import { Target, Ban, Undo2, Crosshair, BarChart3 } from 'lucide-react';
 import { useRemoteMatchSync } from '@/hooks/useRemoteMatchSync';
@@ -15,6 +14,52 @@ import { identityIdOf, MatchPlayerDoc } from '@/lib/matchLobby';
 
 interface MatchPageProps {
   params: Promise<{ id: string }>;
+}
+
+/** A small "riveted" HUD panel: the same match-info data (Leg/Set numbers from
+ *  gameModule.matchInfo), styled with corner rivet accents and a real dart-pip readout — how
+ *  many of this visit's (up to 3) darts have landed, from gameModule.visitProgress. Both are
+ *  data the page already computes; nothing new is fetched or added to the GameModule contract. */
+function MatchInfoPanel({
+  info,
+  visitProgress,
+}: {
+  info: { label: string; value: string }[];
+  visitProgress: { darts: number; max: number };
+}) {
+  return (
+    <div className="relative rounded-2xl bg-slate p-3 flex flex-col items-center justify-center gap-2 border-2 border-wire/30">
+      {[
+        'top-1.5 left-1.5',
+        'top-1.5 right-1.5',
+        'bottom-1.5 left-1.5',
+        'bottom-1.5 right-1.5',
+      ].map((pos) => (
+        <span key={pos} className={`absolute ${pos} w-1.5 h-1.5 rounded-full bg-wire/50`} />
+      ))}
+
+      <div className="flex items-center justify-center gap-3">
+        <Target className="w-6 h-6 text-wire shrink-0" />
+        {info.map((entry) => (
+          <div key={entry.label} className="text-center leading-tight">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-sisal">{entry.label}</div>
+            <div className="text-xl font-display font-bold">{entry.value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-1.5">
+        {Array.from({ length: visitProgress.max }, (_, i) => (
+          <span
+            key={i}
+            className={`w-3.5 h-3.5 rotate-45 rounded-[3px] ${
+              i < visitProgress.darts ? 'bg-wire' : 'bg-oche border border-sisal/30'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 /** A single dart, rendered as a small colored circle rather than a text label. */
@@ -277,12 +322,20 @@ export default function MatchPage({ params }: MatchPageProps) {
         <h1 className="text-xl font-display font-bold">{gameModule.name}</h1>
         {!isComplete && (
           <div className="flex items-center gap-2">
-            <Button onClick={() => setStatsOpen(true)} size="sm" variant="ghost">
-              <BarChart3 className="w-4 h-4 mr-1" /> Stats
-            </Button>
-            <Button onClick={handleUndo} size="sm" variant="ghost">
-              <Undo2 className="w-4 h-4 mr-1" /> Undo
-            </Button>
+            <button
+              onClick={() => setStatsOpen(true)}
+              className="flex items-center gap-1.5 rounded-xl border-2 border-sisal/30 bg-slate px-3 py-1.5 hover:border-wire transition-colors"
+            >
+              <BarChart3 className="w-4 h-4 text-wire" />
+              <span className="text-xs font-bold uppercase tracking-widest text-chalk">Stats</span>
+            </button>
+            <button
+              onClick={handleUndo}
+              className="flex items-center gap-1.5 rounded-xl border-2 border-sisal/30 bg-slate px-3 py-1.5 hover:border-wire transition-colors"
+            >
+              <Undo2 className="w-4 h-4 text-wire" />
+              <span className="text-xs font-bold uppercase tracking-widest text-chalk">Undo</span>
+            </button>
           </div>
         )}
       </header>
@@ -299,15 +352,7 @@ export default function MatchPage({ params }: MatchPageProps) {
               settings={settings}
               displayName={displayNames.get(youPlayerId)}
             />
-            <div className="rounded-2xl bg-slate p-3 flex items-center justify-center gap-3 border border-wire/30">
-              <Target className="w-6 h-6 text-wire shrink-0" />
-              {info.map((entry) => (
-                <div key={entry.label} className="text-center leading-tight">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-sisal">{entry.label}</div>
-                  <div className="text-xl font-display font-bold">{entry.value}</div>
-                </div>
-              ))}
-            </div>
+            <MatchInfoPanel info={info} visitProgress={visitProgress} />
             <div className="rounded-2xl bg-slate p-5 border-2 border-transparent flex flex-col gap-2 justify-center">
               {otherPlayers.map((playerId) => {
                 const metric = gameModule.primaryMetric(gameState, playerId);
@@ -472,15 +517,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                 displayName={displayNames.get(leftPlayer)}
               />
             )}
-            <div className="rounded-2xl bg-slate p-3 flex items-center justify-center gap-3 border border-wire/30">
-              <Target className="w-6 h-6 text-wire shrink-0" />
-              {info.map((entry) => (
-                <div key={entry.label} className="text-center leading-tight">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-sisal">{entry.label}</div>
-                  <div className="text-xl font-display font-bold">{entry.value}</div>
-                </div>
-              ))}
-            </div>
+            <MatchInfoPanel info={info} visitProgress={visitProgress} />
             {rightPlayer && (
               <gameModule.ScoreboardSlot
                 state={gameState}

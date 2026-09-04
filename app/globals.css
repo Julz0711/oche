@@ -36,6 +36,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Every enabled button in the app gets a pointer cursor, rather than relying on each button's
+   own markup to add it (components/atoms/Button.tsx already does; plenty of bespoke <button>
+   elements elsewhere didn't). Disabled buttons keep the browser's default (not-allowed). */
+button:not(:disabled) {
+  cursor: pointer;
+}
+
 /**
  * Tabular Numbers Class
  * For live score displays that need fixed-width digits

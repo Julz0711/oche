@@ -17,9 +17,13 @@ const visitProgress = (state: X01State): { darts: number; max: number; throws: T
   throws: state.currentVisit,
 });
 
-const matchInfo = (state: X01State, settings: X01Settings): { label: string; value: string }[] => [
-  { label: 'Leg', value: String(state.currentLegNumber) },
-];
+const matchInfo = (state: X01State, settings: X01Settings): { label: string; value: string }[] =>
+  settings.sets > 0
+    ? [
+        { label: 'Set', value: String(state.currentSetNumber) },
+        { label: 'Leg', value: String(state.currentLegNumber) },
+      ]
+    : [{ label: 'Leg', value: String(state.currentLegNumber) }];
 
 const visitHistory = (
   state: X01State,

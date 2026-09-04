@@ -500,4 +500,78 @@ describe('X01 Engine', () => {
       expect(state.playerScores[player1]).toBe(X01DefaultSettings.startingScore);
     });
   });
+
+  describe('sets', () => {
+    // Checks out from 170 in one 3-dart visit (T20, T20, IB) — the same fixture used by the
+    // existing "match completion" test above.
+    function checkoutFrom170(state: ReturnType<typeof init>, settings: typeof X01DefaultSettings) {
+      state = { ...state, playerScores: { ...state.playerScores, [state.players[state.currentPlayerIndex]]: 170 } };
+      const throw1 = { sector: 20 as const, ring: 'T' as const, points: 60, order: 0 as const };
+      const throw2 = { sector: 20 as const, ring: 'T' as const, points: 60, order: 1 as const };
+      const throw3 = { sector: 25 as const, ring: 'IB' as const, points: 50, order: 2 as const };
+      state = applyThrow(state, throw1, settings);
+      state = applyThrow(state, throw2, settings);
+      state = applyThrow(state, throw3, settings);
+      return state;
+    }
+
+    it('settings.sets = 0 (default) never populates setsWon — legs alone decide the match', () => {
+      const settings = { ...X01DefaultSettings, firstTo: 1, sets: 0 };
+      let state = init([player1, player2], settings);
+      state = checkoutFrom170(state, settings);
+
+      expect(isComplete(state)).toBe(true);
+      expect(winner(state)).toBe(player1);
+      expect(state.setsWon[player1]).toBe(0);
+      expect(state.currentSetNumber).toBe(1);
+    });
+
+    it('winning a set (without reaching settings.sets) resets legs, keeps the match open, and advances the set number', () => {
+      const settings = { ...X01DefaultSettings, firstTo: 1, sets: 2 };
+      let state = init([player1, player2], settings);
+      state = checkoutFrom170(state, settings);
+
+      expect(isComplete(state)).toBe(false);
+      expect(winner(state)).toBe(null);
+      expect(state.setsWon[player1]).toBe(1);
+      expect(state.setsWon[player2]).toBe(0);
+      expect(state.currentSetNumber).toBe(2);
+      expect(state.legsWon[player1]).toBe(0);
+      expect(state.legsWon[player2]).toBe(0);
+      expect(state.currentLegNumber).toBe(1);
+      expect(state.playerScores[player1]).toBe(X01DefaultSettings.startingScore);
+      // Turn passes on, same as an ordinary new leg.
+      expect(state.players[state.currentPlayerIndex]).toBe(player2);
+    });
+
+    it('reaching settings.sets completes the match', () => {
+      const settings = { ...X01DefaultSettings, firstTo: 1, sets: 2 };
+      let state = init([player1, player2], settings);
+      state = checkoutFrom170(state, settings); // player1 wins set 1, turn passes to player2
+
+      // Force it back to player1's turn so player1 can win set 2 as well — a plain test-setup
+      // mutation on the returned state, same convention the "match completion" test above uses.
+      state = { ...state, currentPlayerIndex: state.players.indexOf(player1) };
+      state = checkoutFrom170(state, settings); // player1 wins set 2 -> reaches settings.sets
+
+      expect(isComplete(state)).toBe(true);
+      expect(winner(state)).toBe(player1);
+      expect(state.setsWon[player1]).toBe(2);
+    });
+
+    it('undo reverts a set-winning checkout, restoring legs, sets, and set number', () => {
+      const settings = { ...X01DefaultSettings, firstTo: 1, sets: 2 };
+      let state = init([player1, player2], settings);
+      state = checkoutFrom170(state, settings);
+
+      const undone = undo(state);
+
+      expect(undone.setsWon[player1]).toBe(0);
+      expect(undone.currentSetNumber).toBe(1);
+      expect(undone.legsWon[player1]).toBe(0);
+      expect(undone.currentLegNumber).toBe(1);
+      expect(undone.matchComplete).toBe(false);
+      expect(undone.players[undone.currentPlayerIndex]).toBe(player1);
+    });
+  });
 });

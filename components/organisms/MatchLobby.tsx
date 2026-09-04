@@ -27,15 +27,18 @@ export function MatchLobby({ roomCode, players, isHost, onStart, starting }: Mat
       <Crosshair className="w-8 h-8 text-wire" />
       <div className="text-center">
         <div className="text-xs font-bold uppercase tracking-widest text-sisal">Room code</div>
-        <div className="text-4xl font-display font-bold tracking-[0.2em]">{roomCode}</div>
+        {/* Explicit pixel size, not text-4xl/text-3xl — this project's fontSize scale replaces
+            those with much larger custom values (see lib/theme.ts), which is right for a big
+            scoreboard number but far too big for a 6-character room code. */}
+        <div className="text-[32px] font-display font-bold tracking-[0.2em]">{roomCode}</div>
       </div>
 
       <button
         onClick={handleCopy}
-        className="flex items-center gap-2 text-sm text-sisal hover:text-chalk rounded-full px-3 py-1.5 bg-oche border border-sisal/30"
+        className="flex items-center gap-2 justify-center text-sm text-sisal hover:text-chalk rounded-full px-3 py-1.5 bg-oche border border-sisal/30 w-full max-w-full overflow-hidden"
       >
-        <Copy className="w-3.5 h-3.5" />
-        {copied ? 'Copied!' : joinUrl}
+        <Copy className="w-3.5 h-3.5 shrink-0" />
+        <span className="truncate">{copied ? 'Copied!' : joinUrl}</span>
       </button>
 
       <div className="flex flex-col gap-2 w-full">

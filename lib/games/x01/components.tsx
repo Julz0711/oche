@@ -3,7 +3,7 @@ import { X01State, computeVisitTotal } from './engine';
 import { X01Settings } from './schema';
 import { PlayerId } from '@/lib/types';
 import { Numeral } from '@/components/atoms/Numeral';
-import { Trophy, Crosshair } from 'lucide-react';
+import { Trophy, Crosshair, Medal } from 'lucide-react';
 
 export function ScoreboardSlot({
   state,
@@ -19,6 +19,8 @@ export function ScoreboardSlot({
   const pending = isCurrentPlayer ? computeVisitTotal(state.currentVisit, startedOn).total : 0;
   const score = state.playerScores[playerId] - pending;
   const legsWon = state.legsWon[playerId];
+  const setsWon = state.setsWon[playerId];
+  const setsEnabled = settings.sets > 0;
 
   return (
     <div
@@ -31,9 +33,17 @@ export function ScoreboardSlot({
       )}
       <div className="text-xs font-bold uppercase tracking-widest text-sisal">{playerId}</div>
       <Numeral value={score} size="4xl" className="font-display leading-none block mt-1" />
-      <div className="flex items-center gap-1.5 mt-3 text-wire">
-        <Trophy className="w-4 h-4" fill="currentColor" />
-        <span className="text-sm font-bold">{legsWon}</span>
+      <div className="flex items-center gap-3 mt-3">
+        {setsEnabled && (
+          <div className="flex items-center gap-1.5 text-sisal">
+            <Medal className="w-4 h-4" fill="currentColor" />
+            <span className="text-sm font-bold">{setsWon}</span>
+          </div>
+        )}
+        <div className="flex items-center gap-1.5 text-wire">
+          <Trophy className="w-4 h-4" fill="currentColor" />
+          <span className="text-sm font-bold">{legsWon}</span>
+        </div>
       </div>
     </div>
   );

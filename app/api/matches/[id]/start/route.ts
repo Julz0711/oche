@@ -32,10 +32,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     .sort((a: { seat: number }, b: { seat: number }) => a.seat - b.seat)
     .map((p: any) => createPlayerId(identityIdOf(p)));
 
-  const state = gameModule.init(playerIds, gameModule.defaultSettings);
+  // The settings chosen at match-creation time (validated there against this game's schema)
+  // ride along on the lobby document until the match actually starts — falls back to defaults
+  // only if somehow absent (e.g. a match created before this field existed).
+  const settings = match.settings ?? gameModule.defaultSettings;
+  const state = gameModule.init(playerIds, settings);
 
   match.state = state;
-  match.settings = gameModule.defaultSettings;
+  match.settings = settings;
   match.status = 'live';
   match.startedAt = new Date();
   await match.save();

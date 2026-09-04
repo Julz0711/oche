@@ -173,15 +173,13 @@ export default function MatchPage({ params }: MatchPageProps) {
             roomCode: snapshot.roomCode,
           });
         } else {
-          const initialState = module.init(
-            [createPlayerId('player1'), createPlayerId('player2')],
-            module.defaultSettings
-          );
+          const settings = snapshot.settings ?? module.defaultSettings;
+          const initialState = module.init([createPlayerId('player1'), createPlayerId('player2')], settings);
           useMatchStore.getState().setMatch({
             matchId: id,
             gameModule: module,
             gameState: initialState,
-            settings: module.defaultSettings,
+            settings,
             mode: 'local',
             status: 'live',
           });

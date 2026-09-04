@@ -46,12 +46,14 @@ interface VisitHistoryEntry {
   busted: boolean;
   /** Whether this visit finished the leg (checkout landed). */
   wasCheckout: boolean;
-  /** Whether this visit finished the match (checkout that reached firstTo legs). */
+  /** Whether this visit finished the match (checkout that reached firstTo legs/sets). */
   wasMatchWin: boolean;
   /** Full state snapshots taken immediately before this visit was applied, so `undo` can restore them exactly. */
   playerScoresBefore: Record<PlayerId, number>;
   legsWonBefore: Record<PlayerId, number>;
   legNumberBefore: number;
+  setsWonBefore: Record<PlayerId, number>;
+  setNumberBefore: number;
   matchCompleteBefore: boolean;
   winnerIdBefore: PlayerId | null;
   isOnDoubleBefore: Record<PlayerId, boolean>;
@@ -64,6 +66,12 @@ export interface X01State {
   currentVisit: Throw[];
   legsWon: Record<PlayerId, number>;
   currentLegNumber: number;
+  /** Sets won by each player. Only meaningful when settings.sets > 0 — otherwise stays at 0
+   *  for every player and the match is decided by legs alone (settings.firstTo). */
+  setsWon: Record<PlayerId, number>;
+  /** The set currently being played, starting at 1. Legs reset to 1 at the start of each new
+   *  set. Only meaningful when settings.sets > 0. */
+  currentSetNumber: number;
   matchComplete: boolean;
   winnerId: PlayerId | null;
   visitHistory: VisitHistoryEntry[];
@@ -74,11 +82,13 @@ export interface X01State {
 export function init(players: PlayerId[], settings: X01Settings): X01State {
   const playerScores: Record<PlayerId, number> = {};
   const legsWon: Record<PlayerId, number> = {};
+  const setsWon: Record<PlayerId, number> = {};
   const isOnDouble: Record<PlayerId, boolean> = {};
 
   players.forEach((p) => {
     playerScores[p] = settings.startingScore;
     legsWon[p] = 0;
+    setsWon[p] = 0;
     isOnDouble[p] = false;
   });
 
@@ -94,6 +104,8 @@ export function init(players: PlayerId[], settings: X01Settings): X01State {
     currentVisit: [],
     legsWon,
     currentLegNumber: 1,
+    setsWon,
+    currentSetNumber: 1,
     matchComplete: false,
     winnerId: null,
     visitHistory: [],
@@ -193,6 +205,8 @@ function endVisit(
   let playerScoresAfter: Record<PlayerId, number> = { ...state.playerScores, [currentPlayer]: scoreAfter };
   let legsWonAfter = state.legsWon;
   let currentLegNumberAfter = state.currentLegNumber;
+  let setsWonAfter = state.setsWon;
+  let currentSetNumberAfter = state.currentSetNumber;
   let matchCompleteAfter = state.matchComplete;
   let winnerIdAfter = state.winnerId;
   let isOnDoubleAfterVisit: Record<PlayerId, boolean> =
@@ -200,14 +214,45 @@ function endVisit(
   let wasMatchWin = false;
   let nextPlayerIndex = state.currentPlayerIndex;
 
+  const setsEnabled = settings.sets > 0;
+
   if (isCheckout) {
     legsWonAfter = { ...state.legsWon, [currentPlayer]: state.legsWon[currentPlayer] + 1 };
 
     if (legsWonAfter[currentPlayer] >= settings.firstTo) {
-      matchCompleteAfter = true;
-      winnerIdAfter = currentPlayer;
-      wasMatchWin = true;
-      // Match is over — leave scores/turn as-is, no new leg to set up.
+      // This player has won the current set (or, when sets are off, the whole match).
+      if (!setsEnabled) {
+        matchCompleteAfter = true;
+        winnerIdAfter = currentPlayer;
+        wasMatchWin = true;
+        // Match is over — leave scores/turn as-is, no new leg to set up.
+      } else {
+        setsWonAfter = { ...state.setsWon, [currentPlayer]: state.setsWon[currentPlayer] + 1 };
+
+        if (setsWonAfter[currentPlayer] >= settings.sets) {
+          matchCompleteAfter = true;
+          winnerIdAfter = currentPlayer;
+          wasMatchWin = true;
+          // Match is over — leave scores/turn as-is, no new set to set up.
+        } else {
+          // Set won, match continues — start a fresh set: legs and scores reset, set number
+          // advances, same rotation as an ordinary new leg.
+          currentSetNumberAfter = state.currentSetNumber + 1;
+          const resetLegsWon: Record<PlayerId, number> = {};
+          const resetScores: Record<PlayerId, number> = {};
+          const resetIsOnDouble: Record<PlayerId, boolean> = {};
+          state.players.forEach((p) => {
+            resetLegsWon[p] = 0;
+            resetScores[p] = settings.startingScore;
+            resetIsOnDouble[p] = false;
+          });
+          legsWonAfter = resetLegsWon;
+          currentLegNumberAfter = 1;
+          playerScoresAfter = resetScores;
+          isOnDoubleAfterVisit = resetIsOnDouble;
+          nextPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
+        }
+      }
     } else {
       currentLegNumberAfter = state.currentLegNumber + 1;
       const resetScores: Record<PlayerId, number> = {};
@@ -235,6 +280,8 @@ function endVisit(
     playerScoresBefore: state.playerScores,
     legsWonBefore: state.legsWon,
     legNumberBefore: state.currentLegNumber,
+    setsWonBefore: state.setsWon,
+    setNumberBefore: state.currentSetNumber,
     matchCompleteBefore: state.matchComplete,
     winnerIdBefore: state.winnerId,
     isOnDoubleBefore: state.isOnDouble,
@@ -245,6 +292,8 @@ function endVisit(
     playerScores: playerScoresAfter,
     legsWon: legsWonAfter,
     currentLegNumber: currentLegNumberAfter,
+    setsWon: setsWonAfter,
+    currentSetNumber: currentSetNumberAfter,
     matchComplete: matchCompleteAfter,
     winnerId: winnerIdAfter,
     isOnDouble: isOnDoubleAfterVisit,
@@ -265,6 +314,8 @@ export function undo(state: X01State): X01State {
     playerScores: lastVisit.playerScoresBefore,
     legsWon: lastVisit.legsWonBefore,
     currentLegNumber: lastVisit.legNumberBefore,
+    setsWon: lastVisit.setsWonBefore,
+    currentSetNumber: lastVisit.setNumberBefore,
     matchComplete: lastVisit.matchCompleteBefore,
     winnerId: lastVisit.winnerIdBefore,
     isOnDouble: lastVisit.isOnDoubleBefore,

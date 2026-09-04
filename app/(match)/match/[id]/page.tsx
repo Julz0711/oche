@@ -144,6 +144,7 @@ export default function MatchPage({ params }: MatchPageProps) {
   // Which opponent's compact row is expanded to show their fuller recent-throw history —
   // remote mode's opponents panel only, at most one open at a time.
   const [expandedOpponent, setExpandedOpponent] = useState<PlayerId | null>(null);
+  const [showAllOpponentVisits, setShowAllOpponentVisits] = useState(false);
 
   const handleStart = async () => {
     setStarting(true);
@@ -258,6 +259,9 @@ export default function MatchPage({ params }: MatchPageProps) {
   // fixed 2-up layout local mode uses (which only ever has exactly 2 players).
   const youPlayerId = mode === 'remote' ? (players.find((p) => p === you) ?? null) : null;
   const otherPlayers = youPlayerId ? players.filter((p) => p !== youPlayerId) : [];
+  // The compact "you + opponents" layout only earns its keep once a fixed 2-up view can't fit
+  // everyone — a 2-player remote match looks and behaves exactly like local mode's layout.
+  const useCompactOpponentsLayout = mode === 'remote' && youPlayerId !== null && players.length > 2;
 
   return (
     <div
@@ -276,7 +280,7 @@ export default function MatchPage({ params }: MatchPageProps) {
         )}
       </header>
 
-      {mode === 'remote' && youPlayerId ? (
+      {useCompactOpponentsLayout && youPlayerId ? (
         <>
           {/* Top row: score / match info / score — same 3-equal-column layout as local mode.
               The right slot, which used to be a single opponent's ScoreboardSlot, is now a
@@ -356,7 +360,10 @@ export default function MatchPage({ params }: MatchPageProps) {
                   return (
                     <div key={playerId} className="flex flex-col gap-1.5">
                       <button
-                        onClick={() => setExpandedOpponent(expanded ? null : playerId)}
+                        onClick={() => {
+                          setExpandedOpponent(expanded ? null : playerId);
+                          setShowAllOpponentVisits(false);
+                        }}
                         className="flex items-center gap-1.5 text-left"
                       >
                         {isTurn && <Crosshair className="w-3.5 h-3.5 text-wire shrink-0" />}
@@ -366,37 +373,73 @@ export default function MatchPage({ params }: MatchPageProps) {
                       </button>
 
                       {expanded ? (
-                        <div className="flex flex-col gap-1.5">
-                          {gameModule.visitHistory(gameState, playerId).length === 0 && lastThrows.length === 0 ? (
-                            <span className="text-sisal/40 text-xs">No throws yet</span>
-                          ) : (
-                            <>
-                              {isTurn && lastThrows.length > 0 && (
-                                <div className="flex gap-1.5 flex-wrap p-1.5 rounded-lg bg-wire/10 border border-wire/40">
-                                  {lastThrows.map((t, i) => (
-                                    <DartBadge key={i} t={t} />
+                        (() => {
+                          const visits = gameModule.visitHistory(gameState, playerId);
+                          const hasMoreVisits = visits.length > HISTORY_VISIBLE_LIMIT;
+                          const visibleVisits = showAllOpponentVisits ? visits : visits.slice(0, HISTORY_VISIBLE_LIMIT);
+
+                          return (
+                            <div className="flex flex-col gap-1.5">
+                              {visits.length === 0 && lastThrows.length === 0 ? (
+                                <span className="text-sisal/40 text-xs">No throws yet</span>
+                              ) : (
+                                <>
+                                  {isTurn && lastThrows.length > 0 && (
+                                    <div className="flex gap-1.5 flex-wrap p-1.5 rounded-lg bg-wire/10 border border-wire/40">
+                                      {lastThrows.map((t, i) => (
+                                        <DartBadge key={i} t={t} />
+                                      ))}
+                                    </div>
+                                  )}
+                                  {visibleVisits.map((visit, i) => (
+                                    <div
+                                      key={i}
+                                      className={`flex items-center gap-1.5 flex-wrap rounded-lg p-1.5 ${
+                                        visit.busted ? 'bg-treble/10 border border-treble/40' : ''
+                                      }`}
+                                    >
+                                      {visit.throws.map((t, j) => (
+                                        <DartBadge key={j} t={t} />
+                                      ))}
+                                      <span className="ml-auto text-sm font-bold text-chalk">
+                                        {Math.abs(visit.scoreAfter - visit.scoreBefore)}
+                                      </span>
+                                    </div>
                                   ))}
-                                </div>
+                                  {hasMoreVisits && !showAllOpponentVisits && (
+                                    <button
+                                      onClick={() => setShowAllOpponentVisits(true)}
+                                      className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk py-1 text-left"
+                                    >
+                                      Show more ({visits.length - HISTORY_VISIBLE_LIMIT})
+                                    </button>
+                                  )}
+                                  {showAllOpponentVisits && hasMoreVisits && (
+                                    <button
+                                      onClick={() => setShowAllOpponentVisits(false)}
+                                      className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk py-1 text-left"
+                                    >
+                                      Show less
+                                    </button>
+                                  )}
+                                </>
                               )}
-                              {gameModule.visitHistory(gameState, playerId).map((visit, i) => (
-                                <div
-                                  key={i}
-                                  className={`flex items-center gap-1.5 flex-wrap rounded-lg p-1.5 ${
-                                    visit.busted ? 'bg-treble/10 border border-treble/40' : ''
-                                  }`}
-                                >
-                                  {visit.throws.map((t, j) => (
-                                    <DartBadge key={j} t={t} />
-                                  ))}
-                                </div>
-                              ))}
-                            </>
-                          )}
-                        </div>
+                            </div>
+                          );
+                        })()
                       ) : (
                         <div className="flex gap-1.5 flex-wrap min-h-[36px] items-center">
                           {lastThrows.length > 0 ? (
-                            lastThrows.map((t, i) => <DartBadge key={i} t={t} />)
+                            <>
+                              {lastThrows.map((t, i) => (
+                                <DartBadge key={i} t={t} />
+                              ))}
+                              {!isTurn && lastVisit && (
+                                <span className="ml-auto text-sm font-bold text-chalk">
+                                  {Math.abs(lastVisit.scoreAfter - lastVisit.scoreBefore)}
+                                </span>
+                              )}
+                            </>
                           ) : (
                             <span className="text-sisal/40 text-xs">No throws yet</span>
                           )}
@@ -411,7 +454,8 @@ export default function MatchPage({ params }: MatchPageProps) {
         </>
       ) : (
         <>
-          {/* Top row: score / match info / score — local mode's fixed 2-player layout */}
+          {/* Top row: score / match info / score — the original fixed 2-up layout, used for
+              local mode (always 2 players) and 2-player remote matches alike */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {leftPlayer && (
               <gameModule.ScoreboardSlot
@@ -463,7 +507,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                 )}
                 <DartboardInput
                   onThrow={handleThrow}
-                  disabled={isComplete}
+                  disabled={isComplete || (mode === 'remote' && currentPlayerId !== you)}
                   visitDartCount={visitProgress.darts}
                   heatmap={currentPlayerHeatmap}
                 />

@@ -366,7 +366,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                       </button>
 
                       {expanded ? (
-                        <div className="flex flex-col gap-1.5 max-h-[220px] overflow-y-auto">
+                        <div className="flex flex-col gap-1.5">
                           {gameModule.visitHistory(gameState, playerId).length === 0 && lastThrows.length === 0 ? (
                             <span className="text-sisal/40 text-xs">No throws yet</span>
                           ) : (

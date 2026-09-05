@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
       mode: 'local',
       status: 'live',
       settings,
+      userId: session?.user?.id,
       players: [
         { name: session?.user?.name || 'Guest 1', isGuest: !session },
         { name: 'Guest 2', isGuest: true },

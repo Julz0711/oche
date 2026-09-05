@@ -1,6 +1,6 @@
 // app/(match)/match/[id]/page.tsx
 'use client';
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, useRef, use } from 'react';
 import { useMatchStore } from '@/store/match';
 import { getGameModule, GameId } from '@/lib/games/registry';
 import { DartboardInput } from '@/components/organisms/DartboardInput';
@@ -238,6 +238,25 @@ export default function MatchPage({ params }: MatchPageProps) {
   const handleUndo = () => {
     useMatchStore.getState().undo();
   };
+
+  const completionSentRef = useRef(false);
+
+  useEffect(() => {
+    if (mode !== 'local' || !gameModule || !gameState) return;
+    if (!gameModule.isComplete(gameState)) return;
+    if (completionSentRef.current) return;
+    completionSentRef.current = true;
+
+    fetch(`/api/matches/${id}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ state: gameState, winnerId: gameModule.winner(gameState) }),
+    }).catch(() => {
+      // Best-effort, matching how this project treats non-critical side effects
+      // (e.g. publishMatchEvent): a failed write means this match won't show up in
+      // history, not a broken match.
+    });
+  }, [mode, gameModule, gameState, id]);
 
   if (error) {
     return <div className="min-h-screen bg-oche text-chalk flex items-center justify-center">{error}</div>;

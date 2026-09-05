@@ -7,6 +7,7 @@ const MatchSchema = new mongoose.Schema({
   mode: { type: String, enum: ['local', 'remote'], required: true },
   roomCode: String,
   hostId: String,
+  userId: String,
   players: [
     {
       userId: String,

@@ -49,27 +49,33 @@ export async function GET(req: NextRequest) {
     );
     if (youPlayerId === null) continue;
 
-    const gameModule = await getGameModule(doc.gameId as GameId);
-    const stats = gameModule.matchStats(doc.state, youPlayerId, doc.settings);
-    const headlineTile = gameModule.statTiles[0];
+    try {
+      const gameModule = await getGameModule(doc.gameId as GameId);
+      const stats = gameModule.matchStats(doc.state, youPlayerId, doc.settings);
+      const headlineTile = gameModule.statTiles[0];
 
-    const opponents =
-      doc.mode === 'remote'
-        ? (doc.players as MatchPlayerDoc[])
-            .filter((p) => identityIdOf(p) !== youPlayerId)
-            .map((p) => p.name)
-        : [];
+      const opponents =
+        doc.mode === 'remote'
+          ? (doc.players as MatchPlayerDoc[])
+              .filter((p) => identityIdOf(p) !== youPlayerId)
+              .map((p) => p.name)
+          : [];
 
-    matches.push({
-      id: doc._id.toString(),
-      gameId: doc.gameId,
-      gameName: gameModule.name,
-      mode: doc.mode,
-      completedAt: (doc.completedAt as Date).toISOString(),
-      won: doc.winnerId === youPlayerId,
-      opponents,
-      headline: { label: headlineTile.label, value: String(headlineTile.value(stats)) },
-    });
+      matches.push({
+        id: doc._id.toString(),
+        gameId: doc.gameId,
+        gameName: gameModule.name,
+        mode: doc.mode,
+        completedAt: (doc.completedAt as Date).toISOString(),
+        won: doc.winnerId === youPlayerId,
+        opponents,
+        headline: { label: headlineTile.label, value: String(headlineTile.value(stats)) },
+      });
+    } catch {
+      // A single malformed or legacy match document (unregistered gameId, corrupt state, etc.)
+      // must not take down the whole history response — skip it, keep the rest.
+      continue;
+    }
   }
 
   const summary = summarize(matches.map((m) => ({ won: m.won })));

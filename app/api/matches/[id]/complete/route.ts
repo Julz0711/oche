@@ -18,7 +18,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
   const state = (body as { state?: unknown })?.state;
   const winnerId = (body as { winnerId?: unknown })?.winnerId;
-  if (state === undefined || (typeof winnerId !== 'string' && winnerId !== null)) {
+  if (
+    state === undefined ||
+    state === null ||
+    typeof state !== 'object' ||
+    (typeof winnerId !== 'string' && winnerId !== null)
+  ) {
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
   }
 
@@ -30,16 +35,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (match.mode !== 'local') {
     return NextResponse.json({ error: 'This route is for local matches only' }, { status: 400 });
   }
-  if (match.status !== 'live') {
-    // Idempotency guard: a second completion call (e.g. a duplicate effect firing) is a no-op.
-    return NextResponse.json({ ok: true });
-  }
 
-  match.state = state;
-  match.winnerId = winnerId;
-  match.status = 'complete';
-  match.completedAt = new Date();
-  await match.save();
+  await Match.findOneAndUpdate(
+    { _id: id, status: 'live' },
+    { state, winnerId, status: 'complete', completedAt: new Date() }
+  );
+  // Idempotent either way: if another request already completed this match between the
+  // findById above and this update, the filter simply matches nothing and this is a no-op.
 
   return NextResponse.json({ ok: true });
 }

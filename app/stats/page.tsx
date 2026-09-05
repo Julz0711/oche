@@ -70,6 +70,7 @@ export default function StatsPage() {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
   const [data, setData] = useState<HistoryResponse | null>(null);
+  const [error, setError] = useState(false);
   const [gameFilter, setGameFilter] = useState<GameId | null>(null);
 
   useEffect(() => {
@@ -84,9 +85,16 @@ export default function StatsPage() {
     (async () => {
       const url = gameFilter ? `/api/matches/history?gameId=${gameFilter}` : '/api/matches/history';
       const res = await fetch(url);
-      if (!res.ok || cancelled) return;
+      if (cancelled) return;
+      if (!res.ok) {
+        setError(true);
+        return;
+      }
       const json = (await res.json()) as HistoryResponse;
-      if (!cancelled) setData(json);
+      if (!cancelled) {
+        setError(false);
+        setData(json);
+      }
     })();
     return () => {
       cancelled = true;
@@ -107,7 +115,9 @@ export default function StatsPage() {
           <p className="text-sisal text-sm md:text-base mt-1">Every completed match, all in one place</p>
         </header>
 
-        {data === null ? (
+        {error ? (
+          <p className="text-sisal text-center py-8">Couldn&apos;t load your stats — try refreshing the page.</p>
+        ) : data === null ? (
           <div className="grid grid-cols-3 gap-4">
             {[0, 1, 2].map((i) => (
               <div key={i} className="h-20 rounded-2xl bg-slate animate-pulse" />

@@ -22,6 +22,11 @@ export const gameRegistry = {
    * Cricket - Standard Cricket: close 20-15 and Bull, score the most points
    */
   cricket: async () => import('./cricket').then((m) => m.default),
+
+  /**
+   * Copycat - match the previous visit's total to score a point; the point winner leads next
+   */
+  copycat: async () => import('./copycat').then((m) => m.default),
 } as const;
 
 /**

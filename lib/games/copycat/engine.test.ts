@@ -126,8 +126,9 @@ describe('Copycat Engine', () => {
     });
 
     it('reverts a point-winning visit, including match completion', () => {
-      const settings = { ...CopycatDefaultSettings, firstTo: 1 as const };
+      const settings = { ...CopycatDefaultSettings, firstTo: 3 as const };
       let state = init([player1, player2], settings);
+      state = { ...state, pointsWon: { ...state.pointsWon, [player2]: 2 } }; // player2 on match-point
       for (const t of throwVisit(20, 'S', 3)) state = applyThrow(state, t, settings); // target = 60
       // player2 matches with double finish (S10, S10, D20 = 10+10+40 = 60)
       state = applyThrow(state, { sector: 10 as any, ring: 'S', points: 0, order: 0 as any }, settings);
@@ -138,7 +139,7 @@ describe('Copycat Engine', () => {
 
       const undone = undo(state);
       expect(isComplete(undone)).toBe(false);
-      expect(undone.pointsWon[player2]).toBe(0);
+      expect(undone.pointsWon[player2]).toBe(2); // reverted to their pre-visit match-point count, not 0
       expect(undone.target).toBe(60);
       expect(undone.players[undone.currentPlayerIndex]).toBe(player2); // back to player2's matching attempt
     });

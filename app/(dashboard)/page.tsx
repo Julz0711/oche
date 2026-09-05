@@ -24,6 +24,7 @@ interface GameOption {
 const GAME_ACCENT: Record<GameId, { selected: string; badge: string }> = {
   x01: { selected: 'border-wire bg-wire/15', badge: 'bg-wire text-oche' },
   cricket: { selected: 'border-double bg-double/15', badge: 'bg-double text-chalk' },
+  copycat: { selected: 'border-sisal bg-sisal/15', badge: 'bg-sisal text-oche' },
 };
 
 function GameCard({ game, selected, onSelect }: { game: GameOption; selected: boolean; onSelect: () => void }) {
@@ -101,6 +102,7 @@ function SettingLabel({ children }: { children: ReactNode }) {
 const STARTING_SCORES = [301, 501, 701] as const;
 const LEG_OPTIONS = [1, 3, 5, 7] as const;
 const SET_OPTIONS = [0, 2, 3, 4, 5] as const;
+const COPYCAT_LIMIT_OPTIONS = [3, 5, 7, 9] as const;
 
 export default function Dashboard() {
   const router = useRouter();
@@ -112,6 +114,7 @@ export default function Dashboard() {
   const [x01FirstTo, setX01FirstTo] = useState<(typeof LEG_OPTIONS)[number]>(3);
   const [sets, setSets] = useState<(typeof SET_OPTIONS)[number]>(0);
   const [cricketFirstTo, setCricketFirstTo] = useState<(typeof LEG_OPTIONS)[number]>(3);
+  const [copycatFirstTo, setCopycatFirstTo] = useState<(typeof COPYCAT_LIMIT_OPTIONS)[number]>(3);
 
   useEffect(() => {
     let cancelled = false;
@@ -141,6 +144,7 @@ export default function Dashboard() {
     if (!defaults) return undefined;
     if (gameId === 'x01') return { ...defaults, startingScore: String(startingScore), firstTo: x01FirstTo, sets };
     if (gameId === 'cricket') return { ...defaults, firstTo: cricketFirstTo };
+    if (gameId === 'copycat') return { ...defaults, firstTo: copycatFirstTo };
     return defaults;
   };
 
@@ -223,6 +227,13 @@ export default function Dashboard() {
                 <div className="flex flex-col gap-2">
                   <SettingLabel>Legs (first to)</SettingLabel>
                   <Pills options={LEG_OPTIONS} value={cricketFirstTo} onChange={setCricketFirstTo} />
+                </div>
+              )}
+
+              {selectedGameId === 'copycat' && (
+                <div className="flex flex-col gap-2">
+                  <SettingLabel>Points (first to)</SettingLabel>
+                  <Pills options={COPYCAT_LIMIT_OPTIONS} value={copycatFirstTo} onChange={setCopycatFirstTo} />
                 </div>
               )}
             </div>

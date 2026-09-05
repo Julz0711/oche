@@ -2,6 +2,8 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import { Button } from '@/components/atoms/Button';
 import { gameRegistry, GameId, getGameModule } from '@/lib/games/registry';
 import { Users } from 'lucide-react';
@@ -110,6 +112,8 @@ export default function Dashboard() {
   const [selectedGameId, setSelectedGameId] = useState<GameId>('x01');
   const [creating, setCreating] = useState<'local' | 'remote' | null>(null);
 
+  const { data: session } = useSession();
+
   const [startingScore, setStartingScore] = useState<(typeof STARTING_SCORES)[number]>(501);
   const [x01FirstTo, setX01FirstTo] = useState<(typeof LEG_OPTIONS)[number]>(3);
   const [sets, setSets] = useState<(typeof SET_OPTIONS)[number]>(0);
@@ -172,7 +176,27 @@ export default function Dashboard() {
       }}
     >
       <div className="w-full max-w-3xl flex flex-col gap-6 md:gap-8 pt-6 md:pt-12">
-        <header className="flex flex-col">
+        <header className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-widest text-sisal">
+              {session?.user ? session.user.name ?? 'Signed in' : 'Not signed in'}
+            </span>
+            {session?.user ? (
+              <Link
+                href="/stats"
+                className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
+              >
+                History
+              </Link>
+            ) : (
+              <Link
+                href="/signin"
+                className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
+              >
+                Sign in
+              </Link>
+            )}
+          </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold tracking-tight leading-none">
             OCHE
           </h1>

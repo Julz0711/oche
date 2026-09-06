@@ -1,6 +1,7 @@
 // store/match.ts
 import { create } from 'zustand';
 import { GameModule, PlayerId, Throw, Visit } from '@/lib/types';
+import { saveLocalMatch } from '@/lib/localMatchStorage';
 
 type MatchMode = 'local' | 'remote';
 type MatchStatus = 'lobby' | 'live' | 'complete';
@@ -69,7 +70,12 @@ export const useMatchStore = create<MatchStore>((set, get) => ({
     you = null,
     hostId = null,
     roomCode = null,
-  }) => set({ matchId, gameModule, gameState, settings, mode, status, players, you, hostId, roomCode }),
+  }) => {
+    set({ matchId, gameModule, gameState, settings, mode, status, players, you, hostId, roomCode });
+    if (mode === 'local') {
+      saveLocalMatch(matchId, { gameId: gameModule.id, settings, gameState });
+    }
+  },
 
   setGameState: (gameState, status) => set((state) => ({ gameState, status: status ?? state.status })),
 
@@ -82,6 +88,11 @@ export const useMatchStore = create<MatchStore>((set, get) => ({
     if (state.mode === 'local') {
       const newGameState = state.gameModule.applyThrow(state.gameState, throw_, state.settings);
       set({ gameState: newGameState });
+      saveLocalMatch(state.matchId, {
+        gameId: state.gameModule.id,
+        settings: state.settings,
+        gameState: newGameState,
+      });
       return;
     }
 
@@ -106,6 +117,11 @@ export const useMatchStore = create<MatchStore>((set, get) => ({
     if (state.mode === 'local') {
       const newGameState = state.gameModule.undo(state.gameState);
       set({ gameState: newGameState });
+      saveLocalMatch(state.matchId, {
+        gameId: state.gameModule.id,
+        settings: state.settings,
+        gameState: newGameState,
+      });
       return;
     }
 

@@ -126,7 +126,7 @@ function HistoryPanel({
   const visibleVisits = expanded ? visits : visits.slice(0, HISTORY_VISIBLE_LIMIT);
 
   return (
-    <div className="rounded-2xl bg-slate p-4 flex flex-col gap-3 min-h-[240px] border-2 border-sisal/15">
+    <Panel notch="panel" className="p-4 flex flex-col gap-3 min-h-[240px]">
       <div className="text-xs font-bold uppercase tracking-widest text-sisal shrink-0">
         {displayName ?? playerId}
       </div>
@@ -181,7 +181,7 @@ function HistoryPanel({
           </button>
         )}
       </div>
-    </div>
+    </Panel>
   );
 }
 
@@ -436,7 +436,7 @@ export default function MatchPage({ params }: MatchPageProps) {
               raceProgress={raceProgress}
               displayNames={displayNames}
             />
-            <div className="rounded-2xl bg-slate p-4 border-2 border-sisal/15 flex flex-col gap-2 justify-center">
+            <Panel notch="panel" className="p-4 flex flex-col gap-2 justify-center">
               {otherPlayers.map((playerId) => {
                 const metric = gameModule.primaryMetric(gameState, playerId);
                 const isTurn = playerId === currentPlayerId;
@@ -457,7 +457,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                   </div>
                 );
               })}
-            </div>
+            </Panel>
           </div>
 
           {/* Middle row: history / board+keypad / history — same 3-column layout as local mode.
@@ -499,7 +499,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                 />
               </div>
 
-              <div className="rounded-2xl bg-slate p-3 flex flex-col gap-3 min-h-[240px] border-2 border-sisal/15">
+              <Panel notch="panel" className="p-3 flex flex-col gap-3 min-h-[240px]">
                 {otherPlayers.map((playerId) => {
                   const isTurn = playerId === currentPlayerId;
                   const expanded = expandedOpponent === playerId;
@@ -602,7 +602,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                     </div>
                   );
                 })}
-              </div>
+              </Panel>
             </div>
           )}
         </>

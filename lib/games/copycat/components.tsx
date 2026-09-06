@@ -4,6 +4,7 @@ import { CopycatSettings } from './schema';
 import { PlayerId } from '@/lib/types';
 import { Numeral } from '@/components/atoms/Numeral';
 import { Pips } from '@/components/atoms/Pips';
+import { Panel } from '@/components/atoms';
 import { Crosshair } from 'lucide-react';
 
 export function ScoreboardSlot({
@@ -21,11 +22,7 @@ export function ScoreboardSlot({
   const pointsWon = state.pointsWon[playerId];
 
   return (
-    <div
-      className={`relative rounded-2xl p-5 border-2 transition-colors duration-300 ${
-        isCurrentPlayer ? 'border-wire bg-wire/10' : 'border-transparent bg-slate'
-      }`}
-    >
+    <Panel notch="panel" accent="wire" active={isCurrentPlayer} activeBadge={false} className="p-5">
       {isCurrentPlayer && (
         <Crosshair className="absolute top-4 right-4 w-4 h-4 text-wire" aria-label="On throw" />
       )}
@@ -41,6 +38,6 @@ export function ScoreboardSlot({
         </span>
       </div>
       <Pips value={pointsWon} target={settings.firstTo} accent="wire" className="mt-1" />
-    </div>
+    </Panel>
   );
 }

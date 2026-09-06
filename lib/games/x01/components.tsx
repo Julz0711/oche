@@ -3,6 +3,7 @@ import { X01State, computeVisitTotal } from './engine';
 import { X01Settings } from './schema';
 import { PlayerId } from '@/lib/types';
 import { Numeral } from '@/components/atoms/Numeral';
+import { Panel } from '@/components/atoms';
 import { Trophy, Crosshair, Medal } from 'lucide-react';
 
 export function ScoreboardSlot({
@@ -39,11 +40,7 @@ export function ScoreboardSlot({
   const legAvg3Dart = legDarts > 0 ? (legScored / legDarts) * 3 : 0;
 
   return (
-    <div
-      className={`relative rounded-2xl p-5 border-2 transition-colors duration-300 ${
-        isCurrentPlayer ? 'border-wire bg-wire/10' : 'border-transparent bg-slate'
-      }`}
-    >
+    <Panel notch="panel" accent="wire" active={isCurrentPlayer} activeBadge={false} className="p-5">
       {isCurrentPlayer && (
         <Crosshair className="absolute top-4 right-4 w-4 h-4 text-wire" aria-label="On throw" />
       )}
@@ -64,6 +61,6 @@ export function ScoreboardSlot({
           <span className="text-sm font-bold">{legsWon}</span>
         </div>
       </div>
-    </div>
+    </Panel>
   );
 }

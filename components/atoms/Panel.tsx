@@ -12,8 +12,13 @@ interface PanelOwnProps {
   accent?: AccentToken;
   /** Draw the accent bar across the top of the surface. */
   accentBar?: boolean;
-  /** Raised background plus a left accent edge — "this is the one in play". */
+  /** Raised background plus a bold accent ring and a checkmark badge — "this is the one
+   *  selected/chosen". */
   active?: boolean;
+  /** Suppress the checkmark badge while keeping `active`'s raised background and ring — for
+   *  consumers where "active" means something other than "selected" (e.g. a scoreboard slot's
+   *  "current player's turn", which already has its own on-throw indicator). Defaults to true. */
+  activeBadge?: boolean;
   /** Fill the surface solid with this accent instead of the default slate background — for
    *  filled CTAs (e.g. "Play Online") that still want the exact same notch/border/shadow
    *  geometry as every other Panel, rather than a parallel, hand-rolled implementation. */
@@ -71,6 +76,7 @@ export function Panel({
   accent = 'wire',
   accentBar = false,
   active = false,
+  activeBadge = true,
   fill,
   interactive,
   className = '',
@@ -122,7 +128,7 @@ export function Panel({
             }`}
           />
         )}
-        {active && (
+        {active && activeBadge && (
           <span
             className={`absolute top-0 right-0 flex items-center justify-center w-6 h-6 ${accentBg[accent]}`}
           >

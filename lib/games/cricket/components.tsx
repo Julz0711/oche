@@ -4,6 +4,7 @@ import { CricketSettings } from './schema';
 import { PlayerId } from '@/lib/types';
 import { Numeral } from '@/components/atoms/Numeral';
 import { DartBadge } from '@/components/atoms/DartBadge';
+import { Panel } from '@/components/atoms';
 import { Crosshair } from 'lucide-react';
 
 const TOTAL_MARKS = CRICKET_NUMBERS.length * 3; // 7 numbers, 3 marks to close each = 21
@@ -67,11 +68,7 @@ export function ScoreboardSlot({
   const lastThrows = isCurrentPlayer ? state.currentVisit : (lastVisit?.throws ?? []);
 
   return (
-    <div
-      className={`relative rounded-2xl p-5 border-2 transition-colors duration-300 ${
-        isCurrentPlayer ? 'border-wire bg-wire/10' : 'border-transparent bg-slate'
-      }`}
-    >
+    <Panel notch="panel" accent="wire" active={isCurrentPlayer} activeBadge={false} className="p-5">
       {isCurrentPlayer && (
         <Crosshair className="absolute top-4 right-4 w-4 h-4 text-wire" aria-label="On throw" />
       )}
@@ -93,7 +90,7 @@ export function ScoreboardSlot({
           <span className="text-sisal/40 text-xs">No throws yet</span>
         )}
       </div>
-    </div>
+    </Panel>
   );
 }
 
@@ -113,7 +110,7 @@ export function HistoryPanel({
   const legsWon = state.legsWon[playerId];
 
   return (
-    <div className="rounded-2xl bg-slate p-4 flex flex-col gap-3 min-h-[240px] border-2 border-sisal/15">
+    <Panel notch="panel" className="p-4 flex flex-col gap-3 min-h-[240px]">
       <div className="text-xs font-bold uppercase tracking-widest text-sisal">{displayName ?? playerId}</div>
 
       <div className="flex flex-col gap-1">
@@ -128,6 +125,6 @@ export function HistoryPanel({
       <div className="mt-1 pt-2 border-t border-sisal/20 flex items-center gap-1.5 text-wire">
         <span className="text-xs font-bold uppercase tracking-widest">Legs: {legsWon}</span>
       </div>
-    </div>
+    </Panel>
   );
 }

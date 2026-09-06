@@ -12,6 +12,7 @@ import { useRemoteMatchSync } from '@/hooks/useRemoteMatchSync';
 import { MatchLobby } from '@/components/organisms/MatchLobby';
 import { LiveStatsDrawer } from '@/components/organisms/LiveStatsDrawer';
 import { identityIdOf, MatchPlayerDoc } from '@/lib/matchLobby';
+import { loadLocalMatch } from '@/lib/localMatchStorage';
 
 interface MatchPageProps {
   params: Promise<{ id: string }>;
@@ -187,6 +188,27 @@ export default function MatchPage({ params }: MatchPageProps) {
 
   useEffect(() => {
     const init = async () => {
+      const stored = loadLocalMatch(id);
+      if (stored) {
+        try {
+          const module = await getGameModule(stored.gameId as GameId);
+          useMatchStore.getState().setMatch({
+            matchId: id,
+            gameModule: module,
+            gameState: stored.gameState,
+            settings: stored.settings,
+            mode: 'local',
+            status: 'live',
+          });
+          setLoading(false);
+          return;
+        } catch {
+          // Fall through to the network path below — e.g. a stored gameId that no longer
+          // resolves to a registered game module. Don't strand the user on a broken
+          // localStorage entry when the server might still have a valid one.
+        }
+      }
+
       try {
         const res = await fetch(`/api/matches/${id}`);
         if (!res.ok) {

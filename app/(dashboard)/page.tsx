@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Button } from '@/components/atoms/Button';
 import { Panel, BoardMotif } from '@/components/atoms';
 import type { AccentToken, MotifName } from '@/components/atoms';
 import { gameRegistry, GameId, getGameModule } from '@/lib/games/registry';
@@ -280,15 +279,17 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="flex flex-col gap-2">
-                <div className="has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-wire">
-                  <Button
-                    onClick={() => handleCreateMatch(selectedGameId, 'remote')}
-                    disabled={creating !== null}
-                    className="min-h-16 md:min-h-20 rounded-none text-xl md:text-2xl w-full font-display uppercase tracking-[0.14em] [clip-path:polygon(0_0,100%_0,calc(100%-10px)_100%,0_100%)] focus-visible:outline-none"
-                  >
-                    {creating === 'remote' ? 'Starting…' : 'Play Online'}
-                  </Button>
-                </div>
+                <Panel
+                  as="button"
+                  notch="card"
+                  accent="wire"
+                  fill="wire"
+                  onClick={() => handleCreateMatch(selectedGameId, 'remote')}
+                  disabled={creating !== null}
+                  className="min-h-16 md:min-h-20 flex items-center justify-center text-xl md:text-2xl font-display uppercase tracking-[0.14em] text-oche"
+                >
+                  {creating === 'remote' ? 'Starting…' : 'Play Online'}
+                </Panel>
                 <span className="text-center text-[11px] font-bold uppercase tracking-widest text-sisal">
                   Room code
                 </span>

@@ -14,6 +14,10 @@ interface PanelOwnProps {
   accentBar?: boolean;
   /** Raised background plus a left accent edge — "this is the one in play". */
   active?: boolean;
+  /** Fill the surface solid with this accent instead of the default slate background — for
+   *  filled CTAs (e.g. "Play Online") that still want the exact same notch/border/shadow
+   *  geometry as every other Panel, rather than a parallel, hand-rolled implementation. */
+  fill?: AccentToken;
   /** Hover lift. Implied when `as="button"`; set explicitly for hoverable non-buttons. */
   interactive?: boolean;
   /** Applied to the inner (clipped) surface. */
@@ -67,6 +71,7 @@ export function Panel({
   accent = 'wire',
   accentBar = false,
   active = false,
+  fill,
   interactive,
   className = '',
   children,
@@ -102,7 +107,7 @@ export function Panel({
       <span
         className={`
           relative block overflow-hidden
-          ${active ? 'bg-[#202B28]' : 'bg-slate'}
+          ${fill ? accentBg[fill] : active ? 'bg-[#202B28]' : 'bg-slate'}
           ${className}
         `}
         style={{

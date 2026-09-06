@@ -68,6 +68,7 @@ button:not(:disabled) {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
   opacity: 0.45;
   background: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.02) 0 2px, transparent 2px 9px);
@@ -108,5 +109,11 @@ button:not(:disabled) {
   /* Colour and opacity still change on hover; movement does not happen at all. */
   .group:hover .motion-lift {
     transform: none !important;
+  }
+  .group:hover .board-motif {
+    transform: none !important;
+  }
+  .group:hover .notch-accent-bar {
+    height: 5px !important;
   }
 }

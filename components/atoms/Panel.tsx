@@ -68,7 +68,7 @@ export function Panel({
       className={`
         relative block overflow-hidden
         ${active ? 'bg-[#202B28]' : 'bg-slate'}
-        shadow-[0_16px_30px_-16px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)]
+        shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]
         ${lifts ? 'motion-lift' : ''}
         ${className}
       `}
@@ -78,7 +78,7 @@ export function Panel({
     >
       {accentBar && (
         <span
-          className={`block h-[5px] w-full ${accentBg[accent]} ${
+          className={`notch-accent-bar block h-[5px] w-full ${accentBg[accent]} ${
             lifts ? 'transition-[height] duration-150 group-hover:h-[9px]' : ''
           }`}
         />
@@ -89,13 +89,18 @@ export function Panel({
   );
 
   if (!isButton) {
-    return <div className="group relative">{surface}</div>;
+    return (
+      <div className="group relative" style={{ filter: 'drop-shadow(0 12px 14px rgba(0,0,0,0.55))' }}>
+        {surface}
+      </div>
+    );
   }
 
   return (
     <button
       type="button"
       className="group relative block w-full text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wire disabled:opacity-50"
+      style={{ filter: 'drop-shadow(0 12px 14px rgba(0,0,0,0.55))' }}
       {...rest}
     >
       {surface}

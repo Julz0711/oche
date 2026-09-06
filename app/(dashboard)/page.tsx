@@ -190,7 +190,7 @@ export default function Dashboard() {
           'radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--wire) 10%, transparent), transparent 60%)',
       }}
     >
-      <div className="w-full max-w-3xl flex flex-col gap-7 md:gap-9 pt-6 md:pt-12">
+      <div className="relative z-10 w-full max-w-3xl flex flex-col gap-7 md:gap-9 pt-6 md:pt-12">
         <header className="flex flex-col gap-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-widest text-sisal">
@@ -300,7 +300,7 @@ export default function Dashboard() {
                     variant="secondary"
                     onClick={() => handleCreateMatch(selectedGameId, 'local')}
                     disabled={creating !== null}
-                    className="min-h-16 md:min-h-20 rounded-none text-xl md:text-2xl w-full font-display uppercase tracking-[0.14em] [clip-path:polygon(0_0,100%_0,calc(100%-10px)_100%,0_100%)] focus-visible:outline-none"
+                    className="min-h-16 md:min-h-20 rounded-none text-xl md:text-2xl w-full font-display uppercase tracking-[0.14em] border-0 shadow-[inset_0_0_0_1.5px_var(--wire)] [clip-path:polygon(0_0,100%_0,calc(100%-10px)_100%,0_100%)] focus-visible:outline-none"
                   >
                     {creating === 'local' ? 'Starting…' : 'Play Local'}
                   </Button>

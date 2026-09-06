@@ -13,7 +13,7 @@ import { MatchLobby } from '@/components/organisms/MatchLobby';
 import { LiveStatsDrawer } from '@/components/organisms/LiveStatsDrawer';
 import { identityIdOf, MatchPlayerDoc } from '@/lib/matchLobby';
 import { loadLocalMatch, clearLocalMatch, markPendingCompletion } from '@/lib/localMatchStorage';
-import { Panel, Pips } from '@/components/atoms';
+import { Panel, Pips, BackLink } from '@/components/atoms';
 
 interface MatchPageProps {
   params: Promise<{ id: string }>;
@@ -399,7 +399,10 @@ export default function MatchPage({ params }: MatchPageProps) {
       }}
     >
       <header className="flex items-center justify-between">
-        <h1 className="text-xl font-display font-bold">{gameModule.name}</h1>
+        <div className="flex items-center gap-3">
+          <BackLink />
+          <h1 className="text-xl font-display font-bold">{gameModule.name}</h1>
+        </div>
         {!isComplete && (
           <div className="flex items-center gap-2">
             <button

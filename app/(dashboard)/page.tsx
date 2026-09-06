@@ -8,6 +8,7 @@ import { Panel, BoardMotif } from '@/components/atoms';
 import type { AccentToken, MotifName } from '@/components/atoms';
 import { gameRegistry, GameId, getGameModule } from '@/lib/games/registry';
 import type { LucideIcon } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 interface ActiveMatch {
@@ -193,6 +194,14 @@ export default function Dashboard() {
     return defaults;
   };
 
+  const handleDeleteMatch = async (id: string) => {
+    if (!window.confirm('Delete this game? This cannot be undone.')) return;
+    const res = await fetch(`/api/matches/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      setActiveMatches((prev) => prev.filter((m) => m.id !== id));
+    }
+  };
+
   const handleCreateMatch = async (gameId: GameId, mode: 'local' | 'remote') => {
     setCreating(mode);
     try {
@@ -263,26 +272,34 @@ export default function Dashboard() {
             <SettingLabel>Active games</SettingLabel>
             <div className="flex flex-col gap-2">
               {activeMatches.map((m) => (
-                <Panel
-                  key={m.id}
-                  as="button"
-                  notch="panel"
-                  onClick={() => router.push(`/match/${m.id}`)}
-                  className="p-3 flex items-center justify-between gap-3"
-                >
-                  <div className="flex flex-col items-start gap-0.5 min-w-0">
-                    <span className="font-display font-bold uppercase text-sm text-chalk truncate">
-                      {m.gameName}
-                    </span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-sisal truncate">
-                      {m.status === 'lobby'
-                        ? 'Waiting for players'
-                        : m.opponents.length > 0
-                          ? `vs ${m.opponents.join(', ')}`
-                          : 'In progress'}
-                    </span>
-                  </div>
-                  <span className="text-xs font-bold uppercase tracking-widest text-wire shrink-0">Resume</span>
+                <Panel key={m.id} notch="panel" className="p-3 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/match/${m.id}`)}
+                    className="flex flex-1 items-center justify-between gap-3 min-w-0 text-left"
+                  >
+                    <div className="flex flex-col items-start gap-0.5 min-w-0">
+                      <span className="font-display font-bold uppercase text-sm text-chalk truncate">
+                        {m.gameName}
+                      </span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-sisal truncate">
+                        {m.status === 'lobby'
+                          ? 'Waiting for players'
+                          : m.opponents.length > 0
+                            ? `vs ${m.opponents.join(', ')}`
+                            : 'In progress'}
+                      </span>
+                    </div>
+                    <span className="text-xs font-bold uppercase tracking-widest text-wire shrink-0">Resume</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteMatch(m.id)}
+                    aria-label="Delete match"
+                    className="shrink-0 p-1 text-sisal hover:text-treble transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </Panel>
               ))}
             </div>

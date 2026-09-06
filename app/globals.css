@@ -19,13 +19,15 @@
   --heat-cold: #2563EB;
   --heat-mid: #EAB308;
   --heat-hot: #DC2626;
-  /* Shape language — notch sizes for cut-corner surfaces (see Panel atom). Set to 0: the
-     cut corner read as a rendering defect once live (exposed bare background behind the
-     diagonal edge) rather than a stylistic cut — reverted to plain rectangles everywhere
-     that consumes these tokens, in this one place, rather than per-consumer. */
-  --notch-card: 0px;
-  --notch-panel: 0px;
-  --notch-inset: 0px;
+  /* Shape language — notch sizes for cut-corner surfaces (see Panel atom). The cut corner
+     itself was never the problem (it only ever cuts the single bottom-right corner) — the
+     real defect was that a surface with no border trace at rest left that corner as bare
+     exposed background with nothing marking the edge, reading as broken rather than
+     stylistic. Panel now always traces its own clipped silhouette (see its boxShadow), so
+     the notch is restored here. */
+  --notch-card: 16px;
+  --notch-panel: 13px;
+  --notch-inset: 11px;
   /* Motif intensities — resting, hovered, and quiet (behind live match scores) */
   --motif-rest: 0.24;
   --motif-hover: 0.44;

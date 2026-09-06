@@ -70,12 +70,13 @@ export function Panel({
   const isButton = as === 'button';
   const lifts = interactive ?? isButton;
 
-  // Selection needs to read at a glance, not just as a border you might mistake for an
-  // artifact — a full accent ring around the whole surface, not a thin edge on one side.
-  // An inset box-shadow, not a `border`, since `clip-path` would cut a real border.
+  // Every surface traces its own clipped silhouette at rest — including the diagonal cut
+  // corner — so that corner never reads as bare, un-rendered background. Selection then
+  // upgrades the same trace to a bold, unmistakable full-strength accent ring. Both are
+  // inset box-shadows, not a `border`, since `clip-path` would cut a real border.
   const boxShadow = active
     ? `inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 2px ${accentVar[accent]}`
-    : 'inset 0 1px 0 rgba(255,255,255,0.06)';
+    : `inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 1px rgba(228,216,188,0.18)`;
 
   const surface = (
     <span

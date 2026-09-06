@@ -280,27 +280,31 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="flex flex-col gap-2">
-                <Button
-                  onClick={() => handleCreateMatch(selectedGameId, 'remote')}
-                  disabled={creating !== null}
-                  className="min-h-16 md:min-h-20 rounded-none text-xl md:text-2xl w-full font-display uppercase tracking-[0.14em] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wire"
-                >
-                  {creating === 'remote' ? 'Starting…' : 'Play Online'}
-                </Button>
+                <div className="has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-wire">
+                  <Button
+                    onClick={() => handleCreateMatch(selectedGameId, 'remote')}
+                    disabled={creating !== null}
+                    className="min-h-16 md:min-h-20 rounded-none text-xl md:text-2xl w-full font-display uppercase tracking-[0.14em] [clip-path:polygon(0_0,100%_0,calc(100%-10px)_100%,0_100%)] focus-visible:outline-none"
+                  >
+                    {creating === 'remote' ? 'Starting…' : 'Play Online'}
+                  </Button>
+                </div>
                 <span className="text-center text-[11px] font-bold uppercase tracking-widest text-sisal">
                   Room code
                 </span>
               </div>
 
               <div className="flex flex-col gap-2">
-                <Button
-                  variant="secondary"
-                  onClick={() => handleCreateMatch(selectedGameId, 'local')}
-                  disabled={creating !== null}
-                  className="min-h-16 md:min-h-20 rounded-none text-xl md:text-2xl w-full font-display uppercase tracking-[0.14em] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wire"
-                >
-                  {creating === 'local' ? 'Starting…' : 'Play Local'}
-                </Button>
+                <div className="has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-wire">
+                  <Button
+                    variant="secondary"
+                    onClick={() => handleCreateMatch(selectedGameId, 'local')}
+                    disabled={creating !== null}
+                    className="min-h-16 md:min-h-20 rounded-none text-xl md:text-2xl w-full font-display uppercase tracking-[0.14em] border-0 shadow-[inset_0_0_0_1.5px_var(--wire)] [clip-path:polygon(0_0,100%_0,calc(100%-10px)_100%,0_100%)] focus-visible:outline-none"
+                  >
+                    {creating === 'local' ? 'Starting…' : 'Play Local'}
+                  </Button>
+                </div>
                 <span className="text-center text-[11px] font-bold uppercase tracking-widest text-sisal">
                   Same device
                 </span>

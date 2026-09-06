@@ -103,7 +103,7 @@ export function Panel({
   // the same formula rather than one of them being a rectangle-based shadow.
   const surface = (
     <span
-      className={`relative block ${lifts ? 'motion-lift' : ''}`}
+      className={`relative block h-full ${lifts ? 'motion-lift' : ''}`}
       style={{
         clipPath: clipPathFor(notchExpr),
         backgroundColor: borderColor,
@@ -112,7 +112,7 @@ export function Panel({
     >
       <span
         className={`
-          relative block overflow-hidden
+          relative block h-full overflow-hidden
           ${fill ? accentBg[fill] : active ? 'bg-[#202B28]' : 'bg-slate'}
           ${className}
         `}
@@ -155,7 +155,7 @@ export function Panel({
 
   if (!isButton) {
     return (
-      <div className="group relative" style={dropShadow}>
+      <div className="group relative h-full" style={dropShadow}>
         {surface}
       </div>
     );
@@ -164,7 +164,7 @@ export function Panel({
   return (
     <button
       type="button"
-      className="group relative block w-full text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wire disabled:opacity-50"
+      className="group relative block w-full h-full text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wire disabled:opacity-50"
       style={dropShadow}
       {...rest}
     >

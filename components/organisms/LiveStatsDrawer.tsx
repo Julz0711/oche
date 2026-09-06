@@ -72,7 +72,7 @@ export function LiveStatsDrawer({
           {players.map((playerId) => (
             <Panel
               key={playerId}
-              notch="panel"
+              notch="none"
               accent="wire"
               active={winnerId !== null && playerId === winnerId}
               className="p-4"

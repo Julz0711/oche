@@ -52,7 +52,7 @@ export function PostMatchStats({
           const isWinner = playerId === winnerId;
 
           return (
-            <Panel key={playerId} notch="panel" accent="wire" active={isWinner} className="p-4 flex flex-col gap-3">
+            <Panel key={playerId} notch="none" accent="wire" active={isWinner} className="p-4 flex flex-col gap-3">
               <PlayerStatTiles
                 gameModule={gameModule}
                 state={state}

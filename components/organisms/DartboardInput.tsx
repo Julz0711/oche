@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Throw } from '@/lib/types';
 import { CENTER, RADIUS, BOARD_ORDER, annularWedgePath, segmentAngles } from '@/lib/dartboard-geometry';
 import { HeatmapBoard } from './HeatmapBoard';
+import { Panel } from '@/components/atoms';
 
 interface DartboardInputProps {
   onThrow: (throw_: Throw) => void;
@@ -137,53 +138,68 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
       {/* Number keypad */}
       <div className="grid grid-cols-5 gap-3 max-w-md w-full">
         {KEYPAD_NUMBERS.map((n) => (
-          <button
+          <Panel
             key={n}
+            as="button"
+            notch="inset"
             onClick={() => throwSector(n)}
             disabled={disabled}
-            className="min-h-14 min-w-14 rounded-full bg-slate text-chalk text-lg font-bold hover:opacity-80 disabled:opacity-50 transition-transform active:scale-95"
+            className="min-h-14 min-w-14 flex items-center justify-center text-lg font-bold"
           >
             {n}
-          </button>
+          </Panel>
         ))}
-        <button
-          onClick={() => throwSector(25)}
-          disabled={disabled || modifier === 'T'}
-          className="min-h-14 min-w-14 rounded-full bg-treble text-chalk text-lg font-bold hover:opacity-80 disabled:opacity-50 col-span-5 transition-transform active:scale-95"
-        >
-          BULL (25)
-        </button>
+        <div className="col-span-5">
+          <Panel
+            as="button"
+            notch="inset"
+            fill="treble"
+            onClick={() => throwSector(25)}
+            disabled={disabled || modifier === 'T'}
+            className="min-h-14 flex items-center justify-center text-lg font-bold"
+          >
+            BULL (25)
+          </Panel>
+        </div>
       </div>
 
       {/* Modifiers + miss, grouped in one row below the keypad */}
       <div className="grid grid-cols-3 gap-3 max-w-md w-full">
-        <button
+        <Panel
+          as="button"
+          notch="inset"
+          accent="double"
+          active={modifier === 'D'}
+          activeBadge={false}
           onClick={() => toggleModifier('D')}
           disabled={disabled}
           aria-pressed={modifier === 'D'}
-          className={`min-h-14 px-2 rounded-full font-bold text-lg transition-colors ${
-            modifier === 'D' ? 'bg-double text-chalk' : 'bg-double/15 text-double border border-double/40'
-          } disabled:opacity-50`}
+          className="min-h-14 px-2 flex items-center justify-center font-bold text-lg"
         >
           DOUBLE
-        </button>
-        <button
+        </Panel>
+        <Panel
+          as="button"
+          notch="inset"
+          accent="treble"
+          active={modifier === 'T'}
+          activeBadge={false}
           onClick={() => toggleModifier('T')}
           disabled={disabled}
           aria-pressed={modifier === 'T'}
-          className={`min-h-14 px-2 rounded-full font-bold text-lg transition-colors ${
-            modifier === 'T' ? 'bg-treble text-chalk' : 'bg-treble/15 text-treble border border-treble/40'
-          } disabled:opacity-50`}
+          className="min-h-14 px-2 flex items-center justify-center font-bold text-lg"
         >
           TRIPLE
-        </button>
-        <button
+        </Panel>
+        <Panel
+          as="button"
+          notch="inset"
           onClick={handleMiss}
           disabled={disabled}
-          className="min-h-14 px-2 rounded-full font-bold text-lg bg-slate text-sisal border border-sisal/30 hover:opacity-80 disabled:opacity-50 transition-transform active:scale-95"
+          className="min-h-14 px-2 flex items-center justify-center font-bold text-lg text-sisal"
         >
           MISS
-        </button>
+        </Panel>
       </div>
     </div>
   );

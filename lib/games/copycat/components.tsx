@@ -5,7 +5,7 @@ import { PlayerId } from '@/lib/types';
 import { Numeral } from '@/components/atoms/Numeral';
 import { Pips } from '@/components/atoms/Pips';
 import { Panel } from '@/components/atoms';
-import { Crosshair } from 'lucide-react';
+import { Crosshair, Target } from 'lucide-react';
 
 export function ScoreboardSlot({
   state,
@@ -20,6 +20,11 @@ export function ScoreboardSlot({
 }) {
   const isCurrentPlayer = state.players[state.currentPlayerIndex] === playerId;
   const pointsWon = state.pointsWon[playerId];
+  // On match point, a matching visit only counts if its last dart is a double or inner bull
+  // (engine.ts's endVisit) — otherwise the chase just continues, which reads as "stuck" if a
+  // player doesn't know the rule is active. Surfaced here so it's visible before it costs a
+  // point, not discovered after the fact.
+  const isMatchPoint = pointsWon === settings.firstTo - 1;
 
   return (
     <Panel notch="panel" accent="wire" active={isCurrentPlayer} activeBadge={false} className="p-5">
@@ -28,6 +33,14 @@ export function ScoreboardSlot({
       )}
       <div className="text-xs font-bold uppercase tracking-widest text-sisal">{displayName ?? playerId}</div>
       <Numeral value={pointsWon} size="4xl" className="font-display leading-none block mt-1" />
+      {isMatchPoint && (
+        <div className="flex items-center gap-1.5 mt-2 text-treble">
+          <Target className="w-3.5 h-3.5 shrink-0" />
+          <span className="text-[10px] font-display font-bold uppercase tracking-wide">
+            Match point — finish on a double
+          </span>
+        </div>
+      )}
       {/* Points won lives here now, not in the shared middle panel — see
          GameModule.raceProgressInScoreboard. Wire, not Copycat's own treble identity accent:
          treble also reads as "danger/bust" elsewhere in the app, and a progress indicator is

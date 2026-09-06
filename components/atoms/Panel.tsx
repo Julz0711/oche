@@ -1,4 +1,5 @@
 import React from 'react';
+import { Check } from 'lucide-react';
 
 export type PanelNotch = 'card' | 'panel' | 'inset' | 'none';
 export type AccentToken = 'wire' | 'double' | 'treble' | 'sisal';
@@ -97,6 +98,13 @@ export function Panel({
             lifts ? 'transition-[height] duration-150 group-hover:h-[9px]' : ''
           }`}
         />
+      )}
+      {active && (
+        <span
+          className={`absolute top-0 right-0 flex items-center justify-center w-6 h-6 ${accentBg[accent]}`}
+        >
+          <Check className="w-3.5 h-3.5 text-oche" strokeWidth={3} />
+        </span>
       )}
       {children}
     </span>

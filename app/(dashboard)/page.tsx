@@ -295,16 +295,16 @@ export default function Dashboard() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <div className="has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-wire">
-                  <Button
-                    variant="secondary"
-                    onClick={() => handleCreateMatch(selectedGameId, 'local')}
-                    disabled={creating !== null}
-                    className="min-h-16 md:min-h-20 rounded-none text-xl md:text-2xl w-full font-display uppercase tracking-[0.14em] border-0 shadow-[inset_0_0_0_1.5px_var(--wire)] [clip-path:polygon(0_0,100%_0,calc(100%-10px)_100%,0_100%)] focus-visible:outline-none"
-                  >
-                    {creating === 'local' ? 'Starting…' : 'Play Local'}
-                  </Button>
-                </div>
+                <Panel
+                  as="button"
+                  notch="card"
+                  accent="wire"
+                  onClick={() => handleCreateMatch(selectedGameId, 'local')}
+                  disabled={creating !== null}
+                  className="min-h-16 md:min-h-20 flex items-center justify-center text-xl md:text-2xl font-display uppercase tracking-[0.14em] text-chalk"
+                >
+                  {creating === 'local' ? 'Starting…' : 'Play Local'}
+                </Panel>
                 <span className="text-center text-[11px] font-bold uppercase tracking-widest text-sisal">
                   Same device
                 </span>

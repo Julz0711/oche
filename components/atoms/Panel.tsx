@@ -129,14 +129,18 @@ export function Panel({
     </span>
   );
 
-  // A plain box-shadow, not filter: drop-shadow(), and specifically on this OUTER
-  // (unclipped, plain-rectangular) element. drop-shadow() traces the exact alpha shape of
-  // its content — including the inner span's notch — so a downward-offset drop-shadow ends
-  // up drawing its own (offset) copy of that notch's material right where the original
-  // notch removed it, showing through as a hard dark wedge instead of a soft shadow. A
-  // plain box-shadow on this rectangular wrapper has no such shape to trace: it's just a
-  // normal soft shadow, imperceptibly "wrong" against a notched card in front of it.
-  const dropShadow = { boxShadow: '0 12px 14px -2px rgba(0,0,0,0.55)' };
+  // filter: drop-shadow(), not box-shadow — and specifically with a y-offset >= the largest
+  // notch size (16px). Two different failure modes were tried and ruled out here:
+  //  - A plain box-shadow is computed from the element's own rectangular border-box, which
+  //    is always slightly LARGER than the visible notched shape at the cut corner — so it
+  //    protrudes past the notch as a visible dark wedge sticking out beyond the card.
+  //  - drop-shadow() correctly follows the exact rendered (notched) silhouette instead, so it
+  //    never protrudes — but with too SMALL a y-offset, the shifted shadow copy's own notch
+  //    hasn't kicked in yet where it overlaps the original's notch void, so it bleeds solid
+  //    colour INTO the gap instead of receding with it.
+  // An offset >= the notch depth avoids both: the shadow's own cutoff is reached at or before
+  // the original's, so there's neither a protrusion past the shape nor a bleed into its notch.
+  const dropShadow = { filter: 'drop-shadow(0 16px 14px rgba(0,0,0,0.5))' };
 
   if (!isButton) {
     return (

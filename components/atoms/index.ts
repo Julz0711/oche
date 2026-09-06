@@ -9,3 +9,4 @@ export { BoardMotif } from "./BoardMotif";
 export type { MotifName } from "./BoardMotif";
 export { Panel } from "./Panel";
 export type { PanelNotch, AccentToken } from "./Panel";
+export { Pips } from "./Pips";

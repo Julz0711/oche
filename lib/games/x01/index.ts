@@ -17,13 +17,18 @@ const visitProgress = (state: X01State): { darts: number; max: number; throws: T
   throws: state.currentVisit,
 });
 
-const matchInfo = (state: X01State, settings: X01Settings): { label: string; value: string }[] =>
+const matchInfo = (
+  state: X01State,
+  settings: X01Settings
+): { label: string; value: string; emphasis?: 'hero' | 'normal' }[] =>
+  // "Leg 3"/"Set 2" alone read ambiguously as "3 legs/2 sets won" rather than "in play" — legs
+  // and sets actually won are the raceProgress/Pips display below; this is just what's live.
   settings.sets > 0
     ? [
-        { label: 'Set', value: String(state.currentSetNumber) },
-        { label: 'Leg', value: String(state.currentLegNumber) },
+        { label: 'Set', value: `${state.currentSetNumber} in play` },
+        { label: 'Leg', value: `${state.currentLegNumber} in play` },
       ]
-    : [{ label: 'Leg', value: String(state.currentLegNumber) }];
+    : [{ label: 'Leg', value: `${state.currentLegNumber} in play` }];
 
 const raceProgress = (
   state: X01State,

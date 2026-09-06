@@ -164,8 +164,11 @@ export interface GameModule<TState = any, TSettings = any> {
   /**
    * Small info entries to display about overall match progress (e.g. current leg number).
    * Generic across games — X01 reports leg progress; a future game might report something else.
+   * `emphasis: 'hero'` renders the entry as a large standalone module instead of the small
+   * joined line — for a value the player needs to read at a glance (e.g. Copycat's Target).
+   * Defaults to `'normal'` when omitted, so existing games/callers are unaffected.
    */
-  matchInfo: (state: TState, settings: TSettings) => { label: string; value: string }[];
+  matchInfo: (state: TState, settings: TSettings) => { label: string; value: string; emphasis?: 'hero' | 'normal' }[];
   /**
    * Each player's race-style progress toward winning the match (legs, and sets when the game
    * has them), for rendering generic head-to-head progress bars with no game-specific UI code.

@@ -17,8 +17,11 @@ const visitProgress = (state: CopycatState): { darts: number; max: number; throw
   throws: state.currentVisit,
 });
 
-const matchInfo = (state: CopycatState, settings: CopycatSettings): { label: string; value: string }[] => [
-  { label: 'Target', value: state.target !== null ? String(state.target) : '—' },
+const matchInfo = (
+  state: CopycatState,
+  settings: CopycatSettings
+): { label: string; value: string; emphasis?: 'hero' | 'normal' }[] => [
+  { label: 'Target', value: state.target !== null ? String(state.target) : '—', emphasis: 'hero' },
 ];
 
 const raceProgress = (

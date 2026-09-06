@@ -13,6 +13,7 @@ import { MatchLobby } from '@/components/organisms/MatchLobby';
 import { LiveStatsDrawer } from '@/components/organisms/LiveStatsDrawer';
 import { identityIdOf, MatchPlayerDoc } from '@/lib/matchLobby';
 import { loadLocalMatch, clearLocalMatch, markPendingCompletion } from '@/lib/localMatchStorage';
+import { Panel, Pips } from '@/components/atoms';
 
 interface MatchPageProps {
   params: Promise<{ id: string }>;
@@ -28,43 +29,63 @@ function RaceBar({ value, target, colorClass }: { value: number; target: number;
   );
 }
 
-/** The match-progress HUD panel between the scores: a legs (and sets, when the game uses them)
- *  race-progress bar per player — from gameModule.raceProgress, generic across every game — plus
- *  a real dart-pip readout for the current visit, from gameModule.visitProgress. */
+/** The match-progress HUD panel between the scores: any hero-emphasis matchInfo entry (e.g.
+ *  Copycat's Target) as a big standalone module, the rest as a small joined line, then a legs
+ *  (and sets, when the game uses them) race-progress readout per player — Pips make the actual
+ *  win condition (legs/points won) readable at a glance instead of buried in a text label next
+ *  to a bar, which is what "LEG 3" used to look like it meant 3 legs won rather than in-play —
+ *  plus a real dart-pip readout for the current visit, from gameModule.visitProgress. */
 function MatchInfoPanel({
   info,
   visitProgress,
   raceProgress,
   displayNames,
 }: {
-  info: { label: string; value: string }[];
+  info: { label: string; value: string; emphasis?: 'hero' | 'normal' }[];
   visitProgress: { darts: number; max: number };
   raceProgress: { playerId: PlayerId; legs: number; legsTarget: number; sets: number; setsTarget: number }[];
   displayNames: Map<string, string>;
 }) {
+  const heroEntries = info.filter((entry) => entry.emphasis === 'hero');
+  const normalEntries = info.filter((entry) => entry.emphasis !== 'hero');
+
   return (
-    <div className="rounded-2xl bg-slate p-3 flex flex-col gap-1.5 border-2 border-wire/30">
-      <div className="flex items-center justify-center gap-1.5">
-        <Target className="w-3.5 h-3.5 text-wire shrink-0" />
-        <span className="text-[11px] font-display font-bold uppercase tracking-wide">
-          {info.map((entry) => `${entry.label} ${entry.value}`).join(' · ')}
-        </span>
-      </div>
+    <Panel notch="panel" className="p-3 flex flex-col gap-2">
+      {heroEntries.map((entry) => (
+        <div key={entry.label} className="flex flex-col items-center gap-0.5 pb-1.5 border-b border-sisal/15">
+          <span className="text-[9px] font-bold uppercase tracking-widest text-sisal">{entry.label}</span>
+          <span className="font-display font-bold text-4xl text-wire leading-none">{entry.value}</span>
+        </div>
+      ))}
+
+      {normalEntries.length > 0 && (
+        <div className="flex items-center justify-center gap-1.5">
+          <Target className="w-3.5 h-3.5 text-wire shrink-0" />
+          <span className="text-[11px] font-display font-bold uppercase tracking-wide">
+            {normalEntries.map((entry) => `${entry.label} ${entry.value}`).join(' · ')}
+          </span>
+        </div>
+      )}
 
       <div className="flex flex-col gap-1.5">
         {raceProgress.map((p) => (
-          <div key={p.playerId} className="flex flex-col gap-0.5">
+          <div key={p.playerId} className="flex flex-col gap-1">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[9px] font-bold uppercase tracking-widest text-sisal truncate">
                 {displayNames.get(p.playerId) ?? p.playerId}
               </span>
-              <span className="text-[9px] font-bold text-wire shrink-0">
-                {p.legs}/{p.legsTarget}
-                {p.setsTarget > 0 && <span className="text-double"> · {p.sets}/{p.setsTarget}</span>}
-              </span>
+              <span className="text-[9px] font-bold text-wire shrink-0">{p.legs}/{p.legsTarget}</span>
             </div>
-            <RaceBar value={p.legs} target={p.legsTarget} colorClass="bg-wire" />
-            {p.setsTarget > 0 && <RaceBar value={p.sets} target={p.setsTarget} colorClass="bg-double" />}
+            <Pips value={p.legs} target={p.legsTarget} accent="wire" />
+            {p.setsTarget > 0 && (
+              <>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[8px] font-bold uppercase tracking-widest text-sisal/70">Sets</span>
+                  <span className="text-[9px] font-bold text-double shrink-0">{p.sets}/{p.setsTarget}</span>
+                </div>
+                <RaceBar value={p.sets} target={p.setsTarget} colorClass="bg-double" />
+              </>
+            )}
           </div>
         ))}
       </div>
@@ -79,7 +100,7 @@ function MatchInfoPanel({
           />
         ))}
       </div>
-    </div>
+    </Panel>
   );
 }
 

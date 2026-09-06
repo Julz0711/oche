@@ -17,8 +17,13 @@ const visitProgress = (state: CricketState): { darts: number; max: number; throw
   throws: state.currentVisit,
 });
 
-const matchInfo = (state: CricketState, settings: CricketSettings): { label: string; value: string }[] => [
-  { label: 'Leg', value: String(state.currentLegNumber) },
+const matchInfo = (
+  state: CricketState,
+  settings: CricketSettings
+): { label: string; value: string; emphasis?: 'hero' | 'normal' }[] => [
+  // "Leg 3" alone reads ambiguously as "3 legs won" rather than "the 3rd leg is in play" —
+  // legs actually won is the raceProgress/Pips display below; this is just which leg is live.
+  { label: 'Leg', value: `${state.currentLegNumber} in play` },
 ];
 
 const raceProgress = (

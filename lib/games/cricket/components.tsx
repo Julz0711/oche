@@ -115,7 +115,7 @@ export function HistoryPanel({
 
       <div className="flex flex-col gap-1">
         {CRICKET_NUMBERS.map((n) => (
-          <div key={n} className="flex items-center justify-between text-sm rounded-lg bg-oche border border-sisal/10 px-2 py-1">
+          <div key={n} className="flex items-center justify-between text-sm bg-oche border border-sisal/10 px-2 py-1">
             <span className="font-bold text-chalk w-10">{numberLabel(n)}</span>
             <MarkIndicator marks={state.marks[playerId][n]} />
           </div>

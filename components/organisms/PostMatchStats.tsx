@@ -3,6 +3,7 @@
 import { GameModule, PlayerId } from '@/lib/types';
 import { HeatmapBoard } from './HeatmapBoard';
 import { Button } from '@/components/atoms/Button';
+import { Panel } from '@/components/atoms';
 import { ShareResultButton, ShareResultPlayer } from './ShareResultButton';
 import { PlayerStatTiles } from './PlayerStatTiles';
 
@@ -42,7 +43,7 @@ export function PostMatchStats({
   });
 
   return (
-    <div className="rounded-2xl bg-slate p-4 border border-wire/40 flex flex-col gap-4">
+    <Panel notch="card" className="p-4 flex flex-col gap-4">
       <p className="text-lg font-display font-bold text-center">Match Complete!</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -51,12 +52,7 @@ export function PostMatchStats({
           const isWinner = playerId === winnerId;
 
           return (
-            <div
-              key={playerId}
-              className={`rounded-2xl p-4 border-2 flex flex-col gap-3 ${
-                isWinner ? 'border-wire bg-wire/10' : 'border-transparent bg-oche'
-              }`}
-            >
+            <Panel key={playerId} notch="panel" accent="wire" active={isWinner} className="p-4 flex flex-col gap-3">
               <PlayerStatTiles
                 gameModule={gameModule}
                 state={state}
@@ -66,7 +62,7 @@ export function PostMatchStats({
                 isWinner={isWinner}
               />
               <HeatmapBoard heatmap={heatmap} />
-            </div>
+            </Panel>
           );
         })}
       </div>
@@ -80,6 +76,6 @@ export function PostMatchStats({
         />
         <Button onClick={() => (window.location.href = '/')}>Back to Dashboard</Button>
       </div>
-    </div>
+    </Panel>
   );
 }

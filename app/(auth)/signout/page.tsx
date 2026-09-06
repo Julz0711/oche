@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { signOut } from "next-auth/react";
 import { tokens } from "@/lib/theme";
+import { Panel } from "@/components/atoms";
 
 export default function SignOutPage() {
   useEffect(() => {
@@ -18,10 +19,7 @@ export default function SignOutPage() {
       className="flex items-center justify-center min-h-screen"
       style={{ backgroundColor: tokens.oche }}
     >
-      <div
-        className="w-full max-w-md p-8 rounded-lg text-center"
-        style={{ backgroundColor: tokens.slate }}
-      >
+      <Panel notch="card" className="w-full max-w-md p-8 text-center">
         <h1
           className="text-2xl font-bold mb-4 font-display"
           style={{ color: tokens.chalk }}
@@ -34,7 +32,7 @@ export default function SignOutPage() {
         >
           You have been signed out. Redirecting you home...
         </p>
-      </div>
+      </Panel>
     </div>
   );
 }

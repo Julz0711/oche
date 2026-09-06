@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { gameRegistry, GameId } from '@/lib/games/registry';
+import { Panel } from '@/components/atoms';
 
 interface HistoryMatch {
   id: string;
@@ -28,10 +29,10 @@ interface HistoryResponse {
 
 function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-slate p-4 flex flex-col gap-1">
+    <Panel notch="panel" className="p-4 flex flex-col gap-1">
       <span className="text-[11px] font-bold uppercase tracking-widest text-sisal">{label}</span>
       <span className="text-3xl font-display font-bold">{value}</span>
-    </div>
+    </Panel>
   );
 }
 
@@ -120,7 +121,7 @@ export default function StatsPage() {
         ) : data === null ? (
           <div className="grid grid-cols-3 gap-4">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="h-20 rounded-2xl bg-slate animate-pulse" />
+              <div key={i} className="h-20 bg-slate animate-pulse" style={{ clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%)' }} />
             ))}
           </div>
         ) : (
@@ -145,9 +146,10 @@ export default function StatsPage() {
             ) : (
               <div className="flex flex-col gap-3">
                 {data.matches.map((match) => (
-                  <div
+                  <Panel
                     key={match.id}
-                    className="rounded-2xl bg-slate p-4 flex items-center justify-between gap-4"
+                    notch="panel"
+                    className="p-4 flex items-center justify-between gap-4"
                   >
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
@@ -171,7 +173,7 @@ export default function StatsPage() {
                       </span>
                       <span className="text-lg font-display font-bold">{match.headline.value}</span>
                     </div>
-                  </div>
+                  </Panel>
                 ))}
               </div>
             )}

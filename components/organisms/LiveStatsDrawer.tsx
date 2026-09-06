@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { GameModule, PlayerId } from '@/lib/types';
 import { PlayerStatTiles } from './PlayerStatTiles';
+import { Panel } from '@/components/atoms';
 
 interface LiveStatsDrawerProps {
   open: boolean;
@@ -49,7 +50,7 @@ export function LiveStatsDrawer({
       <div className="absolute inset-0 bg-oche/70" onClick={onClose} />
 
       <div
-        className={`relative w-full max-w-2xl bg-slate rounded-t-3xl border-t-2 border-x-2 border-wire/30 p-4 flex flex-col gap-4 max-h-[80vh] transition-transform duration-200 ${
+        className={`relative w-full max-w-2xl bg-slate border-t-2 border-x-2 border-wire/30 p-4 flex flex-col gap-4 max-h-[80vh] transition-transform duration-200 ${
           open ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
@@ -61,7 +62,7 @@ export function LiveStatsDrawer({
           <button
             onClick={onClose}
             aria-label="Close stats"
-            className="w-8 h-8 flex items-center justify-center rounded-xl border-2 border-sisal/30 bg-oche text-sisal hover:text-chalk hover:border-wire transition-colors"
+            className="w-8 h-8 flex items-center justify-center border-2 border-sisal/30 bg-oche text-sisal hover:text-chalk hover:border-wire transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -69,11 +70,12 @@ export function LiveStatsDrawer({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto">
           {players.map((playerId) => (
-            <div
+            <Panel
               key={playerId}
-              className={`rounded-2xl p-4 bg-oche border-2 ${
-                winnerId !== null && playerId === winnerId ? 'border-wire' : 'border-sisal/15'
-              }`}
+              notch="panel"
+              accent="wire"
+              active={winnerId !== null && playerId === winnerId}
+              className="p-4"
             >
               <PlayerStatTiles
                 gameModule={gameModule}
@@ -83,7 +85,7 @@ export function LiveStatsDrawer({
                 displayName={displayNames.get(playerId)}
                 isWinner={winnerId !== null && playerId === winnerId}
               />
-            </div>
+            </Panel>
           ))}
         </div>
       </div>

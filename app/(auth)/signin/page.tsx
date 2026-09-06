@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { tokens } from "@/lib/theme";
+import { Panel } from "@/components/atoms";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -26,10 +27,7 @@ export default function SignInPage() {
       className="flex items-center justify-center min-h-screen"
       style={{ backgroundColor: tokens.oche }}
     >
-      <div
-        className="w-full max-w-md p-8 rounded-lg"
-        style={{ backgroundColor: tokens.slate }}
-      >
+      <Panel notch="card" className="w-full max-w-md p-8">
         <h1
           className="text-2xl font-bold text-center mb-8 font-display"
           style={{ color: tokens.wire }}
@@ -45,7 +43,7 @@ export default function SignInPage() {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 rounded border-2 focus:outline-none focus:border-current"
+              className="w-full px-4 py-2 rounded-none border-2 focus:outline-none focus:border-current"
               style={{
                 borderColor: tokens.wire,
                 color: tokens.chalk,
@@ -55,7 +53,7 @@ export default function SignInPage() {
             <button
               onClick={() => handleSignIn("email")}
               disabled={isLoading || !email}
-              className="w-full px-4 py-2 rounded font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="w-full px-4 py-2 rounded-none font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
               style={{
                 backgroundColor: tokens.wire,
                 color: tokens.slate,
@@ -76,7 +74,7 @@ export default function SignInPage() {
           <button
             onClick={() => handleSignIn("google")}
             disabled={isLoading}
-            className="w-full px-4 py-2 rounded font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="w-full px-4 py-2 rounded-none font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
             style={{
               backgroundColor: tokens.chalk,
               color: tokens.slate,
@@ -89,7 +87,7 @@ export default function SignInPage() {
           <button
             onClick={() => handleSignIn("discord")}
             disabled={isLoading}
-            className="w-full px-4 py-2 rounded font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="w-full px-4 py-2 rounded-none font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
             style={{
               backgroundColor: tokens.treble,
               color: tokens.chalk,
@@ -105,7 +103,7 @@ export default function SignInPage() {
         >
           We'll never share your information. Read our privacy policy.
         </p>
-      </div>
+      </Panel>
     </div>
   );
 }

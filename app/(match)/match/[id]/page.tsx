@@ -132,7 +132,7 @@ function HistoryPanel({
       </div>
 
       {inProgress.length > 0 && (
-        <div className="flex gap-2 flex-wrap p-2 rounded-xl bg-wire/10 border border-wire/40 shrink-0">
+        <div className="flex gap-2 flex-wrap p-2 rounded-none bg-wire/10 border border-wire/40 shrink-0">
           {inProgress.map((t, j) => (
             <DartBadge key={j} t={t} />
           ))}
@@ -147,7 +147,7 @@ function HistoryPanel({
         {visibleVisits.map((visit, i) => (
           <div key={i} className="flex flex-col gap-1">
             <div
-              className={`flex items-center gap-2 flex-wrap rounded-xl p-2 border ${
+              className={`flex items-center gap-2 flex-wrap rounded-none p-2 border ${
                 visit.busted ? 'bg-treble/10 border-treble/40' : 'bg-oche border-sisal/10'
               }`}
             >
@@ -167,7 +167,7 @@ function HistoryPanel({
         {hasMore && !expanded && (
           <button
             onClick={() => setExpanded(true)}
-            className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk hover:border-wire rounded-lg border border-sisal/20 px-2 py-1 transition-colors self-start"
+            className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk hover:border-wire rounded-none border border-sisal/20 px-2 py-1 transition-colors self-start"
           >
             Show more ({visits.length - HISTORY_VISIBLE_LIMIT})
           </button>
@@ -175,7 +175,7 @@ function HistoryPanel({
         {expanded && hasMore && (
           <button
             onClick={() => setExpanded(false)}
-            className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk hover:border-wire rounded-lg border border-sisal/20 px-2 py-1 transition-colors self-start"
+            className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk hover:border-wire rounded-none border border-sisal/20 px-2 py-1 transition-colors self-start"
           >
             Show less
           </button>
@@ -402,14 +402,14 @@ export default function MatchPage({ params }: MatchPageProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setStatsOpen(true)}
-              className="flex items-center gap-1.5 rounded-xl border-2 border-sisal/30 bg-slate px-3 py-1.5 hover:border-wire transition-colors"
+              className="flex items-center gap-1.5 rounded-none border-2 border-sisal/30 bg-slate px-3 py-1.5 hover:border-wire transition-colors"
             >
               <BarChart3 className="w-4 h-4 text-wire" />
               <span className="text-xs font-bold uppercase tracking-widest text-chalk">Stats</span>
             </button>
             <button
               onClick={handleUndo}
-              className="flex items-center gap-1.5 rounded-xl border-2 border-sisal/30 bg-slate px-3 py-1.5 hover:border-wire transition-colors"
+              className="flex items-center gap-1.5 rounded-none border-2 border-sisal/30 bg-slate px-3 py-1.5 hover:border-wire transition-colors"
             >
               <Undo2 className="w-4 h-4 text-wire" />
               <span className="text-xs font-bold uppercase tracking-widest text-chalk">Undo</span>
@@ -443,7 +443,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                 return (
                   <div
                     key={playerId}
-                    className={`flex items-center justify-between gap-2 rounded-xl px-2.5 py-1.5 border ${
+                    className={`flex items-center justify-between gap-2 rounded-none px-2.5 py-1.5 border ${
                       isTurn ? 'bg-wire/10 border-wire/40' : 'bg-oche border-sisal/10'
                     }`}
                   >
@@ -484,7 +484,7 @@ export default function MatchPage({ params }: MatchPageProps) {
 
               <div className="flex flex-col items-center justify-center gap-4 w-full">
                 {throwError && (
-                  <div className="text-sm text-treble bg-treble/10 border border-treble/40 rounded-xl px-3 py-2 flex items-center gap-2">
+                  <div className="text-sm text-treble bg-treble/10 border border-treble/40 rounded-none px-3 py-2 flex items-center gap-2">
                     {throwError}
                     <button onClick={() => useMatchStore.getState().clearThrowError()} className="underline">
                       Dismiss
@@ -509,7 +509,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                   return (
                     <div
                       key={playerId}
-                      className={`flex flex-col gap-1.5 rounded-xl p-2 border ${
+                      className={`flex flex-col gap-1.5 rounded-none p-2 border ${
                         isTurn ? 'bg-wire/10 border-wire/40' : 'bg-oche border-sisal/10'
                       }`}
                     >
@@ -539,7 +539,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                               ) : (
                                 <>
                                   {isTurn && lastThrows.length > 0 && (
-                                    <div className="flex gap-1.5 flex-wrap p-1.5 rounded-lg bg-wire/10 border border-wire/40">
+                                    <div className="flex gap-1.5 flex-wrap p-1.5 rounded-none bg-wire/10 border border-wire/40">
                                       {lastThrows.map((t, i) => (
                                         <DartBadge key={i} t={t} />
                                       ))}
@@ -548,7 +548,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                                   {visibleVisits.map((visit, i) => (
                                     <div
                                       key={i}
-                                      className={`flex items-center gap-1.5 flex-wrap rounded-lg p-1.5 border ${
+                                      className={`flex items-center gap-1.5 flex-wrap rounded-none p-1.5 border ${
                                         visit.busted ? 'bg-treble/10 border-treble/40' : 'bg-oche border-sisal/10'
                                       }`}
                                     >
@@ -563,7 +563,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                                   {hasMoreVisits && !showAllOpponentVisits && (
                                     <button
                                       onClick={() => setShowAllOpponentVisits(true)}
-                                      className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk hover:border-wire rounded-lg border border-sisal/20 px-2 py-1 transition-colors self-start"
+                                      className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk hover:border-wire rounded-none border border-sisal/20 px-2 py-1 transition-colors self-start"
                                     >
                                       Show more ({visits.length - HISTORY_VISIBLE_LIMIT})
                                     </button>
@@ -571,7 +571,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                                   {showAllOpponentVisits && hasMoreVisits && (
                                     <button
                                       onClick={() => setShowAllOpponentVisits(false)}
-                                      className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk hover:border-wire rounded-lg border border-sisal/20 px-2 py-1 transition-colors self-start"
+                                      className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk hover:border-wire rounded-none border border-sisal/20 px-2 py-1 transition-colors self-start"
                                     >
                                       Show less
                                     </button>
@@ -657,7 +657,7 @@ export default function MatchPage({ params }: MatchPageProps) {
 
               <div className="flex flex-col items-center justify-center gap-4 w-full">
                 {throwError && (
-                  <div className="text-sm text-treble bg-treble/10 border border-treble/40 rounded-xl px-3 py-2 flex items-center gap-2">
+                  <div className="text-sm text-treble bg-treble/10 border border-treble/40 rounded-none px-3 py-2 flex items-center gap-2">
                     {throwError}
                     <button onClick={() => useMatchStore.getState().clearThrowError()} className="underline">
                       Dismiss

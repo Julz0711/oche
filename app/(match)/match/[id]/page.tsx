@@ -289,6 +289,23 @@ export default function MatchPage({ params }: MatchPageProps) {
       });
   }, [mode, gameModule, gameState, id]);
 
+  // Once a local match has finished loading (via either the localStorage or network path), warm
+  // the service worker's cache for this exact URL. A normal visit to this page is a client-side
+  // soft navigation (router.push), which only ever fetches an RSC data payload — never a plain
+  // GET for the bare document URL — so without this, the service worker (public/sw.js) never
+  // observes and caches the URL a fresh tab's real navigation would request, and a later offline
+  // reopen fails even though the match was "visited" in the everyday sense of the word.
+  useEffect(() => {
+    if (mode !== 'local' || loading) return;
+    if (!('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.ready
+      .then(() => fetch(window.location.pathname))
+      .catch(() => {
+        // Best-effort: if this fails, the page just won't be cached yet for an offline reopen —
+        // no worse than before this fix existed.
+      });
+  }, [mode, loading, id]);
+
   if (error) {
     return <div className="min-h-screen bg-oche text-chalk flex items-center justify-center">{error}</div>;
   }

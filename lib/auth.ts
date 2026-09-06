@@ -31,12 +31,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
         token.picture = user.image;
+      }
+      // Lets the client push a name change into the JWT immediately (via useSession().update())
+      // instead of only picking it up on the next full sign-in — the settings page relies on this.
+      if (trigger === "update" && session?.name) {
+        token.name = session.name;
       }
       return token;
     },

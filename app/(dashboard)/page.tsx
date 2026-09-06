@@ -10,6 +10,15 @@ import { gameRegistry, GameId, getGameModule } from '@/lib/games/registry';
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
+interface ActiveMatch {
+  id: string;
+  gameId: GameId;
+  gameName: string;
+  status: 'lobby' | 'live';
+  roomCode: string;
+  opponents: string[];
+}
+
 interface GameOption {
   id: GameId;
   name: string;
@@ -127,6 +136,7 @@ export default function Dashboard() {
   const [creating, setCreating] = useState<'local' | 'remote' | null>(null);
 
   const { data: session } = useSession();
+  const [activeMatches, setActiveMatches] = useState<ActiveMatch[]>([]);
 
   const [startingScore, setStartingScore] = useState<(typeof STARTING_SCORES)[number]>(501);
   const [x01FirstTo, setX01FirstTo] = useState<(typeof LEG_OPTIONS)[number]>(3);
@@ -156,6 +166,23 @@ export default function Dashboard() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!session?.user) {
+      setActiveMatches([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const res = await fetch('/api/matches/active');
+      if (cancelled || !res.ok) return;
+      const { matches } = await res.json();
+      if (!cancelled) setActiveMatches(matches);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user]);
 
   const buildSettings = (gameId: GameId): Record<string, unknown> | undefined => {
     const defaults = games?.find((g) => g.id === gameId)?.defaultSettings;
@@ -204,6 +231,12 @@ export default function Dashboard() {
                   History
                 </Link>
                 <Link
+                  href="/settings"
+                  className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
+                >
+                  Settings
+                </Link>
+                <Link
                   href="/signout"
                   className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk transition-colors"
                 >
@@ -224,6 +257,37 @@ export default function Dashboard() {
           </h1>
           <p className="text-sisal text-sm md:text-base mt-1">Pick a game, grab your darts</p>
         </header>
+
+        {activeMatches.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <SettingLabel>Active games</SettingLabel>
+            <div className="flex flex-col gap-2">
+              {activeMatches.map((m) => (
+                <Panel
+                  key={m.id}
+                  as="button"
+                  notch="panel"
+                  onClick={() => router.push(`/match/${m.id}`)}
+                  className="p-3 flex items-center justify-between gap-3"
+                >
+                  <div className="flex flex-col items-start gap-0.5 min-w-0">
+                    <span className="font-display font-bold uppercase text-sm text-chalk truncate">
+                      {m.gameName}
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-sisal truncate">
+                      {m.status === 'lobby'
+                        ? 'Waiting for players'
+                        : m.opponents.length > 0
+                          ? `vs ${m.opponents.join(', ')}`
+                          : 'In progress'}
+                    </span>
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-widest text-wire shrink-0">Resume</span>
+                </Panel>
+              ))}
+            </div>
+          </div>
+        )}
 
         {games === null ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">

@@ -13,9 +13,12 @@ const OCHE = '#141A18';
 const WIRE = '#C0A15C';
 const CHALK = '#F2F4F3';
 
-/** Concentric-ring dartboard/target motif. `padding` insets the whole design from the canvas
- *  edge — used for the maskable variant, which the OS crops to a circle/rounded-square, so
- *  content must stay within the inner ~80% "safe zone" (a 10% padding on each side). */
+/** Bold, minimal target motif — three tones (gold ring / dark gap / solid gold centre), each
+ *  band thick enough to stay legible at a 16px browser-tab favicon. The earlier version nested
+ *  four thin alternating rings, which read fine at 512px but turned to illegible mush at
+ *  favicon size, since bands under ~2px alias away entirely. `padding` insets the whole design
+ *  from the canvas edge — used for the maskable variant, which the OS crops to a circle/rounded
+ *  square, so content must stay within the inner ~80% "safe zone" (a 10% padding on each side). */
 function targetIcon(size, padding) {
   const inner = size - padding * 2;
   const ring = (scale, color, child) =>
@@ -47,7 +50,7 @@ function targetIcon(size, padding) {
         justifyContent: 'center',
       },
     },
-    ring(1, WIRE, ring(0.66, OCHE, ring(0.4, WIRE, ring(0.18, CHALK))))
+    ring(1, WIRE, ring(0.55, OCHE, ring(0.22, WIRE)))
   );
 }
 

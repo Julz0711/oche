@@ -12,7 +12,7 @@ import { useRemoteMatchSync } from '@/hooks/useRemoteMatchSync';
 import { MatchLobby } from '@/components/organisms/MatchLobby';
 import { LiveStatsDrawer } from '@/components/organisms/LiveStatsDrawer';
 import { identityIdOf, MatchPlayerDoc } from '@/lib/matchLobby';
-import { loadLocalMatch } from '@/lib/localMatchStorage';
+import { loadLocalMatch, clearLocalMatch, markPendingCompletion } from '@/lib/localMatchStorage';
 
 interface MatchPageProps {
   params: Promise<{ id: string }>;
@@ -269,15 +269,24 @@ export default function MatchPage({ params }: MatchPageProps) {
     if (completionSentRef.current) return;
     completionSentRef.current = true;
 
+    const winnerId = gameModule.winner(gameState);
     fetch(`/api/matches/${id}/complete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ state: gameState, winnerId: gameModule.winner(gameState) }),
-    }).catch(() => {
-      // Best-effort, matching how this project treats non-critical side effects
-      // (e.g. publishMatchEvent): a failed write means this match won't show up in
-      // history, not a broken match.
-    });
+      body: JSON.stringify({ state: gameState, winnerId }),
+    })
+      .then((res) => {
+        if (res.ok) {
+          clearLocalMatch(id);
+        } else {
+          markPendingCompletion(id, winnerId);
+        }
+      })
+      .catch(() => {
+        // Offline (or some other network failure) at the moment of completion — mark it for
+        // PendingSyncManager to retry later instead of silently losing the sync forever.
+        markPendingCompletion(id, winnerId);
+      });
   }, [mode, gameModule, gameState, id]);
 
   if (error) {

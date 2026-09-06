@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Bricolage_Grotesque, Inter_Tight } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 import { PwaRegistration } from "@/components/PwaRegistration";
+import { PendingSyncManager } from "@/components/PendingSyncManager";
 import "./globals.css";
 
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <PwaRegistration />
+        <PendingSyncManager />
         <SessionProvider>{children}</SessionProvider>
       </body>
     </html>

@@ -101,6 +101,7 @@ const CopycatModule: GameModule<CopycatState, CopycatSettings> = {
   visitProgress,
   matchInfo,
   raceProgress,
+  raceProgressInScoreboard: true,
   visitHistory,
   heatmap,
   lastCompletedVisit,

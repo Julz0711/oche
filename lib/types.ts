@@ -220,6 +220,15 @@ export interface GameModule<TState = any, TSettings = any> {
    */
   HistoryPanel?: React.FC<{ state: TState; playerId: PlayerId; settings: TSettings; displayName?: string }>;
   /**
+   * Set when this game renders its own `raceProgress` inside `ScoreboardSlot` (e.g. Copycat
+   * shows points-won Pips directly under each player's score) rather than relying on the
+   * generic legs/points block in the shared match-info panel between the scores. When true,
+   * the match page passes an empty array to that panel instead of calling `raceProgress`
+   * there, so the same data isn't shown twice and the panel doesn't grow taller than it needs
+   * to. Defaults to false/unset — X01 and Cricket are unaffected.
+   */
+  raceProgressInScoreboard?: boolean;
+  /**
    * Get the primary metric to display for a player in the scoreboard
    */
   primaryMetric: (state: TState, playerId: PlayerId) => { label: string; value: string };

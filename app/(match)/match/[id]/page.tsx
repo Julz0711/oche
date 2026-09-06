@@ -365,7 +365,10 @@ export default function MatchPage({ params }: MatchPageProps) {
   const [leftPlayer, rightPlayer] = players;
   const currentPlayerId = gameModule.currentPlayer(gameState);
   const info = gameModule.matchInfo(gameState, settings);
-  const raceProgress = gameModule.raceProgress(gameState, settings);
+  // When a game renders its own race progress inside ScoreboardSlot (e.g. Copycat's points-won
+  // Pips under each score), the shared middle panel gets an empty array instead — showing the
+  // same data twice would both be redundant and make the panel taller than it needs to be.
+  const raceProgress = gameModule.raceProgressInScoreboard ? [] : gameModule.raceProgress(gameState, settings);
   const currentPlayerHeatmap = gameModule.heatmap(gameState, currentPlayerId);
 
   // PlayerId -> display name lookup, built from the lobby snapshot's `players` field. Empty in

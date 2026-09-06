@@ -5,8 +5,9 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Button } from '@/components/atoms/Button';
+import { Panel, BoardMotif } from '@/components/atoms';
+import type { AccentToken, MotifName } from '@/components/atoms';
 import { gameRegistry, GameId, getGameModule } from '@/lib/games/registry';
-import { Users } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
@@ -20,48 +21,62 @@ interface GameOption {
   defaultSettings: Record<string, unknown>;
 }
 
-/** Per-game accent, written as literal class strings (not composed at runtime) so Tailwind's
- *  scanner can see them. Each game gets its own color from the existing palette rather than
- *  everything defaulting to gold. */
-const GAME_ACCENT: Record<GameId, { selected: string; badge: string }> = {
-  x01: { selected: 'border-wire bg-wire/15', badge: 'bg-wire text-oche' },
-  cricket: { selected: 'border-double bg-double/15', badge: 'bg-double text-chalk' },
-  copycat: { selected: 'border-sisal bg-sisal/15', badge: 'bg-sisal text-oche' },
+/** Each game's identity: its accent token and the motif that says something true about how
+ *  it's played. Copycat uses `treble` for identity only — never for state — per the spec. */
+const GAME_IDENTITY: Record<GameId, { accent: AccentToken; motif: MotifName }> = {
+  x01: { accent: 'wire', motif: 'board' },
+  cricket: { accent: 'double', motif: 'scoresheet' },
+  copycat: { accent: 'treble', motif: 'echo' },
 };
 
-function GameCard({ game, selected, onSelect }: { game: GameOption; selected: boolean; onSelect: () => void }) {
-  const accent = GAME_ACCENT[game.id];
-  const Icon = game.icon;
+const ACCENT_TEXT: Record<AccentToken, string> = {
+  wire: 'text-wire',
+  double: 'text-double',
+  treble: 'text-treble',
+  sisal: 'text-sisal',
+};
+
+function GameCard({
+  game,
+  index,
+  selected,
+  onSelect,
+}: {
+  game: GameOption;
+  index: number;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const { accent, motif } = GAME_IDENTITY[game.id];
 
   return (
-    <button
+    <Panel
+      as="button"
+      notch="card"
+      accent={accent}
+      accentBar
+      active={selected}
       onClick={onSelect}
       aria-pressed={selected}
-      className={`text-left rounded-2xl p-5 md:p-6 flex flex-col gap-4 border-2 transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wire focus-visible:ring-offset-2 focus-visible:ring-offset-oche ${
-        selected ? accent.selected : 'border-transparent bg-slate'
-      }`}
+      className="min-h-[172px]"
     >
-      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${accent.badge}`}>
-        <Icon className="w-7 h-7" />
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <span className="text-2xl md:text-3xl font-display font-bold">{game.name}</span>
-        <span className="text-sm text-sisal">{game.description}</span>
-      </div>
-
-      <div className="flex items-center gap-2 mt-auto">
-        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-sisal bg-oche rounded-full px-2.5 py-1">
-          <Users className="w-3 h-3" />
-          {game.playerRange[0]}–{game.playerRange[1]} players
+      <BoardMotif
+        name={motif}
+        className={`pointer-events-none absolute -right-11 -bottom-14 w-[168px] h-[168px] ${ACCENT_TEXT[accent]} group-hover:rotate-[9deg]`}
+        style={{ opacity: 'var(--motif-rest)' }}
+      />
+      <span className="relative block p-[18px] pt-[18px]">
+        <span className={`block font-display font-bold text-[10px] tracking-[0.2em] ${ACCENT_TEXT[accent]}`}>
+          {String(index + 1).padStart(2, '0')}
         </span>
-        {game.status && game.status !== 'stable' && (
-          <span className="text-[10px] font-bold uppercase tracking-widest text-oche bg-wire rounded-full px-2.5 py-1">
-            {game.status === 'beta' ? 'Beta' : 'Coming soon'}
-          </span>
-        )}
-      </div>
-    </button>
+        <span className="block font-display font-bold uppercase text-[30px] leading-[0.94] text-chalk mt-12 mb-1.5">
+          {game.name}
+        </span>
+        <span className="block text-[10px] leading-[1.4] text-sisal/60">
+          {game.playerRange[0]}–{game.playerRange[1]} players · {game.description}
+        </span>
+      </span>
+    </Panel>
   );
 }
 
@@ -169,14 +184,14 @@ export default function Dashboard() {
 
   return (
     <div
-      className="min-h-screen bg-oche text-chalk p-4 md:p-8 flex flex-col items-center"
+      className="min-h-screen bg-oche text-chalk p-4 md:p-8 flex flex-col items-center relative scanlines"
       style={{
         backgroundImage:
           'radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--wire) 10%, transparent), transparent 60%)',
       }}
     >
-      <div className="w-full max-w-3xl flex flex-col gap-6 md:gap-8 pt-6 md:pt-12">
-        <header className="flex flex-col gap-3">
+      <div className="w-full max-w-3xl flex flex-col gap-7 md:gap-9 pt-6 md:pt-12">
+        <header className="flex flex-col gap-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-widest text-sisal">
               {session?.user ? session.user.name ?? 'Signed in' : 'Not signed in'}
@@ -211,11 +226,12 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
-              {games.map((game) => (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              {games.map((game, index) => (
                 <GameCard
                   key={game.id}
                   game={game}
+                  index={index}
                   selected={game.id === selectedGameId}
                   onSelect={() => setSelectedGameId(game.id)}
                 />
@@ -264,27 +280,31 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="flex flex-col gap-2">
-                <Button
-                  onClick={() => handleCreateMatch(selectedGameId, 'remote')}
-                  disabled={creating !== null}
-                  className="min-h-16 md:min-h-20 rounded-2xl text-xl md:text-2xl w-full"
-                >
-                  {creating === 'remote' ? 'Starting…' : 'Play Online'}
-                </Button>
+                <div className="has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-wire">
+                  <Button
+                    onClick={() => handleCreateMatch(selectedGameId, 'remote')}
+                    disabled={creating !== null}
+                    className="min-h-16 md:min-h-20 rounded-none text-xl md:text-2xl w-full font-display uppercase tracking-[0.14em] [clip-path:polygon(0_0,100%_0,calc(100%-10px)_100%,0_100%)] focus-visible:outline-none"
+                  >
+                    {creating === 'remote' ? 'Starting…' : 'Play Online'}
+                  </Button>
+                </div>
                 <span className="text-center text-[11px] font-bold uppercase tracking-widest text-sisal">
                   Room code
                 </span>
               </div>
 
               <div className="flex flex-col gap-2">
-                <Button
-                  variant="secondary"
-                  onClick={() => handleCreateMatch(selectedGameId, 'local')}
-                  disabled={creating !== null}
-                  className="min-h-16 md:min-h-20 rounded-2xl text-xl md:text-2xl w-full"
-                >
-                  {creating === 'local' ? 'Starting…' : 'Play Local'}
-                </Button>
+                <div className="has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-wire">
+                  <Button
+                    variant="secondary"
+                    onClick={() => handleCreateMatch(selectedGameId, 'local')}
+                    disabled={creating !== null}
+                    className="min-h-16 md:min-h-20 rounded-none text-xl md:text-2xl w-full font-display uppercase tracking-[0.14em] [clip-path:polygon(0_0,100%_0,calc(100%-10px)_100%,0_100%)] focus-visible:outline-none"
+                  >
+                    {creating === 'local' ? 'Starting…' : 'Play Local'}
+                  </Button>
+                </div>
                 <span className="text-center text-[11px] font-bold uppercase tracking-widest text-sisal">
                   Same device
                 </span>

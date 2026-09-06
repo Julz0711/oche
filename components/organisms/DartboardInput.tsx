@@ -141,7 +141,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
             key={n}
             onClick={() => throwSector(n)}
             disabled={disabled}
-            className="min-h-14 min-w-14 rounded-none bg-oche text-chalk text-lg font-bold hover:opacity-80 disabled:opacity-50 transition-opacity"
+            className="min-h-14 min-w-14 rounded-none bg-slate text-chalk text-lg font-bold hover:opacity-80 disabled:opacity-50 transition-opacity"
           >
             {n}
           </button>
@@ -180,7 +180,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
         <button
           onClick={handleMiss}
           disabled={disabled}
-          className="min-h-14 px-2 rounded-none font-bold text-lg bg-oche text-sisal hover:opacity-80 disabled:opacity-50 transition-opacity"
+          className="min-h-14 px-2 rounded-none font-bold text-lg bg-slate text-sisal hover:opacity-80 disabled:opacity-50 transition-opacity"
         >
           MISS
         </button>

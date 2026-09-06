@@ -5,3 +5,5 @@ export { Avatar } from "./Avatar";
 export { Icon } from "./Icon";
 export { Divider } from "./Divider";
 export { Input } from "./Input";
+export { BoardMotif } from "./BoardMotif";
+export type { MotifName } from "./BoardMotif";

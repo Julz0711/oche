@@ -45,6 +45,10 @@ const accentVar: Record<AccentToken, string> = {
   sisal: 'var(--sisal)',
 };
 
+function clipPathFor(notchExpr: string): string {
+  return `polygon(0 0, 100% 0, 100% calc(100% - ${notchExpr}), calc(100% - ${notchExpr}) 100%, 0 100%)`;
+}
+
 /**
  * The app's surface primitive: a cut-corner panel with a lit top edge and a drop shadow.
  *
@@ -70,43 +74,58 @@ export function Panel({
 }: PanelProps) {
   const isButton = as === 'button';
   const lifts = interactive ?? isButton;
+  const notchExpr = notchSize[notch];
 
-  // Every surface traces its own clipped silhouette at rest — including the diagonal cut
-  // corner — so that corner never reads as bare, un-rendered background. Selection then
-  // upgrades the same trace to a bold, unmistakable full-strength accent ring. Both are
-  // inset box-shadows, not a `border`, since `clip-path` would cut a real border.
-  const boxShadow = active
-    ? `inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 2px ${accentVar[accent]}`
-    : `inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 1px rgba(228,216,188,0.18)`;
+  // Selection upgrades the trace to a bold, unmistakable full-strength accent border.
+  const borderWidth = active ? 2 : 1;
+  const borderColor = active ? accentVar[accent] : 'rgba(228,216,188,0.28)';
 
+  // A real `border` (or box-shadow used as a border substitute) can't trace an arbitrary
+  // clip-path polygon — box-shadow is computed from the element's plain rectangular
+  // border-box and then clipped away along with everything else, so it never actually
+  // reaches the diagonal cut in the first place; it just stops short. The only way to get a
+  // border that genuinely continues along the whole clipped outline, corner included, is two
+  // stacked layers using the SAME clip-path shape: an outer layer filled with the border
+  // colour, and an inner layer — inset by the border width, with a correspondingly smaller
+  // notch — filled with the real background. The border colour then peeks out as an evenly
+  // thick sliver on every edge, the diagonal included, because both layers were clipped with
+  // the same formula rather than one of them being a rectangle-based shadow.
   const surface = (
     <span
-      className={`
-        relative block overflow-hidden
-        ${active ? 'bg-[#202B28]' : 'bg-slate'}
-        ${lifts ? 'motion-lift' : ''}
-        ${className}
-      `}
+      className={`relative block ${lifts ? 'motion-lift' : ''}`}
       style={{
-        clipPath: `polygon(0 0, 100% 0, 100% calc(100% - ${notchSize[notch]}), calc(100% - ${notchSize[notch]}) 100%, 0 100%)`,
-        boxShadow,
+        clipPath: clipPathFor(notchExpr),
+        backgroundColor: borderColor,
+        padding: borderWidth,
       }}
     >
-      {accentBar && (
-        <span
-          className={`notch-accent-bar block h-[5px] w-full ${accentBg[accent]} ${
-            lifts ? 'transition-[height] duration-150 group-hover:h-[9px]' : ''
-          }`}
-        />
-      )}
-      {active && (
-        <span
-          className={`absolute top-0 right-0 flex items-center justify-center w-6 h-6 ${accentBg[accent]}`}
-        >
-          <Check className="w-3.5 h-3.5 text-oche" strokeWidth={3} />
-        </span>
-      )}
-      {children}
+      <span
+        className={`
+          relative block overflow-hidden
+          ${active ? 'bg-[#202B28]' : 'bg-slate'}
+          ${className}
+        `}
+        style={{
+          clipPath: clipPathFor(`calc(${notchExpr} - ${borderWidth}px)`),
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+        }}
+      >
+        {accentBar && (
+          <span
+            className={`notch-accent-bar block h-[5px] w-full ${accentBg[accent]} ${
+              lifts ? 'transition-[height] duration-150 group-hover:h-[9px]' : ''
+            }`}
+          />
+        )}
+        {active && (
+          <span
+            className={`absolute top-0 right-0 flex items-center justify-center w-6 h-6 ${accentBg[accent]}`}
+          >
+            <Check className="w-3.5 h-3.5 text-oche" strokeWidth={3} />
+          </span>
+        )}
+        {children}
+      </span>
     </span>
   );
 

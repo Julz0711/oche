@@ -7,3 +7,5 @@ export { Divider } from "./Divider";
 export { Input } from "./Input";
 export { BoardMotif } from "./BoardMotif";
 export type { MotifName } from "./BoardMotif";
+export { Panel } from "./Panel";
+export type { PanelNotch, AccentToken } from "./Panel";

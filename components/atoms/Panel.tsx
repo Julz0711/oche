@@ -110,9 +110,18 @@ export function Panel({
     </span>
   );
 
+  // A plain box-shadow, not filter: drop-shadow(), and specifically on this OUTER
+  // (unclipped, plain-rectangular) element. drop-shadow() traces the exact alpha shape of
+  // its content — including the inner span's notch — so a downward-offset drop-shadow ends
+  // up drawing its own (offset) copy of that notch's material right where the original
+  // notch removed it, showing through as a hard dark wedge instead of a soft shadow. A
+  // plain box-shadow on this rectangular wrapper has no such shape to trace: it's just a
+  // normal soft shadow, imperceptibly "wrong" against a notched card in front of it.
+  const dropShadow = { boxShadow: '0 12px 14px -2px rgba(0,0,0,0.55)' };
+
   if (!isButton) {
     return (
-      <div className="group relative" style={{ filter: 'drop-shadow(0 12px 14px rgba(0,0,0,0.55))' }}>
+      <div className="group relative" style={dropShadow}>
         {surface}
       </div>
     );
@@ -122,7 +131,7 @@ export function Panel({
     <button
       type="button"
       className="group relative block w-full text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wire disabled:opacity-50"
-      style={{ filter: 'drop-shadow(0 12px 14px rgba(0,0,0,0.55))' }}
+      style={dropShadow}
       {...rest}
     >
       {surface}

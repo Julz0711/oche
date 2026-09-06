@@ -101,7 +101,7 @@ function Pills<T extends string | number>({
           type="button"
           onClick={() => onChange(option)}
           aria-pressed={option === value}
-          className={`px-4 py-2 rounded-full text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wire focus-visible:ring-offset-2 focus-visible:ring-offset-oche ${
+          className={`px-4 py-2 rounded-none text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wire focus-visible:ring-offset-2 focus-visible:ring-offset-oche ${
             option === value ? 'bg-wire text-oche' : 'bg-oche text-sisal border border-sisal/30 hover:opacity-80'
           }`}
         >
@@ -221,7 +221,7 @@ export default function Dashboard() {
         {games === null ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
             {[0, 1].map((i) => (
-              <div key={i} className="h-48 rounded-2xl bg-slate animate-pulse" />
+              <div key={i} className="h-48 bg-slate animate-pulse" />
             ))}
           </div>
         ) : (
@@ -280,31 +280,27 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="flex flex-col gap-2">
-                <div className="has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-wire">
-                  <Button
-                    onClick={() => handleCreateMatch(selectedGameId, 'remote')}
-                    disabled={creating !== null}
-                    className="min-h-16 md:min-h-20 rounded-none text-xl md:text-2xl w-full font-display uppercase tracking-[0.14em] [clip-path:polygon(0_0,100%_0,calc(100%-10px)_100%,0_100%)] focus-visible:outline-none"
-                  >
-                    {creating === 'remote' ? 'Starting…' : 'Play Online'}
-                  </Button>
-                </div>
+                <Button
+                  onClick={() => handleCreateMatch(selectedGameId, 'remote')}
+                  disabled={creating !== null}
+                  className="min-h-16 md:min-h-20 rounded-none text-xl md:text-2xl w-full font-display uppercase tracking-[0.14em] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wire"
+                >
+                  {creating === 'remote' ? 'Starting…' : 'Play Online'}
+                </Button>
                 <span className="text-center text-[11px] font-bold uppercase tracking-widest text-sisal">
                   Room code
                 </span>
               </div>
 
               <div className="flex flex-col gap-2">
-                <div className="has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-wire">
-                  <Button
-                    variant="secondary"
-                    onClick={() => handleCreateMatch(selectedGameId, 'local')}
-                    disabled={creating !== null}
-                    className="min-h-16 md:min-h-20 rounded-none text-xl md:text-2xl w-full font-display uppercase tracking-[0.14em] border-0 shadow-[inset_0_0_0_1.5px_var(--wire)] [clip-path:polygon(0_0,100%_0,calc(100%-10px)_100%,0_100%)] focus-visible:outline-none"
-                  >
-                    {creating === 'local' ? 'Starting…' : 'Play Local'}
-                  </Button>
-                </div>
+                <Button
+                  variant="secondary"
+                  onClick={() => handleCreateMatch(selectedGameId, 'local')}
+                  disabled={creating !== null}
+                  className="min-h-16 md:min-h-20 rounded-none text-xl md:text-2xl w-full font-display uppercase tracking-[0.14em] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wire"
+                >
+                  {creating === 'local' ? 'Starting…' : 'Play Local'}
+                </Button>
                 <span className="text-center text-[11px] font-bold uppercase tracking-widest text-sisal">
                   Same device
                 </span>

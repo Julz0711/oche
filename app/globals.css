@@ -19,10 +19,13 @@
   --heat-cold: #2563EB;
   --heat-mid: #EAB308;
   --heat-hot: #DC2626;
-  /* Shape language — notch sizes for cut-corner surfaces (see Panel atom) */
-  --notch-card: 16px;
-  --notch-panel: 13px;
-  --notch-inset: 11px;
+  /* Shape language — notch sizes for cut-corner surfaces (see Panel atom). Set to 0: the
+     cut corner read as a rendering defect once live (exposed bare background behind the
+     diagonal edge) rather than a stylistic cut — reverted to plain rectangles everywhere
+     that consumes these tokens, in this one place, rather than per-consumer. */
+  --notch-card: 0px;
+  --notch-panel: 0px;
+  --notch-inset: 0px;
   /* Motif intensities — resting, hovered, and quiet (behind live match scores) */
   --motif-rest: 0.24;
   --motif-hover: 0.44;

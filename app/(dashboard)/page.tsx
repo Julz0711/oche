@@ -238,7 +238,7 @@ export default function Dashboard() {
               ))}
             </div>
 
-            <div className="rounded-2xl bg-slate p-5 md:p-6 flex flex-col gap-4">
+            <Panel notch="panel" className="p-5 md:p-6 flex flex-col gap-4">
               <SettingLabel>Match settings</SettingLabel>
 
               {selectedGameId === 'x01' && (
@@ -276,7 +276,7 @@ export default function Dashboard() {
                   <Pills options={COPYCAT_LIMIT_OPTIONS} value={copycatFirstTo} onChange={setCopycatFirstTo} />
                 </div>
               )}
-            </div>
+            </Panel>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="flex flex-col gap-2">

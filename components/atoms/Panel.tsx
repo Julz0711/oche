@@ -37,6 +37,13 @@ const accentBg: Record<AccentToken, string> = {
   sisal: 'bg-sisal',
 };
 
+const accentVar: Record<AccentToken, string> = {
+  wire: 'var(--wire)',
+  double: 'var(--double)',
+  treble: 'var(--treble)',
+  sisal: 'var(--sisal)',
+};
+
 /**
  * The app's surface primitive: a cut-corner panel with a lit top edge and a drop shadow.
  *
@@ -63,17 +70,24 @@ export function Panel({
   const isButton = as === 'button';
   const lifts = interactive ?? isButton;
 
+  // Selection needs to read at a glance, not just as a border you might mistake for an
+  // artifact — a full accent ring around the whole surface, not a thin edge on one side.
+  // An inset box-shadow, not a `border`, since `clip-path` would cut a real border.
+  const boxShadow = active
+    ? `inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 2px ${accentVar[accent]}`
+    : 'inset 0 1px 0 rgba(255,255,255,0.06)';
+
   const surface = (
     <span
       className={`
         relative block overflow-hidden
         ${active ? 'bg-[#202B28]' : 'bg-slate'}
-        shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]
         ${lifts ? 'motion-lift' : ''}
         ${className}
       `}
       style={{
         clipPath: `polygon(0 0, 100% 0, 100% calc(100% - ${notchSize[notch]}), calc(100% - ${notchSize[notch]}) 100%, 0 100%)`,
+        boxShadow,
       }}
     >
       {accentBar && (
@@ -83,7 +97,6 @@ export function Panel({
           }`}
         />
       )}
-      {active && <span className={`absolute left-0 top-0 bottom-0 w-1 ${accentBg[accent]}`} />}
       {children}
     </span>
   );

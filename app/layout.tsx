@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Inter_Tight } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 import { PwaRegistration } from "@/components/PwaRegistration";
 import { PendingSyncManager } from "@/components/PendingSyncManager";
+import { OfflineBanner } from "@/components/OfflineBanner";
 import "./globals.css";
 
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <PwaRegistration />
         <PendingSyncManager />
+        <OfflineBanner />
         <SessionProvider>{children}</SessionProvider>
       </body>
     </html>

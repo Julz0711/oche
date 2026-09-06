@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Inter_Tight } from "next/font/google";
+import { Barlow_Condensed, Inter_Tight } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 import { PwaRegistration } from "@/components/PwaRegistration";
 import { PendingSyncManager } from "@/components/PendingSyncManager";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import "./globals.css";
 
-const bricolageGrotesque = Bricolage_Grotesque({
+const barlowCondensed = Barlow_Condensed({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["500", "600", "700"],
 });
 
 const interTight = Inter_Tight({
@@ -32,7 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${bricolageGrotesque.variable} ${interTight.variable} h-full antialiased`}
+      className={`${barlowCondensed.variable} ${interTight.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <PwaRegistration />

@@ -7,7 +7,7 @@
  */
 :root {
   /* Color Tokens */
-  --oche: #141A18;
+  --oche: #101614;
   --slate: #1E2724;
   --chalk: #F2F4F3;
   --sisal: #E4D8BC;
@@ -19,6 +19,14 @@
   --heat-cold: #2563EB;
   --heat-mid: #EAB308;
   --heat-hot: #DC2626;
+  /* Shape language — notch sizes for cut-corner surfaces (see Panel atom) */
+  --notch-card: 16px;
+  --notch-panel: 13px;
+  --notch-inset: 11px;
+  /* Motif intensities — resting, hovered, and quiet (behind live match scores) */
+  --motif-rest: 0.24;
+  --motif-hover: 0.44;
+  --motif-quiet: 0.17;
 }
 
 /**
@@ -50,4 +58,55 @@ button:not(:disabled) {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
+}
+
+/**
+ * Scanlines — a faint diagonal texture for large dark areas. Applied to a positioned
+ * ancestor; draws above its background but below its content.
+ */
+.scanlines::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.45;
+  background: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.02) 0 2px, transparent 2px 9px);
+}
+
+/**
+ * The hover lift used by interactive surfaces. Isolated in its own class so that
+ * reduced-motion can remove the movement itself, not merely its animation.
+ */
+.motion-lift {
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+.group:hover .motion-lift {
+  transform: translateY(-4px);
+}
+
+/**
+ * Motifs brighten when their surface is hovered. Scoped to the `board-motif` class the
+ * BoardMotif atom sets — a generic selector such as svg[aria-hidden] would also catch every
+ * lucide icon rendered inside a hovered card.
+ */
+.board-motif {
+  transition: opacity 180ms ease, transform 300ms ease;
+}
+.group:hover .board-motif {
+  opacity: var(--motif-hover) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Colour and opacity still change on hover; movement does not happen at all. */
+  .group:hover .motion-lift {
+    transform: none !important;
+  }
 }

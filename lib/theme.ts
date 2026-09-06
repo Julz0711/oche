@@ -6,7 +6,7 @@
 
 // Color Tokens - Used across components and Tailwind config
 export const tokens = {
-  oche: "#141A18",      // Page background
+  oche: "#101614",      // Page background
   slate: "#1E2724",     // Surfaces, cards
   chalk: "#F2F4F3",     // Primary text
   sisal: "#E4D8BC",     // Secondary text
@@ -39,7 +39,7 @@ export const fontSize = {
 
 // Font Families
 export const fontFamily = {
-  display: "Bricolage Grotesque, sans-serif",
+  display: "Barlow Condensed, sans-serif",
   sans: "Inter Tight, system-ui, sans-serif",
 } as const;
 

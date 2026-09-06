@@ -1,6 +1,6 @@
 # Visual Identity — Foundation & Dashboard Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Establish the new visual language — tokens, cut-corner surfaces, condensed display type, darts-derived SVG motifs — as a shared primitive layer, and rebuild the dashboard on top of it as proof the language works in real code.
 
@@ -41,7 +41,7 @@
 **Interfaces:**
 - Produces: CSS custom properties `--notch-card` (16px), `--notch-panel` (13px), `--notch-inset` (11px), `--motif-rest` (.24), `--motif-hover` (.44), `--motif-quiet` (.17); a `.scanlines` utility class; a `.motion-lift` hover-transform class that reduced-motion disables; `--font-display` now resolving to Barlow Condensed. All consumed by Tasks 2, 3 and 4, and by plan 2's surfaces.
 
-- [ ] **Step 1: Update the colour and font tokens**
+- [x] **Step 1: Update the colour and font tokens**
 
 In `lib/theme.ts`, change exactly two values. The `oche` ground darkens so raised surfaces read as genuinely lifted:
 
@@ -66,7 +66,7 @@ export const fontFamily = {
 } as const;
 ```
 
-- [ ] **Step 2: Swap the display font in the root layout**
+- [x] **Step 2: Swap the display font in the root layout**
 
 In `app/layout.tsx`, replace the `Bricolage_Grotesque` import and instance with `Barlow_Condensed`. Change:
 
@@ -94,7 +94,7 @@ const barlowCondensed = Barlow_Condensed({
 
 and in the `<html>` element's className, change `${bricolageGrotesque.variable}` to `${barlowCondensed.variable}` (leave `${interTight.variable}` and the rest of that className exactly as it is).
 
-- [ ] **Step 3: Add the shape, motif and motion tokens to globals.css**
+- [x] **Step 3: Add the shape, motif and motion tokens to globals.css**
 
 In `app/globals.css`, update the `--oche` value in `:root` to `#101614`, then add the new tokens immediately after the existing `--heat-hot` line, still inside `:root`:
 
@@ -109,7 +109,7 @@ In `app/globals.css`, update the `--oche` value in `:root` to `#101614`, then ad
   --motif-quiet: 0.17;
 ```
 
-- [ ] **Step 4: Add the scanline and reduced-motion rules**
+- [x] **Step 4: Add the scanline and reduced-motion rules**
 
 Append to the end of `app/globals.css`:
 
@@ -166,14 +166,14 @@ Append to the end of `app/globals.css`:
 }
 ```
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run: `npx tsc --noEmit`
 Expected: clean.
 
 Then run `npm run dev` and load the dashboard. Expected: the page still renders (unstyled-by-the-new-language, that's fine at this stage), the background is very slightly darker, and headings now render in Barlow Condensed — a noticeably narrower, more condensed face than before. Confirm no missing-font flash of a serif fallback.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add lib/theme.ts app/globals.css app/layout.tsx
@@ -193,7 +193,7 @@ git commit -m "feat(ui): visual identity tokens, Barlow Condensed display face, 
 - Consumes: `CENTER`, `RADIUS`, `BOARD_ORDER`, `segmentAngles`, `annularWedgePath` from `@/lib/dartboard-geometry` (Task 1 does not change these).
 - Produces: `export type MotifName = 'board' | 'scoresheet' | 'echo'` and `export function BoardMotif(props: { name: MotifName; className?: string })`. Renders an `<svg>` that fills its container, drawn entirely in `currentColor` with no colour or opacity of its own — the parent sets both. Consumed by Task 4 and by plan 2's surfaces (which will extend `MotifName` with `'spider' | 'flights' | 'reticle'`).
 
-- [ ] **Step 1: Write the component**
+- [x] **Step 1: Write the component**
 
 Create `components/atoms/BoardMotif.tsx`:
 
@@ -336,7 +336,7 @@ export function BoardMotif({ name, className = '', style }: BoardMotifProps) {
 }
 ```
 
-- [ ] **Step 2: Add the story**
+- [x] **Step 2: Add the story**
 
 Create `components/atoms/BoardMotif.stories.tsx`:
 
@@ -369,7 +369,7 @@ export const Echo: Story = {
 };
 ```
 
-- [ ] **Step 3: Export it from the barrel**
+- [x] **Step 3: Export it from the barrel**
 
 In `components/atoms/index.ts`, add:
 
@@ -378,12 +378,12 @@ export { BoardMotif } from "./BoardMotif";
 export type { MotifName } from "./BoardMotif";
 ```
 
-- [ ] **Step 4: Verify types**
+- [x] **Step 4: Verify types**
 
 Run: `npx tsc --noEmit`
 Expected: clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add components/atoms/BoardMotif.tsx components/atoms/BoardMotif.stories.tsx components/atoms/index.ts
@@ -404,7 +404,7 @@ git commit -m "feat(ui): BoardMotif atom — board/scoresheet/echo, board derive
 - Produces: `export type PanelNotch = 'card' | 'panel' | 'inset' | 'none'`, `export type AccentToken = 'wire' | 'double' | 'treble' | 'sisal'`, and `export function Panel(props)` where props are `{ as?: 'div' | 'button'; notch?: PanelNotch; accent?: AccentToken; accentBar?: boolean; active?: boolean; interactive?: boolean; className?: string; children: React.ReactNode }` plus, when `as="button"`, the standard button attributes (`onClick`, `disabled`, `aria-pressed`, `type`). Consumed by Task 4 and by every surface in plan 2.
 - **Focus contract:** when `as="button"`, the outer element is unclipped and carries the `focus-visible` ring; the clipped surface is an inner element. Consumers must never apply `clip-path` themselves.
 
-- [ ] **Step 1: Write the component**
+- [x] **Step 1: Write the component**
 
 Create `components/atoms/Panel.tsx`:
 
@@ -515,7 +515,7 @@ export function Panel({
 }
 ```
 
-- [ ] **Step 2: Add the story**
+- [x] **Step 2: Add the story**
 
 Create `components/atoms/Panel.stories.tsx`:
 
@@ -568,7 +568,7 @@ export const AsButton: Story = {
 };
 ```
 
-- [ ] **Step 3: Export it from the barrel**
+- [x] **Step 3: Export it from the barrel**
 
 In `components/atoms/index.ts`, add:
 
@@ -577,12 +577,12 @@ export { Panel } from "./Panel";
 export type { PanelNotch, AccentToken } from "./Panel";
 ```
 
-- [ ] **Step 4: Verify types**
+- [x] **Step 4: Verify types**
 
 Run: `npx tsc --noEmit`
 Expected: clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add components/atoms/Panel.tsx components/atoms/Panel.stories.tsx components/atoms/index.ts
@@ -600,7 +600,7 @@ git commit -m "feat(ui): Panel atom — cut-corner surface with clip-safe focus 
 - Consumes: `Panel`, `BoardMotif`, `MotifName`, `AccentToken` from `@/components/atoms`; the `.scanlines` class and `--motif-*` variables from Task 1.
 - Produces: nothing other tasks depend on — this is the first surface built on the language.
 
-- [ ] **Step 1: Replace the accent map with accent + motif per game**
+- [x] **Step 1: Replace the accent map with accent + motif per game**
 
 In `app/(dashboard)/page.tsx`, replace the existing `GAME_ACCENT` constant (the `Record<GameId, { selected: string; badge: string }>` block, along with its comment) with:
 
@@ -628,7 +628,7 @@ import { Panel, BoardMotif } from '@/components/atoms';
 import type { AccentToken, MotifName } from '@/components/atoms';
 ```
 
-- [ ] **Step 2: Rebuild the game card**
+- [x] **Step 2: Rebuild the game card**
 
 Replace the entire existing `GameCard` function with:
 
@@ -680,7 +680,7 @@ function GameCard({
 
 (`BoardMotif` already accepts `style` and carries the `board-motif` class from Task 2, and Task 1 already added the global rule that brightens `.board-motif` on hover — nothing further is needed for either.)
 
-- [ ] **Step 3: Put the three games in one row and open up the spacing**
+- [x] **Step 3: Put the three games in one row and open up the spacing**
 
 In the `Dashboard` component's JSX, change the game grid from its current two-column form to a single row (stacking only at the narrowest widths), and pass the new `index` prop:
 
@@ -700,7 +700,7 @@ In the `Dashboard` component's JSX, change the game grid from its current two-co
 
 In the same component, open up the outer spacing: change the main content wrapper's `gap-6 md:gap-8` to `gap-7 md:gap-9`, and the `<header>`'s `gap-3` to `gap-5`.
 
-- [ ] **Step 4: Add the scanline ground**
+- [x] **Step 4: Add the scanline ground**
 
 The outermost `<div>` of the page currently carries `className="min-h-screen bg-oche text-chalk p-4 md:p-8 flex flex-col items-center"` plus an inline `style` with a radial-gradient background image. Add `relative scanlines` to that className (keep everything else, including the inline style, exactly as it is):
 
@@ -709,7 +709,7 @@ The outermost `<div>` of the page currently carries `className="min-h-screen bg-
       className="min-h-screen bg-oche text-chalk p-4 md:p-8 flex flex-col items-center relative scanlines"
 ```
 
-- [ ] **Step 5: Give the two primary actions a slant edge**
+- [x] **Step 5: Give the two primary actions a slant edge**
 
 Replace the two `<Button>` elements' `className` values so they carry the slanted right edge, and wrap each in a focus-safe container. Change the first (Play Online) from:
 
@@ -734,12 +734,12 @@ to:
 
 closing that new `<div>` after the `</Button>`. Apply the identical change to the second (Play Local) `<Button>`, keeping its `variant="secondary"` and its own `onClick`/label.
 
-- [ ] **Step 6: Verify types and build**
+- [x] **Step 6: Verify types and build**
 
 Run: `npx tsc --noEmit && npx vitest run`
 Expected: `tsc` clean; 142 tests passing, unchanged (this task touches no logic).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add "app/(dashboard)/page.tsx"
@@ -754,7 +754,7 @@ No code changes unless a defect is found. This task is where the plan's two widt
 
 **Files:** none.
 
-- [ ] **Step 1: Desktop pass**
+- [x] **Step 1: Desktop pass**
 
 Run `npm run dev` and open the dashboard at a desktop width (≈1280px). Confirm:
 - the three game cards sit in **one row**, each with its accent bar (gold / green / red) and its own motif — the full board with a lit T20 on X01, the tally scoresheet on Cricket, the twin bullseyes on Copycat;
@@ -762,19 +762,19 @@ Run `npm run dev` and open the dashboard at a desktop width (≈1280px). Confirm
 - the selected card shows the raised background and left accent edge;
 - the X01 board's lit segment sits cleanly **between** two wires, not straddling one (this is the exact defect the geometry requirement exists to prevent — check it by eye).
 
-- [ ] **Step 2: Phone-width pass**
+- [x] **Step 2: Phone-width pass**
 
 Resize to a 390px-wide viewport (iPhone-class). Confirm the cards stack rather than squashing, the condensed display type is still comfortably legible at that size, and nothing overflows horizontally.
 
-- [ ] **Step 3: Keyboard focus pass — non-negotiable**
+- [x] **Step 3: Keyboard focus pass — non-negotiable**
 
 With the keyboard only, Tab through the whole dashboard: the History/Sign-in link, each of the three game cards, each settings pill, and both primary buttons. **Every one must show a clearly visible focus ring that is not clipped off by the cut corner.** If any focus ring is cut, missing, or drawn inside the notch, that is a blocking defect — fix it in `Panel` (not per-consumer) before completing this task.
 
-- [ ] **Step 4: Reduced-motion pass**
+- [x] **Step 4: Reduced-motion pass**
 
 In Chrome DevTools, open the Rendering panel and set `prefers-reduced-motion: reduce`. Hover a game card. Confirm the card does **not** move, while the motif still brightens and the background still changes.
 
-- [ ] **Step 5: Report**
+- [x] **Step 5: Report**
 
 No commit — verification only. Summarise what was checked, at which widths, and any defect found and fixed. Note explicitly anything that could not be verified in the environment rather than skipping it silently.
 

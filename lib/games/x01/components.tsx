@@ -1,10 +1,11 @@
 // lib/games/x01/components.tsx
 import { X01State, computeVisitTotal } from './engine';
 import { X01Settings } from './schema';
+import { suggestCheckout } from './checkoutSuggestion';
 import { PlayerId } from '@/lib/types';
 import { Numeral } from '@/components/atoms/Numeral';
 import { Panel } from '@/components/atoms';
-import { Trophy, Crosshair, Medal } from 'lucide-react';
+import { Trophy, Crosshair, Medal, Target } from 'lucide-react';
 
 export function ScoreboardSlot({
   state,
@@ -39,6 +40,11 @@ export function ScoreboardSlot({
   }
   const legAvg3Dart = legDarts > 0 ? (legScored / legDarts) * 3 : 0;
 
+  // A "possible closer" suggestion — the standard checkout-chart convention of a fresh 3-dart
+  // route to zero, independent of how many darts are actually left in the current visit. Shown
+  // only for the player on throw, since it's meant as an in-the-moment prompt, not a running fact.
+  const checkout = isCurrentPlayer ? suggestCheckout(score, settings.checkOut) : null;
+
   return (
     <Panel notch="panel" accent="wire" active={isCurrentPlayer} activeBadge={false} className="p-5">
       {isCurrentPlayer && (
@@ -49,6 +55,12 @@ export function ScoreboardSlot({
       <div className="text-[10px] font-bold uppercase tracking-widest text-sisal/70 mt-1">
         Avg (leg) <span className="text-chalk">{legAvg3Dart.toFixed(1)}</span>
       </div>
+      {checkout && (
+        <div className="flex items-center gap-1.5 mt-2 text-wire">
+          <Target className="w-3.5 h-3.5 shrink-0" />
+          <span className="text-xs font-display font-bold uppercase tracking-wide">{checkout.join(' · ')}</span>
+        </div>
+      )}
       <div className="flex items-center gap-3 mt-2">
         {setsEnabled && (
           <div className="flex items-center gap-1.5 text-sisal">

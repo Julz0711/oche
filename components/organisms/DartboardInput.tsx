@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Throw } from '@/lib/types';
 import { CENTER, RADIUS, BOARD_ORDER, annularWedgePath, segmentAngles } from '@/lib/dartboard-geometry';
 import { HeatmapBoard } from './HeatmapBoard';
-import { Panel } from '@/components/atoms';
 
 interface DartboardInputProps {
   onThrow: (throw_: Throw) => void;
@@ -71,7 +70,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
   };
 
   return (
-    <Panel notch="panel" className="p-4 flex flex-col items-center gap-4 w-full max-w-md">
+    <div className="flex flex-col items-center gap-4 w-full max-w-md">
       {/* Dartboard: HeatmapBoard renders the visual (grey structure + heat), a transparent
           overlay on top makes it clickable — an alternative to the keypad below, not a
           replacement for it. */}
@@ -135,9 +134,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
         </svg>
       </div>
 
-      {/* Number keypad — plain flat inputs, no per-button border or notch: the outer Panel's
-          own cut corner is enough card treatment for this whole surface, so every individual
-          button just needs to read as "a black input you can press". */}
+      {/* Number keypad — plain flat inputs, no background card, border, or per-button notch. */}
       <div className="grid grid-cols-5 gap-3 w-full">
         {KEYPAD_NUMBERS.map((n) => (
           <button
@@ -188,6 +185,6 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
           MISS
         </button>
       </div>
-    </Panel>
+    </div>
   );
 }

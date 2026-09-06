@@ -15,12 +15,12 @@ function numberLabel(n: CricketNumber): string {
 
 function MarkIndicator({ marks }: { marks: Marks }) {
   if (marks === 3) {
-    return <span className="text-double font-bold text-base leading-none">⊗</span>;
+    return <span className="text-double font-bold text-2xl leading-none">⊗</span>;
   }
   return (
-    <span className="flex gap-0.5">
+    <span className="flex gap-1">
       {[0, 1, 2].map((i) => (
-        <span key={i} className={`w-2 h-2 rounded-full ${i < marks ? 'bg-wire' : 'bg-sisal/20'}`} />
+        <span key={i} className={`w-3 h-3 rounded-full ${i < marks ? 'bg-wire' : 'bg-sisal/20'}`} />
       ))}
     </span>
   );
@@ -113,10 +113,10 @@ export function HistoryPanel({
     <Panel notch="panel" className="p-4 flex flex-col gap-3 min-h-[240px]">
       <div className="text-xs font-bold uppercase tracking-widest text-sisal">{displayName ?? playerId}</div>
 
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         {CRICKET_NUMBERS.map((n) => (
-          <div key={n} className="flex items-center justify-between text-sm bg-oche border border-sisal/10 px-2 py-1">
-            <span className="font-bold text-chalk w-10">{numberLabel(n)}</span>
+          <div key={n} className="flex items-center justify-between bg-oche border border-sisal/10 px-3 py-2">
+            <span className="font-display font-bold text-xl text-chalk w-12">{numberLabel(n)}</span>
             <MarkIndicator marks={state.marks[playerId][n]} />
           </div>
         ))}

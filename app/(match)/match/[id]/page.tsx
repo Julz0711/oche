@@ -154,7 +154,9 @@ function HistoryPanel({
               {visit.throws.map((t, j) => (
                 <DartBadge key={j} t={t} />
               ))}
-              <span className="ml-auto text-sm font-bold text-chalk">{Math.abs(visit.scoreAfter - visit.scoreBefore)}</span>
+              <span className="ml-auto font-display font-bold text-2xl text-wire leading-none">
+                {Math.abs(visit.scoreAfter - visit.scoreBefore)}
+              </span>
             </div>
             {visit.busted && (
               <div className="flex items-center gap-1 text-[10px] font-bold uppercase text-treble">
@@ -555,7 +557,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                                       {visit.throws.map((t, j) => (
                                         <DartBadge key={j} t={t} />
                                       ))}
-                                      <span className="ml-auto text-sm font-bold text-chalk">
+                                      <span className="ml-auto font-display font-bold text-lg text-wire leading-none">
                                         {Math.abs(visit.scoreAfter - visit.scoreBefore)}
                                       </span>
                                     </div>
@@ -589,7 +591,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                                 <DartBadge key={i} t={t} />
                               ))}
                               {!isTurn && lastVisit && (
-                                <span className="ml-auto text-sm font-bold text-chalk">
+                                <span className="ml-auto font-display font-bold text-lg text-wire leading-none">
                                   {Math.abs(lastVisit.scoreAfter - lastVisit.scoreBefore)}
                                 </span>
                               )}

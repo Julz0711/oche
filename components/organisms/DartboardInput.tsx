@@ -71,11 +71,11 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 w-full">
+    <Panel notch="panel" className="p-4 flex flex-col items-center gap-4 w-full max-w-md">
       {/* Dartboard: HeatmapBoard renders the visual (grey structure + heat), a transparent
           overlay on top makes it clickable — an alternative to the keypad below, not a
           replacement for it. */}
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full">
         <HeatmapBoard heatmap={heatmap} />
         <svg viewBox="0 0 400 400" className="absolute inset-0 w-full h-full">
           {BOARD_ORDER.map((segment, i) => {
@@ -135,72 +135,59 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
         </svg>
       </div>
 
-      {/* Number keypad */}
-      <div className="grid grid-cols-5 gap-3 max-w-md w-full">
+      {/* Number keypad — plain flat inputs, no per-button border or notch: the outer Panel's
+          own cut corner is enough card treatment for this whole surface, so every individual
+          button just needs to read as "a black input you can press". */}
+      <div className="grid grid-cols-5 gap-3 w-full">
         {KEYPAD_NUMBERS.map((n) => (
-          <Panel
+          <button
             key={n}
-            as="button"
-            notch="inset"
             onClick={() => throwSector(n)}
             disabled={disabled}
-            className="min-h-14 min-w-14 flex items-center justify-center text-lg font-bold"
+            className="min-h-14 min-w-14 rounded-none bg-oche text-chalk text-lg font-bold hover:opacity-80 disabled:opacity-50 transition-opacity"
           >
             {n}
-          </Panel>
+          </button>
         ))}
-        <div className="col-span-5">
-          <Panel
-            as="button"
-            notch="inset"
-            fill="treble"
-            onClick={() => throwSector(25)}
-            disabled={disabled || modifier === 'T'}
-            className="min-h-14 flex items-center justify-center text-lg font-bold"
-          >
-            BULL (25)
-          </Panel>
-        </div>
+        <button
+          onClick={() => throwSector(25)}
+          disabled={disabled || modifier === 'T'}
+          className="min-h-14 col-span-5 rounded-none bg-treble text-chalk text-lg font-bold hover:opacity-80 disabled:opacity-50 transition-opacity"
+        >
+          BULL (25)
+        </button>
       </div>
 
       {/* Modifiers + miss, grouped in one row below the keypad */}
-      <div className="grid grid-cols-3 gap-3 max-w-md w-full">
-        <Panel
-          as="button"
-          notch="inset"
-          accent="double"
-          active={modifier === 'D'}
-          activeBadge={false}
+      <div className="grid grid-cols-3 gap-3 w-full">
+        <button
           onClick={() => toggleModifier('D')}
           disabled={disabled}
           aria-pressed={modifier === 'D'}
-          className="min-h-14 px-2 flex items-center justify-center font-bold text-lg"
+          className={`min-h-14 px-2 rounded-none font-bold text-lg transition-colors ${
+            modifier === 'D' ? 'bg-double text-chalk' : 'bg-double/15 text-double'
+          } disabled:opacity-50`}
         >
           DOUBLE
-        </Panel>
-        <Panel
-          as="button"
-          notch="inset"
-          accent="treble"
-          active={modifier === 'T'}
-          activeBadge={false}
+        </button>
+        <button
           onClick={() => toggleModifier('T')}
           disabled={disabled}
           aria-pressed={modifier === 'T'}
-          className="min-h-14 px-2 flex items-center justify-center font-bold text-lg"
+          className={`min-h-14 px-2 rounded-none font-bold text-lg transition-colors ${
+            modifier === 'T' ? 'bg-treble text-chalk' : 'bg-treble/15 text-treble'
+          } disabled:opacity-50`}
         >
           TRIPLE
-        </Panel>
-        <Panel
-          as="button"
-          notch="inset"
+        </button>
+        <button
           onClick={handleMiss}
           disabled={disabled}
-          className="min-h-14 px-2 flex items-center justify-center font-bold text-lg text-sisal"
+          className="min-h-14 px-2 rounded-none font-bold text-lg bg-oche text-sisal hover:opacity-80 disabled:opacity-50 transition-opacity"
         >
           MISS
-        </Panel>
+        </button>
       </div>
-    </div>
+    </Panel>
   );
 }

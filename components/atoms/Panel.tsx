@@ -153,9 +153,15 @@ export function Panel({
   // the original's, so there's neither a protrusion past the shape nor a bleed into its notch.
   const dropShadow = { filter: 'drop-shadow(0 16px 14px rgba(0,0,0,0.5))' };
 
+  // Deliberately no h-full here: this outer element is the grid/flex item itself, and its own
+  // height must stay whatever its layout context gives it — stretched by a `stretch`-aligned
+  // parent, content-sized under `items-start` (e.g. the score row's shorter middle info panel).
+  // Setting height:100% here would hard-code "stretch" and override a parent's `items-start`,
+  // which is exactly the bug this comment replaced. The two inner spans carry h-full instead, so
+  // they fill whatever height this outer element ends up with, without dictating it themselves.
   if (!isButton) {
     return (
-      <div className="group relative h-full" style={dropShadow}>
+      <div className="group relative" style={dropShadow}>
         {surface}
       </div>
     );
@@ -164,7 +170,7 @@ export function Panel({
   return (
     <button
       type="button"
-      className="group relative block w-full h-full text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wire disabled:opacity-50"
+      className="group relative block w-full text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wire disabled:opacity-50"
       style={dropShadow}
       {...rest}
     >

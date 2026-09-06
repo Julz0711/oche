@@ -196,12 +196,20 @@ export default function Dashboard() {
               {session?.user ? session.user.name ?? 'Signed in' : 'Not signed in'}
             </span>
             {session?.user ? (
-              <Link
-                href="/stats"
-                className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
-              >
-                History
-              </Link>
+              <div className="flex items-center gap-4">
+                <Link
+                  href="/stats"
+                  className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
+                >
+                  History
+                </Link>
+                <Link
+                  href="/signout"
+                  className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk transition-colors"
+                >
+                  Sign out
+                </Link>
+              </div>
             ) : (
               <Link
                 href="/signin"

@@ -44,7 +44,7 @@ function GameFilterPills({ value, onChange }: { value: GameId | null; onChange: 
         type="button"
         onClick={() => onChange(null)}
         aria-pressed={value === null}
-        className={`px-4 py-2 rounded-full text-sm font-bold transition-colors ${
+        className={`px-4 py-2 rounded-none text-sm font-bold transition-colors ${
           value === null ? 'bg-wire text-oche' : 'bg-oche text-sisal border border-sisal/30 hover:opacity-80'
         }`}
       >
@@ -56,7 +56,7 @@ function GameFilterPills({ value, onChange }: { value: GameId | null; onChange: 
           type="button"
           onClick={() => onChange(id)}
           aria-pressed={value === id}
-          className={`px-4 py-2 rounded-full text-sm font-bold capitalize transition-colors ${
+          className={`px-4 py-2 rounded-none text-sm font-bold capitalize transition-colors ${
             value === id ? 'bg-wire text-oche' : 'bg-oche text-sisal border border-sisal/30 hover:opacity-80'
           }`}
         >
@@ -154,7 +154,7 @@ export default function StatsPage() {
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`text-[10px] font-bold uppercase tracking-widest rounded-full px-2.5 py-1 ${
+                          className={`text-[10px] font-bold uppercase tracking-widest rounded-none px-2.5 py-1 ${
                             match.won ? 'bg-double text-chalk' : 'bg-treble text-chalk'
                           }`}
                         >

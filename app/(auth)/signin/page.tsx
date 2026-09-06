@@ -15,7 +15,7 @@ export default function SignInPage() {
       if (provider === "email") {
         await signIn(provider, { email, redirect: false });
       } else {
-        await signIn(provider);
+        await signIn(provider, { callbackUrl: "/" });
       }
     } finally {
       setIsLoading(false);

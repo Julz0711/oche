@@ -1,6 +1,6 @@
 # Offline Support Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Let a local match (two players, one device) survive a page reload or a full app close+reopen — including with zero connectivity — provided it was already created and loaded at least once online; retry a failed match-completion sync automatically; and make the app shell itself loadable offline via a real (currently no-op) service worker cache.
 
@@ -30,7 +30,7 @@
 **Interfaces:**
 - Produces: `StoredLocalMatch` (type), `saveLocalMatch(matchId: string, snapshot: StoredLocalMatch): void`, `loadLocalMatch(matchId: string): StoredLocalMatch | null`, `clearLocalMatch(matchId: string): void`, `markPendingCompletion(matchId: string, winnerId: string | null): void`, `listPendingCompletions(): { matchId: string; snapshot: StoredLocalMatch }[]` — all consumed by Tasks 2, 3, and 4.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `lib/localMatchStorage.test.ts`:
 
@@ -134,12 +134,12 @@ describe('markPendingCompletion / listPendingCompletions', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run lib/localMatchStorage.test.ts`
 Expected: FAIL — `Cannot find module './localMatchStorage'` or similar (the module doesn't exist yet).
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `lib/localMatchStorage.ts`:
 
@@ -222,12 +222,12 @@ export function listPendingCompletions(): { matchId: string; snapshot: StoredLoc
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run lib/localMatchStorage.test.ts`
 Expected: PASS — 7 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/localMatchStorage.ts lib/localMatchStorage.test.ts
@@ -245,7 +245,7 @@ git commit -m "feat(offline): lib/localMatchStorage — local-match persistence 
 - Consumes: `saveLocalMatch` (Task 1, `@/lib/localMatchStorage`).
 - Produces: every local-mode state change (`setMatch`, `applyThrow`, `undo`) now also writes through to `localStorage` — consumed by Task 3's mount-effect reorder.
 
-- [ ] **Step 1: Add the import**
+- [x] **Step 1: Add the import**
 
 At the top of `store/match.ts`, add one import line after the existing ones:
 
@@ -256,7 +256,7 @@ import { GameModule, PlayerId, Throw, Visit } from '@/lib/types';
 import { saveLocalMatch } from '@/lib/localMatchStorage';
 ```
 
-- [ ] **Step 2: Persist on `setMatch`**
+- [x] **Step 2: Persist on `setMatch`**
 
 Change:
 
@@ -297,7 +297,7 @@ to:
   },
 ```
 
-- [ ] **Step 3: Persist on `applyThrow`'s local branch**
+- [x] **Step 3: Persist on `applyThrow`'s local branch**
 
 Change:
 
@@ -324,7 +324,7 @@ to:
     }
 ```
 
-- [ ] **Step 4: Persist on `undo`'s local branch**
+- [x] **Step 4: Persist on `undo`'s local branch**
 
 Change:
 
@@ -351,16 +351,16 @@ to:
     }
 ```
 
-- [ ] **Step 5: Verify types**
+- [x] **Step 5: Verify types**
 
 Run: `npx tsc --noEmit`
 Expected: clean, no errors.
 
-- [ ] **Step 6: Manual verification**
+- [x] **Step 6: Manual verification**
 
 No automated tests exist for `store/match.ts` anywhere in this project (a Zustand store; verification for it has always been manual/integration-level). Run `npm run dev`, start a local match, throw a few darts, and confirm in Chrome DevTools → Application → Local Storage that a key named `oche:local-match:<the match id>` now exists and its JSON value's `gameState` updates after each throw and after Undo.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add store/match.ts
@@ -378,7 +378,7 @@ git commit -m "feat(offline): persist local-mode match state to localStorage"
 - Consumes: `loadLocalMatch` (Task 1, `@/lib/localMatchStorage`).
 - Produces: a local match with a stored snapshot now hydrates with zero network calls, online or offline — the core deliverable of this whole plan.
 
-- [ ] **Step 1: Add the import**
+- [x] **Step 1: Add the import**
 
 At the top of the file, alongside the existing imports (currently ending with `import { identityIdOf, MatchPlayerDoc } from '@/lib/matchLobby';`), add:
 
@@ -386,7 +386,7 @@ At the top of the file, alongside the existing imports (currently ending with `i
 import { loadLocalMatch } from '@/lib/localMatchStorage';
 ```
 
-- [ ] **Step 2: Reorder the mount effect**
+- [x] **Step 2: Reorder the mount effect**
 
 The current mount effect (inside `useEffect(() => { const init = async () => { ... }; init(); }, [id]);`) reads:
 
@@ -503,16 +503,16 @@ Replace it with (adding a localStorage-first branch before the existing fetch lo
     };
 ```
 
-- [ ] **Step 3: Verify types**
+- [x] **Step 3: Verify types**
 
 Run: `npx tsc --noEmit`
 Expected: clean, no errors.
 
-- [ ] **Step 4: Manual verification**
+- [x] **Step 4: Manual verification**
 
 Run `npm run dev`. Start a local match, throw a few darts (leaving it mid-leg), then reload the page. Confirm the match resumes exactly where it left off (same leg, same darts-so-far) rather than restarting from a fresh `init()` — this is the core "don't lose a reload" behavior, testable online first before Task 5 adds true offline-shell loading.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add "app/(match)/match/[id]/page.tsx"
@@ -532,7 +532,7 @@ git commit -m "feat(offline): match page prefers localStorage over the network f
 - Consumes: `clearLocalMatch`, `markPendingCompletion`, `listPendingCompletions` (Task 1, `@/lib/localMatchStorage`).
 - Produces: a local match whose completion POST fails is retried automatically on next app load or when connectivity returns — closes the aggregate-stats plan's already-documented "unrecoverable failed completion" gap.
 
-- [ ] **Step 1: Add the import to the match page**
+- [x] **Step 1: Add the import to the match page**
 
 Add to the match page's existing imports:
 
@@ -542,7 +542,7 @@ import { loadLocalMatch, clearLocalMatch, markPendingCompletion } from '@/lib/lo
 
 (This replaces the `loadLocalMatch`-only import line added in Task 3 — one combined import line for all three functions this file now uses.)
 
-- [ ] **Step 2: Extend the completion effect**
+- [x] **Step 2: Extend the completion effect**
 
 Change:
 
@@ -595,7 +595,7 @@ to:
   }, [mode, gameModule, gameState, id]);
 ```
 
-- [ ] **Step 3: Create the retry manager component**
+- [x] **Step 3: Create the retry manager component**
 
 Create `components/PendingSyncManager.tsx`:
 
@@ -638,7 +638,7 @@ export function PendingSyncManager() {
 }
 ```
 
-- [ ] **Step 4: Mount it in the root layout**
+- [x] **Step 4: Mount it in the root layout**
 
 In `app/layout.tsx`, add the import and mount it alongside the existing `PwaRegistration`:
 
@@ -670,16 +670,16 @@ to:
       </body>
 ```
 
-- [ ] **Step 5: Verify types**
+- [x] **Step 5: Verify types**
 
 Run: `npx tsc --noEmit`
 Expected: clean, no errors.
 
-- [ ] **Step 6: Manual verification**
+- [x] **Step 6: Manual verification**
 
 Run `npm run dev`. Start a local match with a short leg count, open Chrome DevTools → Network → set to **Offline**, finish the match (throw the winning dart). Confirm in DevTools → Application → Local Storage that `oche:local-match:<id>`'s JSON now has a `pendingCompletion` field set. Switch DevTools back to **Online**, wait a moment (or reload the page, which re-mounts `PendingSyncManager`), and confirm the localStorage entry for that match is gone (synced) — then check `/stats` shows that match in the history list.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add "app/(match)/match/[id]/page.tsx" components/PendingSyncManager.tsx app/layout.tsx
@@ -695,7 +695,7 @@ git commit -m "feat(offline): retry failed local-match completion syncs (Pending
 
 **Interfaces:** None — this task has no TypeScript interface; it's a standalone browser-loaded script with no imports/exports.
 
-- [ ] **Step 1: Replace the no-op service worker with a runtime cache**
+- [x] **Step 1: Replace the no-op service worker with a runtime cache**
 
 The current file:
 
@@ -761,11 +761,11 @@ self.addEventListener('fetch', (event) => {
 });
 ```
 
-- [ ] **Step 2: Manual verification**
+- [x] **Step 2: Manual verification**
 
 Service workers behave most predictably against a production build, so run `npm run build && npm start` (not `npm run dev`). Open the app in Chrome, sign in, start and play a local match (this visits `/match/<id>` at least once while online, so the service worker caches its shell). In DevTools → Application → Service Workers, confirm a worker is active and `oche-runtime-v1` appears under Application → Cache Storage with entries. Set DevTools → Network → **Offline**, then fully reload that same match URL (a hard refresh). Confirm the page still renders (the cached shell loads) rather than showing the browser's own offline error page — the match's actual game state then resumes via Task 3's localStorage-first hydration once the JS runs.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add public/sw.js
@@ -782,7 +782,7 @@ git commit -m "feat(offline): real runtime cache in the service worker (network-
 
 **Interfaces:** None consumed from earlier tasks; this is a self-contained UI component using only browser APIs (`navigator.onLine`, `window`'s `online`/`offline` events).
 
-- [ ] **Step 1: Create the banner**
+- [x] **Step 1: Create the banner**
 
 Create `components/OfflineBanner.tsx`:
 
@@ -822,7 +822,7 @@ export function OfflineBanner() {
 }
 ```
 
-- [ ] **Step 2: Mount it in the root layout**
+- [x] **Step 2: Mount it in the root layout**
 
 In `app/layout.tsx`, add the import and mount it alongside the other two side-effect/utility components:
 
@@ -842,16 +842,16 @@ import "./globals.css";
       </body>
 ```
 
-- [ ] **Step 3: Verify types**
+- [x] **Step 3: Verify types**
 
 Run: `npx tsc --noEmit`
 Expected: clean, no errors.
 
-- [ ] **Step 4: Manual verification**
+- [x] **Step 4: Manual verification**
 
 Run `npm run dev`, open the app, toggle Chrome DevTools → Network → **Offline**. Confirm the banner appears at the top of the screen. Toggle back to **Online** and confirm it disappears.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add components/OfflineBanner.tsx app/layout.tsx
@@ -866,17 +866,17 @@ No code changes — this task verifies the whole feature works end-to-end, the s
 
 **Files:** none.
 
-- [ ] **Step 1: Final regression check**
+- [x] **Step 1: Final regression check**
 
 Run: `npx tsc --noEmit && npx vitest run`
 Expected: clean, all tests passing — the existing suite plus the 7 new `lib/localMatchStorage.test.ts` tests from Task 1, no other count change.
 
-- [ ] **Step 2: The end-to-end scenario with no automated substitute**
+- [x] **Step 2: The end-to-end scenario with no automated substitute**
 
 This is the one thing genuinely worth a live pass beyond what Tasks 2–6 already manually verified in isolation: the full "close the app, go offline, reopen, resume" flow, combining Task 3 (localStorage-first hydration) and Task 5 (service worker shell caching) together.
 
 Run `npm run build && npm start`. In Chrome: sign in, start a local match, throw a few darts. Set DevTools → Network → **Offline**. Fully close the tab. Reopen it (paste the same `/match/<id>` URL, or use the PWA if installed) while still offline. Confirm: the app shell loads (from the service worker's cache) and the match resumes exactly where it was left (from localStorage) — not a blank error page, not a fresh restart.
 
-- [ ] **Step 3: Report**
+- [x] **Step 3: Report**
 
 No commit for this task — verification only. Summarize what was verified and any acknowledged gaps (e.g. if a true full-device-restart test wasn't feasible in the environment, note that explicitly rather than skipping it silently, consistent with this project's established convention from the Copycat and aggregate-stats plans).

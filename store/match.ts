@@ -1,7 +1,7 @@
 // store/match.ts
 import { create } from 'zustand';
 import { GameModule, PlayerId, Throw, Visit } from '@/lib/types';
-import { saveLocalMatch } from '@/lib/localMatchStorage';
+import { saveLocalMatch, loadLocalMatch } from '@/lib/localMatchStorage';
 
 type MatchMode = 'local' | 'remote';
 type MatchStatus = 'lobby' | 'live' | 'complete';
@@ -73,7 +73,13 @@ export const useMatchStore = create<MatchStore>((set, get) => ({
   }) => {
     set({ matchId, gameModule, gameState, settings, mode, status, players, you, hostId, roomCode });
     if (mode === 'local') {
-      saveLocalMatch(matchId, { gameId: gameModule.id, settings, gameState });
+      const previous = loadLocalMatch(matchId);
+      saveLocalMatch(matchId, {
+        gameId: gameModule.id,
+        settings,
+        gameState,
+        pendingCompletion: previous?.pendingCompletion ?? null,
+      });
     }
   },
 

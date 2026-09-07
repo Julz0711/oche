@@ -17,13 +17,9 @@ import { connectDB } from '@/lib/db';
 import { Match } from '@/lib/db/models';
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
-import { evaluateAchievements, getUserAchievements } from '@/lib/games/achievements';
-import type { Achievement, MatchData } from '@/lib/achievements/types';
-
-/** An unlocked achievement plus the user's running count for it (1 for one-time achievements). */
-export interface UnlockedAchievement extends Achievement {
-  count: number;
-}
+import { evaluateAchievements } from '@/lib/games/achievements';
+import type { MatchData } from '@/lib/achievements/types';
+import { isParticipant, withCounts, type MatchDoc } from '@/lib/achievements/matchAccess';
 
 /**
  * In a local match both players share one device: the account holder is seated first (see
@@ -31,22 +27,6 @@ export interface UnlockedAchievement extends Achievement {
  * players as `player1`/`player2`, so a stored winner of `player1` means the owner won.
  */
 const LOCAL_OWNER_PLAYER_ID = 'player1';
-
-interface MatchDoc {
-  _id: unknown;
-  gameId?: string;
-  mode?: string;
-  userId?: string;
-  hostId?: string;
-  winnerId?: string | null;
-  players?: { userId?: string }[];
-}
-
-/** Whether `userId` took part in this match and may therefore earn achievements from it. */
-function isParticipant(match: MatchDoc, userId: string): boolean {
-  if (match.userId === userId || match.hostId === userId) return true;
-  return (match.players ?? []).some((player) => player.userId === userId);
-}
 
 /**
  * Build the engine's view of the match from the persisted document.
@@ -69,18 +49,6 @@ function buildMatchData(match: MatchDoc, matchId: string, userId: string): Match
     // engine's `winnerId === userId` checks read the same in both modes.
     winnerId: userWon ? userId : storedWinner,
   };
-}
-
-/** Attach each unlocked achievement's current per-user count for the toast's "(xN)" suffix. */
-async function withCounts(unlocked: Achievement[], userId: string): Promise<UnlockedAchievement[]> {
-  if (unlocked.length === 0) return [];
-  const userAchievements = await getUserAchievements(userId);
-  return unlocked.map((achievement) => ({
-    ...achievement,
-    count:
-      userAchievements.find((entry) => entry.achievement_id === achievement.achievement_id)?.count ??
-      1,
-  }));
 }
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {

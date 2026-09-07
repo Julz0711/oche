@@ -8,18 +8,42 @@ import { getGameModule, GameId } from '@/lib/games/registry';
 import { DartboardInput } from '@/components/organisms/DartboardInput';
 import { DartBadge } from '@/components/atoms/DartBadge';
 import { PostMatchStats } from '@/components/organisms/PostMatchStats';
-import { Throw, PlayerId, createPlayerId } from '@/lib/types';
+import { GameModule, Throw, PlayerId, createPlayerId } from '@/lib/types';
 import { Target, Ban, Undo2, Crosshair, BarChart3, Volume2, VolumeX } from 'lucide-react';
 import { useRemoteMatchSync } from '@/hooks/useRemoteMatchSync';
 import { MatchLobby } from '@/components/organisms/MatchLobby';
 import { LiveStatsDrawer } from '@/components/organisms/LiveStatsDrawer';
 import { identityIdOf, MatchPlayerDoc } from '@/lib/matchLobby';
 import { loadLocalMatch, clearLocalMatch, markPendingCompletion } from '@/lib/localMatchStorage';
+import { completedDartCount, newlyCompletedVisit, VisitDocFields } from '@/lib/matchThrows';
 import { playDartSound, play180Melody } from '@/lib/sounds';
 import { Panel, Pips, BackLink } from '@/components/atoms';
 
 interface MatchPageProps {
   params: Promise<{ id: string }>;
+}
+
+/**
+ * In a local match both players share one device and the account holder is seated first (see
+ * `POST /api/matches`, which names `players[0]` after the session user), so only that seat's
+ * visits can earn the signed-in user anything.
+ */
+const LOCAL_OWNER_PLAYER_ID = 'player1';
+
+/**
+ * The seat whose completed visits count toward the signed-in user's achievements: their own seat
+ * in a remote match, the owner's fixed first seat in a local one. Null when the match has no such
+ * seat yet (e.g. a remote client that hasn't learned its identity).
+ */
+function achievementSeat(
+  gameModule: GameModule<any, any>,
+  gameState: any,
+  mode: 'local' | 'remote',
+  you: string | null
+): PlayerId | null {
+  const wanted = mode === 'remote' ? you : LOCAL_OWNER_PLAYER_ID;
+  if (!wanted) return null;
+  return gameModule.players(gameState).find((seat) => seat === wanted) ?? null;
 }
 
 /** A segmented status-bar track — the fill represents `value` out of `target`. */
@@ -349,6 +373,59 @@ export default function MatchPage({ params }: MatchPageProps) {
       // Offline or a transient server error — no toast this time.
     }
   }, [id]);
+
+  /**
+   * Ask the server which round-scoped achievements a just-completed visit unlocked, and toast
+   * them. Same silent-failure contract as the match-completion request: a missed toast must never
+   * interrupt play.
+   */
+  const requestVisitAchievements = useCallback(
+    async (visit: VisitDocFields) => {
+      try {
+        const res = await fetch(`/api/matches/${id}/visits/achievements`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            // Only sector+ring travel: the route recomputes each dart's points itself.
+            throws: visit.throws.map((t) => ({ sector: t.sector, ring: t.ring })),
+            busted: visit.busted,
+            isCheckout: visit.isCheckout,
+          }),
+        });
+        if (!res.ok) return;
+        const body = (await res.json()) as { achievements?: (Achievement & { count?: number })[] };
+        const { showToast } = useAchievementStore.getState();
+        (body.achievements ?? []).forEach((achievement) => showToast(achievement));
+      } catch {
+        // Offline or a transient server error — no toast for this round.
+      }
+    },
+    [id]
+  );
+
+  // Darts the user's own seat had thrown across completed visits the last time this effect ran.
+  // Null until the first observation, which is only a baseline: a page opened mid-match must not
+  // replay the visit that happened to be the last one before the reload.
+  const seatDartsRef = useRef<number | null>(null);
+
+  // Watch game state for the user's own seat finishing a visit. State changes for all sorts of
+  // reasons — the local opponent throwing, a remote broadcast of someone else's dart — so the
+  // trigger is the seat's own completed-dart count going up, not merely state changing.
+  useEffect(() => {
+    if (!gameModule || !gameState) return;
+    const seat = achievementSeat(gameModule, gameState, mode, you);
+    if (!seat) return;
+
+    const darts = completedDartCount(gameModule, gameState, seat);
+    const previous = seatDartsRef.current;
+    seatDartsRef.current = darts;
+    // First observation (baseline) or an undo walking the count back — nothing new to award.
+    if (previous === null || darts <= previous) return;
+
+    const visit = newlyCompletedVisit(gameModule, gameState, seat);
+    if (!visit) return;
+    requestVisitAchievements(visit);
+  }, [gameModule, gameState, mode, you, requestVisitAchievements]);
 
   useEffect(() => {
     if (mode !== 'local' || !gameModule || !gameState) return;

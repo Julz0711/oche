@@ -7,24 +7,8 @@ import { getIdentity } from '@/lib/identity';
 import { canSubmitThrow, newlyCompletedVisit } from '@/lib/matchThrows';
 import { publishMatchEvent } from '@/lib/realtime';
 import { getGameModule, GameId } from '@/lib/games/registry';
-import { createPlayerId, Throw, Ring } from '@/lib/types';
-
-const VALID_RINGS: readonly Ring[] = ['S', 'D', 'T', 'OB', 'IB', 'M'];
-
-/** Type guard for the six valid Ring values — basic request-shape hygiene, not anti-cheat (no
- *  engine trusts a client-supplied `points` value regardless of how well-formed the throw is). */
-function isValidRing(ring: unknown): ring is Ring {
-  return typeof ring === 'string' && (VALID_RINGS as readonly string[]).includes(ring);
-}
-
-/** Whether `sector` is legal for the given `ring`. OB/IB are fixed-value bull rings — the client
- *  encodes both with `sector: 25`, but the sector value doesn't affect them, so any sector is
- *  accepted. M (miss) is likewise sector-irrelevant. S/D/T require a sector in the 1-20 range. */
-function isValidSector(sector: unknown, ring: Ring): boolean {
-  if (typeof sector !== 'number' || !Number.isInteger(sector)) return false;
-  if (ring === 'OB' || ring === 'IB' || ring === 'M') return true;
-  return sector >= 1 && sector <= 20;
-}
+import { createPlayerId, Throw } from '@/lib/types';
+import { isValidRing, isValidSector } from '@/lib/throwValidation';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

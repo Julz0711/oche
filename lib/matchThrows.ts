@@ -35,3 +35,20 @@ export function newlyCompletedVisit(
   if (!visit) return null;
   return { playerId: playerId as unknown as string, ...visit };
 }
+
+/**
+ * How many darts a player has thrown across all *completed* visits in the match so far.
+ *
+ * Every game module's `heatmap` counts exactly the darts of completed visits (the in-progress
+ * visit is not in `visitHistory` yet), so this number only ever moves when that player finishes a
+ * visit — which makes it a game-agnostic "a new visit landed for this player" signal for a client
+ * watching state it did not itself produce (a remote match's broadcast state changes on every
+ * opponent throw too). Undo walks it back down, which callers should treat as "nothing new".
+ */
+export function completedDartCount(
+  gameModule: GameModule<any, any>,
+  state: any,
+  playerId: PlayerId
+): number {
+  return Object.values(gameModule.heatmap(state, playerId)).reduce((sum, count) => sum + count, 0);
+}

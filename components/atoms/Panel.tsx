@@ -91,6 +91,15 @@ export function Panel({
   const borderWidth = active ? 2.5 : 1.5;
   const borderColor = active ? accentVar[accent] : 'rgba(228,216,188,0.28)';
 
+  // The notch cut is a 45° diagonal, but `padding: borderWidth` insets the inner layer the same
+  // few px on every side regardless of edge angle. On a straight edge that px inset IS the
+  // border's visible thickness; on the diagonal, only its component perpendicular to the cut is
+  // visible — `borderWidth / sqrt(2)`, ~0.7x. Left alone, the diagonal reads visibly thinner than
+  // the straight edges even with identical padding. Shrinking the notch by less than the full
+  // borderWidth widens just that diagonal sliver to compensate, without touching the straight-edge
+  // padding (which already looks right).
+  const notchBorderWidth = borderWidth * 0.85;
+
   // A real `border` (or box-shadow used as a border substitute) can't trace an arbitrary
   // clip-path polygon — box-shadow is computed from the element's plain rectangular
   // border-box and then clipped away along with everything else, so it never actually
@@ -117,7 +126,7 @@ export function Panel({
           ${className}
         `}
         style={{
-          clipPath: clipPathFor(`calc(${notchExpr} - ${borderWidth}px)`),
+          clipPath: clipPathFor(`calc(${notchExpr} - ${notchBorderWidth}px)`),
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
         }}
       >

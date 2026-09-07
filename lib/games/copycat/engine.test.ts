@@ -74,6 +74,62 @@ describe('Copycat Engine', () => {
     });
   });
 
+  describe('a matching visit that resolves early (fewer than 3 darts)', () => {
+    it('scores the point on a single dart when it exactly hits the target', () => {
+      const settings = { ...CopycatDefaultSettings, firstTo: 5 as const };
+      let state = init([player1, player2], settings);
+      for (const t of throwVisit(20, 'S', 3)) state = applyThrow(state, t, settings); // target = 60
+      // player2's very first dart already matches — the reported bug: this used to require 3 darts.
+      state = applyThrow(state, { sector: 20 as any, ring: 'T', points: 0, order: 0 as any }, settings); // T20 = 60
+
+      expect(state.pointsWon[player2]).toBe(1);
+      expect(state.currentVisit).toEqual([]); // visit closed out, not left open waiting for more darts
+      expect(state.target).toBe(null);
+    });
+
+    it('scores the point after two darts when their running total exactly hits the target', () => {
+      const settings = { ...CopycatDefaultSettings, firstTo: 5 as const };
+      let state = init([player1, player2], settings);
+      // player1's example from the bug report: 6, 8, 6 = 20
+      state = applyThrow(state, { sector: 6 as any, ring: 'S', points: 0, order: 0 as any }, settings);
+      state = applyThrow(state, { sector: 8 as any, ring: 'S', points: 0, order: 1 as any }, settings);
+      state = applyThrow(state, { sector: 6 as any, ring: 'S', points: 0, order: 2 as any }, settings);
+      expect(state.target).toBe(20);
+
+      // player2 matches with a single dart, S20 + D10... reported as "a single 20 / double 10":
+      // here, D10 = 20 in one dart.
+      state = applyThrow(state, { sector: 10 as any, ring: 'D', points: 0, order: 0 as any }, settings);
+
+      expect(state.pointsWon[player2]).toBe(1);
+      expect(state.currentVisit).toEqual([]);
+    });
+
+    it('does not resolve early when the running total merely overshoots the target', () => {
+      const settings = { ...CopycatDefaultSettings, firstTo: 5 as const };
+      let state = init([player1, player2], settings);
+      for (const t of throwVisit(5, 'S', 3)) state = applyThrow(state, t, settings); // target = 15
+
+      // player2's first dart already exceeds 15 — must still play out to 3 darts, unchanged.
+      state = applyThrow(state, { sector: 20 as any, ring: 'S', points: 0, order: 0 as any }, settings); // 20
+      expect(state.currentVisit.length).toBe(1); // visit still open, not resolved
+    });
+
+    it('still honours the match-point double-finish rule when the point-winning dart is early', () => {
+      const settings = { ...CopycatDefaultSettings, firstTo: 3 as const };
+      let state = init([player1, player2], settings);
+      state = { ...state, pointsWon: { ...state.pointsWon, [player1]: 2 }, target: 40, currentPlayerIndex: 0 };
+
+      // Two darts reach 40 early (S20, S20), but the finishing dart is a single, not a double —
+      // must not win despite matching, exactly like the existing 3-dart non-qualifying-finish case.
+      state = applyThrow(state, { sector: 20 as any, ring: 'S', points: 0, order: 0 as any }, settings); // 20
+      state = applyThrow(state, { sector: 20 as any, ring: 'S', points: 0, order: 1 as any }, settings); // 40, matches early, single finish
+
+      expect(state.pointsWon[player1]).toBe(2); // unchanged — non-qualifying finish, even though it matched
+      expect(isComplete(state)).toBe(false);
+      expect(state.target).toBe(40); // treated exactly like a non-match: total becomes the new target
+    });
+  });
+
   describe('match-point', () => {
     it('a matching visit that finishes on a double wins the point and the match', () => {
       const settings = { ...CopycatDefaultSettings, firstTo: 3 as const };

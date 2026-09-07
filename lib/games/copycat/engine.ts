@@ -90,16 +90,24 @@ export function applyThrow(state: CopycatState, throw_: Throw, settings: Copycat
   const trustedThrow: Throw = { ...throw_, points: computeDartPoints(throw_.sector, throw_.ring) };
   const newVisit = [...state.currentVisit, trustedThrow];
 
-  if (newVisit.length < 3) {
+  // A visit resolves as soon as its running total exactly hits the target, even on the 1st or
+  // 2nd dart — throwing more darts after that couldn't change the outcome (there's no way to
+  // reduce a total), so there's nothing left to wait for. Overshooting the target doesn't
+  // resolve early, though: the visit still plays out to 3 darts, exactly as before.
+  const runningTotal = newVisit.reduce((sum, t) => sum + t.points, 0);
+  const matchedEarly = state.target !== null && runningTotal === state.target && newVisit.length < 3;
+
+  if (newVisit.length < 3 && !matchedEarly) {
     return { ...state, currentVisit: newVisit };
   }
 
   return endVisit(state, newVisit, settings);
 }
 
-/** A visit here always resolves at exactly 3 darts — unlike X01, there's no "bust" concept
- *  that could end a visit early (every dart only adds to the total, nothing can go negative),
- *  so there's no early-resolution path to handle. */
+/** A visit resolves either at exactly 3 darts, or earlier the moment its running total exactly
+ *  matches the target (see `applyThrow`) — there's no "bust" concept the way X01 has one (every
+ *  dart only adds to the total, nothing can go negative), so overshooting never ends a visit
+ *  early; only an exact match does. */
 function endVisit(state: CopycatState, newVisit: Throw[], settings: CopycatSettings): CopycatState {
   const currentPlayer = state.players[state.currentPlayerIndex];
   const total = newVisit.reduce((sum, t) => sum + t.points, 0);

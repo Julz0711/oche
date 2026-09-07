@@ -5,7 +5,7 @@ import { PlayerId } from '@/lib/types';
 import { Numeral } from '@/components/atoms/Numeral';
 import { DartBadge } from '@/components/atoms/DartBadge';
 import { Panel } from '@/components/atoms';
-import { Crosshair } from 'lucide-react';
+import { Crosshair, Target } from 'lucide-react';
 
 const TOTAL_MARKS = CRICKET_NUMBERS.length * 3; // 7 numbers, 3 marks to close each = 21
 
@@ -67,6 +67,16 @@ export function ScoreboardSlot({
   const lastVisit = lastCompletedVisitFor(state, playerId);
   const lastThrows = isCurrentPlayer ? state.currentVisit : (lastVisit?.throws ?? []);
 
+  // Closing all 7 numbers only wins the leg if you also lead (or tie) every opponent on points
+  // (engine.ts's endVisit) — surfaced here so "closed out but still trailing" reads as a clear
+  // status instead of "I closed everything, why didn't the game end?".
+  const hasClosedAll = CRICKET_NUMBERS.every((n) => state.marks[playerId][n] === 3);
+  const maxOpponentPoints = Math.max(
+    0,
+    ...state.players.filter((p) => p !== playerId).map((p) => state.points[p])
+  );
+  const pointsBehind = hasClosedAll ? Math.max(0, maxOpponentPoints - state.points[playerId]) : 0;
+
   return (
     <Panel notch="panel" accent="wire" active={isCurrentPlayer} activeBadge={false} className="p-5">
       {isCurrentPlayer && (
@@ -74,6 +84,14 @@ export function ScoreboardSlot({
       )}
       <div className="text-xs font-bold uppercase tracking-widest text-sisal">{displayName ?? playerId}</div>
       <Numeral value={state.points[playerId]} size="4xl" className="font-display leading-none block mt-1" />
+      {pointsBehind > 0 && (
+        <div className="flex items-center gap-1.5 mt-2 text-treble">
+          <Target className="w-3.5 h-3.5 shrink-0" />
+          <span className="text-xs font-display font-bold uppercase tracking-wide">
+            Closed out — need {pointsBehind} more point{pointsBehind === 1 ? '' : 's'}
+          </span>
+        </div>
+      )}
 
       <div className="flex items-center justify-between mt-3 mb-1">
         <span className="text-[10px] font-bold uppercase tracking-widest text-sisal">Marks</span>

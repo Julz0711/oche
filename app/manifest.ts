@@ -8,6 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Real-time darts scoring web app',
     start_url: '/',
     display: 'standalone',
+    orientation: 'portrait-primary',
     background_color: tokens.oche,
     theme_color: tokens.oche,
     icons: [

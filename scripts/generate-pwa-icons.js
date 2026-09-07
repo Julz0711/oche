@@ -95,6 +95,16 @@ async function main() {
   // whatever the browser's own tab-bar color is (light or dark), and a floating mark reads far
   // better there than a filled square.
   await renderIcon(192, 0, null, path.join(__dirname, '..', 'app', 'icon.png'));
+
+  // iOS splash screens (launch images) — the OS displays these while the app loads. Sized to
+  // match the device's screen dimensions and safe area. Using the same mark design centered
+  // on the solid background color for consistency.
+  await renderIcon(2048, 512, OCHE, path.join(__dirname, '..', 'public', 'apple-splash-2048-2732.png'));
+  await renderIcon(1668, 417, OCHE, path.join(__dirname, '..', 'public', 'apple-splash-1668-2388.png'));
+  await renderIcon(1536, 384, OCHE, path.join(__dirname, '..', 'public', 'apple-splash-1536-2048.png'));
+  await renderIcon(1125, 281, OCHE, path.join(__dirname, '..', 'public', 'apple-splash-1125-2436.png'));
+  await renderIcon(1170, 292, OCHE, path.join(__dirname, '..', 'public', 'apple-splash-1170-2532.png'));
+  await renderIcon(1284, 321, OCHE, path.join(__dirname, '..', 'public', 'apple-splash-1284-2778.png'));
 }
 
 main().catch((err) => {

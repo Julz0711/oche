@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { User, Trophy, Zap } from 'lucide-react';
 import { tokens } from '@/lib/theme';
 import { Panel, BackLink } from '@/components/atoms';
+import type { Achievement, AchievementRarity, UserAchievement } from '@/lib/achievements/types';
 
 interface UserStats {
   totalMatches: number;
@@ -15,11 +16,107 @@ interface UserStats {
   winRate: number;
 }
 
+interface AchievementsResponse {
+  unlocked: UserAchievement[];
+  definitions: Achievement[];
+}
+
+/**
+ * Achievement definitions carry a lucide-react icon *name* (they are seeded as plain data, so
+ * they cannot reference a component). Rendering emoji keeps the grid a pure data render — no
+ * dynamic icon-component lookup, and no bundling of every lucide icon that might be seeded.
+ */
+function getIconForAchievement(iconName: string): string {
+  const icons: Record<string, string> = {
+    Trophy: '🏆',
+    Zap: '⚡',
+    Target: '🎯',
+    Star: '⭐',
+    Flame: '🔥',
+    Crown: '👑',
+    Lock: '🔒',
+    Medal: '🏅',
+    Gem: '💎',
+    Rocket: '🚀',
+    Shield: '🛡️',
+    Crosshair: '🎯',
+    Repeat: '🔁',
+    Circle: '⚪',
+  };
+  return icons[iconName] || '❓';
+}
+
+const RARITY_ORDER: AchievementRarity[] = ['legendary', 'epic', 'rare', 'common'];
+
+const rarityColors: Record<AchievementRarity, string> = {
+  legendary: 'border-yellow-400 bg-yellow-400/10',
+  epic: 'border-purple-400 bg-purple-400/10',
+  rare: 'border-blue-400 bg-blue-400/10',
+  common: 'border-green-600 bg-green-600/10',
+};
+
+function AchievementsGrid({ unlocked, definitions }: AchievementsResponse) {
+  const unlockedMap = new Map<string, UserAchievement>(
+    unlocked.map((u) => [u.achievement_id, u])
+  );
+
+  return (
+    <div className="flex flex-col gap-8">
+      {RARITY_ORDER.map((rarity) => {
+        const achievements = definitions.filter((d) => d.rarity === rarity);
+        if (achievements.length === 0) return null;
+
+        return (
+          <div key={rarity}>
+            <h3
+              className="text-lg font-bold uppercase mb-4"
+              style={{ color: rarity === 'legendary' ? tokens.wire : tokens.sisal }}
+            >
+              {rarity.charAt(0).toUpperCase() + rarity.slice(1)}
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {achievements.map((achievement) => {
+                const userAch = unlockedMap.get(achievement.achievement_id);
+                const isUnlocked = !!userAch;
+
+                return (
+                  <div
+                    key={achievement.achievement_id}
+                    title={achievement.description}
+                    className={`relative border-2 p-4 flex flex-col items-center gap-2 text-center ${
+                      rarityColors[rarity]
+                    } ${isUnlocked ? '' : 'opacity-30 grayscale'}`}
+                  >
+                    <div className="text-3xl">{getIconForAchievement(achievement.icon)}</div>
+
+                    <p className="text-xs font-bold uppercase">{achievement.name}</p>
+
+                    {/* Repeatable achievements show how many times they have been earned. */}
+                    {achievement.is_repeatable && userAch && (
+                      <div className="absolute top-0 right-0 -m-2 w-6 h-6 rounded-full bg-green-600 text-white text-xs font-bold flex items-center justify-center">
+                        {userAch.count}
+                      </div>
+                    )}
+
+                    {!isUnlocked && <div className="text-sm">🔒</div>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ProfilePage() {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [achievements, setAchievements] = useState<AchievementsResponse | null>(null);
+  const [achievementsLoading, setAchievementsLoading] = useState(true);
 
   useEffect(() => {
     if (sessionStatus === 'unauthenticated') {
@@ -35,6 +132,18 @@ export default function ProfilePage() {
           setStats(await res.json());
         }
         setLoading(false);
+      })();
+    }
+  }, [session?.user]);
+
+  useEffect(() => {
+    if (session?.user) {
+      (async () => {
+        const res = await fetch('/api/user/achievements');
+        if (res.ok) {
+          setAchievements((await res.json()) as AchievementsResponse);
+        }
+        setAchievementsLoading(false);
       })();
     }
   }, [session?.user]);
@@ -151,17 +260,16 @@ export default function ProfilePage() {
           <h2 className="text-xl font-display font-bold mb-4" style={{ color: tokens.wire }}>
             Achievements
           </h2>
-          <div
-            className="p-8 text-center rounded-none border-2 border-dashed"
-            style={{
-              borderColor: tokens.sisal + '33',
-            }}
-          >
-            <div style={{ color: tokens.sisal }}>
-              <p className="text-sm">Achievements coming soon</p>
-              <p className="text-xs mt-2">Unlock badges like "Perfect 180", "9-Dart Finish", and more!</p>
-            </div>
-          </div>
+          {achievementsLoading ? (
+            <div style={{ color: tokens.sisal }}>Loading achievements...</div>
+          ) : achievements ? (
+            <AchievementsGrid
+              unlocked={achievements.unlocked}
+              definitions={achievements.definitions}
+            />
+          ) : (
+            <div style={{ color: tokens.sisal }}>Failed to load achievements</div>
+          )}
         </Panel>
 
         {/* Friends Placeholder */}

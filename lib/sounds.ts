@@ -63,3 +63,45 @@ export function toggleSound() {
   localStorage.setItem('soundEnabled', String(!current));
   return !current;
 }
+
+/** Play a synth melody for a perfect 180 (three triple 20s). */
+export function play180Melody() {
+  if (!isSoundEnabled()) return;
+
+  try {
+    const ctx = getAudioContext();
+    const now = ctx.currentTime;
+    const tempo = 0.15; // Duration of each note
+
+    // The melody: a triumphant ascending line
+    // Notes: C5 E5 G5 C6 (simplified as relative frequencies)
+    const frequencies = [
+      523.25, // C5
+      659.25, // E5
+      783.99, // G5
+      1046.5, // C6
+    ];
+
+    const playNote = (freq: number, startTime: number) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'square'; // Square wave for that synth sound
+      osc.frequency.setValueAtTime(freq, startTime);
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.15, startTime);
+      gain.gain.linearRampToValueAtTime(0, startTime + tempo);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + tempo);
+    };
+
+    // Play the melody
+    frequencies.forEach((freq, i) => {
+      playNote(freq, now + i * tempo);
+    });
+  } catch (err) {
+    // Silently ignore errors
+  }
+}

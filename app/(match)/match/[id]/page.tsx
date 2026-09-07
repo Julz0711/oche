@@ -13,7 +13,7 @@ import { MatchLobby } from '@/components/organisms/MatchLobby';
 import { LiveStatsDrawer } from '@/components/organisms/LiveStatsDrawer';
 import { identityIdOf, MatchPlayerDoc } from '@/lib/matchLobby';
 import { loadLocalMatch, clearLocalMatch, markPendingCompletion } from '@/lib/localMatchStorage';
-import { playDartSound } from '@/lib/sounds';
+import { playDartSound, play180Melody } from '@/lib/sounds';
 import { Panel, Pips, BackLink } from '@/components/atoms';
 
 interface MatchPageProps {
@@ -295,6 +295,20 @@ export default function MatchPage({ params }: MatchPageProps) {
   const handleThrow = (throw_: Throw) => {
     playDartSound(throw_.ring);
     useMatchStore.getState().applyThrow(throw_);
+
+    // Check for a perfect 180 (three T20s)
+    const state = useMatchStore.getState().gameState;
+    if (state && 'currentVisit' in state) {
+      const visit = (state as any).currentVisit;
+      if (
+        visit.length === 3 &&
+        visit.every((t: Throw) => t.sector === 20 && t.ring === 'T') &&
+        visit.reduce((sum: number, t: Throw) => sum + t.points, 0) === 180
+      ) {
+        // Small delay so the dart sound plays first
+        setTimeout(() => play180Melody(), 100);
+      }
+    }
   };
 
   const handleUndo = () => {
@@ -423,13 +437,6 @@ export default function MatchPage({ params }: MatchPageProps) {
         {!isComplete && (
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setStatsOpen(true)}
-              className="flex items-center gap-1.5 rounded-none border-2 border-sisal/30 bg-slate px-3 py-1.5 hover:border-wire transition-colors"
-            >
-              <BarChart3 className="w-4 h-4 text-wire" />
-              <span className="text-xs font-bold uppercase tracking-widest text-chalk">Stats</span>
-            </button>
-            <button
               onClick={handleSoundToggle}
               className="flex items-center justify-center rounded-none border-2 border-sisal/30 bg-slate px-3 py-1.5 hover:border-wire transition-colors"
               title={soundEnabled ? 'Mute sound' : 'Unmute sound'}
@@ -439,6 +446,13 @@ export default function MatchPage({ params }: MatchPageProps) {
               ) : (
                 <VolumeX className="w-4 h-4 text-sisal" />
               )}
+            </button>
+            <button
+              onClick={() => setStatsOpen(true)}
+              className="flex items-center gap-1.5 rounded-none border-2 border-sisal/30 bg-slate px-3 py-1.5 hover:border-wire transition-colors"
+            >
+              <BarChart3 className="w-4 h-4 text-wire" />
+              <span className="text-xs font-bold uppercase tracking-widest text-chalk">Stats</span>
             </button>
             <button
               onClick={handleUndo}

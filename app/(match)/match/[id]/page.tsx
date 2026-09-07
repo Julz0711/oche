@@ -7,7 +7,7 @@ import { DartboardInput } from '@/components/organisms/DartboardInput';
 import { DartBadge } from '@/components/atoms/DartBadge';
 import { PostMatchStats } from '@/components/organisms/PostMatchStats';
 import { Throw, PlayerId, createPlayerId } from '@/lib/types';
-import { Target, Ban, Undo2, Crosshair, BarChart3 } from 'lucide-react';
+import { Target, Ban, Undo2, Crosshair, BarChart3, Volume2, VolumeX } from 'lucide-react';
 import { useRemoteMatchSync } from '@/hooks/useRemoteMatchSync';
 import { MatchLobby } from '@/components/organisms/MatchLobby';
 import { LiveStatsDrawer } from '@/components/organisms/LiveStatsDrawer';
@@ -203,12 +203,27 @@ export default function MatchPage({ params }: MatchPageProps) {
   const [expandedOpponent, setExpandedOpponent] = useState<PlayerId | null>(null);
   const [showAllOpponentVisits, setShowAllOpponentVisits] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+
+  const handleSoundToggle = () => {
+    const newState = !soundEnabled;
+    setSoundEnabled(newState);
+    localStorage.setItem('soundEnabled', String(newState));
+  };
 
   const handleStart = async () => {
     setStarting(true);
     await fetch(`/api/matches/${id}/start`, { method: 'POST' });
     setStarting(false);
   };
+
+  useEffect(() => {
+    // Load sound preference from localStorage
+    const saved = localStorage.getItem('soundEnabled');
+    if (saved !== null) {
+      setSoundEnabled(saved !== 'false');
+    }
+  }, []);
 
   useEffect(() => {
     const init = async () => {
@@ -413,6 +428,17 @@ export default function MatchPage({ params }: MatchPageProps) {
             >
               <BarChart3 className="w-4 h-4 text-wire" />
               <span className="text-xs font-bold uppercase tracking-widest text-chalk">Stats</span>
+            </button>
+            <button
+              onClick={handleSoundToggle}
+              className="flex items-center justify-center rounded-none border-2 border-sisal/30 bg-slate px-3 py-1.5 hover:border-wire transition-colors"
+              title={soundEnabled ? 'Mute sound' : 'Unmute sound'}
+            >
+              {soundEnabled ? (
+                <Volume2 className="w-4 h-4 text-wire" />
+              ) : (
+                <VolumeX className="w-4 h-4 text-sisal" />
+              )}
             </button>
             <button
               onClick={handleUndo}

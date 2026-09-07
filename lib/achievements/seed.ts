@@ -230,6 +230,48 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     category: 'streaks',
     display_order: 21,
   },
+
+  // Common (4 more) - display_order 22-25
+  {
+    achievement_id: 'first_double_bullseye',
+    name: 'First Double Bulls-Eye',
+    description: 'Score a double bull\'s-eye segment',
+    rarity: 'common',
+    icon: 'Target',
+    is_repeatable: false,
+    category: 'milestones',
+    display_order: 22,
+  },
+  {
+    achievement_id: 'practice_makes_perfect',
+    name: 'Practice Makes Perfect',
+    description: 'Play 10 matches total',
+    rarity: 'common',
+    icon: 'Repeat',
+    is_repeatable: false,
+    category: 'milestones',
+    display_order: 23,
+  },
+  {
+    achievement_id: 'round_the_board',
+    name: 'Round the Board',
+    description: 'Hit 10 different numbered segments in a single leg',
+    rarity: 'common',
+    icon: 'Circle',
+    is_repeatable: false,
+    category: 'technique',
+    display_order: 24,
+  },
+  {
+    achievement_id: 'sharpshooter',
+    name: 'Sharpshooter',
+    description: 'Hit 10 bull\'s-eye segments total',
+    rarity: 'common',
+    icon: 'Crosshair',
+    is_repeatable: false,
+    category: 'technique',
+    display_order: 25,
+  },
 ];
 
 export async function seedAchievements(): Promise<void> {

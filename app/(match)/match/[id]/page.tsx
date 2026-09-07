@@ -13,6 +13,7 @@ import { MatchLobby } from '@/components/organisms/MatchLobby';
 import { LiveStatsDrawer } from '@/components/organisms/LiveStatsDrawer';
 import { identityIdOf, MatchPlayerDoc } from '@/lib/matchLobby';
 import { loadLocalMatch, clearLocalMatch, markPendingCompletion } from '@/lib/localMatchStorage';
+import { playDartSound } from '@/lib/sounds';
 import { Panel, Pips, BackLink } from '@/components/atoms';
 
 interface MatchPageProps {
@@ -277,6 +278,7 @@ export default function MatchPage({ params }: MatchPageProps) {
   }, [id]);
 
   const handleThrow = (throw_: Throw) => {
+    playDartSound();
     useMatchStore.getState().applyThrow(throw_);
   };
 

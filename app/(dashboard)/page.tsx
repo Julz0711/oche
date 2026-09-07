@@ -18,6 +18,7 @@ interface ActiveMatch {
   status: 'lobby' | 'live';
   roomCode: string;
   opponents: string[];
+  isHost: boolean;
 }
 
 interface GameOption {
@@ -292,14 +293,16 @@ export default function Dashboard() {
                     </div>
                     <span className="text-xs font-bold uppercase tracking-widest text-wire shrink-0">Resume</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteMatch(m.id)}
-                    aria-label="Delete match"
-                    className="shrink-0 p-1 text-sisal hover:text-treble transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  {m.isHost && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteMatch(m.id)}
+                      aria-label="Delete match"
+                      className="shrink-0 p-1 text-sisal hover:text-treble transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                 </Panel>
               ))}
             </div>

@@ -31,6 +31,7 @@ export async function GET() {
     status: 'lobby' | 'live';
     roomCode: string;
     opponents: string[];
+    isHost: boolean;
   }[] = [];
 
   for (const doc of docs) {
@@ -46,6 +47,9 @@ export async function GET() {
         status: doc.status as 'lobby' | 'live',
         roomCode: doc.roomCode as string,
         opponents,
+        // Only the host can delete this match (app/api/matches/[id]/route.ts's DELETE) — surfaced
+        // here so the dashboard can hide the delete control for matches you only joined.
+        isHost: doc.hostId === session.user!.id,
       });
     } catch {
       // Unregistered/legacy gameId — skip rather than take down the whole list.

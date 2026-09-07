@@ -296,17 +296,21 @@ export default function MatchPage({ params }: MatchPageProps) {
     playDartSound(throw_.ring);
     useMatchStore.getState().applyThrow(throw_);
 
-    // Check for a perfect 180 (three T20s)
+    // Check for a perfect 180 (three T20s) by looking at the last visit in history
     const state = useMatchStore.getState().gameState;
-    if (state && 'currentVisit' in state) {
-      const visit = (state as any).currentVisit;
-      if (
-        visit.length === 3 &&
-        visit.every((t: Throw) => t.sector === 20 && t.ring === 'T') &&
-        visit.reduce((sum: number, t: Throw) => sum + t.points, 0) === 180
-      ) {
-        // Small delay so the dart sound plays first
-        setTimeout(() => play180Melody(), 100);
+    if (state && 'visitHistory' in state) {
+      const history = (state as any).visitHistory;
+      if (history.length > 0) {
+        const lastVisit = history[history.length - 1];
+        const throws = lastVisit.throws || [];
+        if (
+          throws.length === 3 &&
+          throws.every((t: Throw) => t.sector === 20 && t.ring === 'T') &&
+          throws.reduce((sum: number, t: Throw) => sum + t.points, 0) === 180
+        ) {
+          // Small delay so the dart sound plays first
+          setTimeout(() => play180Melody(), 100);
+        }
       }
     }
   };

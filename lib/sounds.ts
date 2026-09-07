@@ -88,8 +88,8 @@ export function play180Melody() {
       osc.frequency.setValueAtTime(freq, startTime);
 
       const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.15, startTime);
-      gain.gain.linearRampToValueAtTime(0, startTime + tempo);
+      gain.gain.setValueAtTime(0.25, startTime);
+      gain.gain.linearRampToValueAtTime(0.02, startTime + tempo);
 
       osc.connect(gain);
       gain.connect(ctx.destination);

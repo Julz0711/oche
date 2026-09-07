@@ -276,12 +276,6 @@ export default function Dashboard() {
                     History
                   </Link>
                   <Link
-                    href="/settings"
-                    className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
-                  >
-                    Settings
-                  </Link>
-                  <Link
                     href="/signout"
                     className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk transition-colors"
                   >

@@ -86,12 +86,6 @@ export default function ProfilePage() {
                 </div>
                 <h1 className="text-3xl font-display font-bold mt-1">{session.user.name || 'Guest'}</h1>
               </div>
-              <div>
-                <div className="text-xs font-bold uppercase tracking-widest" style={{ color: tokens.sisal }}>
-                  Email
-                </div>
-                <p className="text-sm mt-1">{session.user.email}</p>
-              </div>
               <Link
                 href="/settings"
                 className="text-xs font-bold uppercase tracking-widest transition-colors w-fit"

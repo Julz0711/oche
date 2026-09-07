@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Volume2, VolumeX } from 'lucide-react';
 import { tokens } from '@/lib/theme';
 import { Panel } from '@/components/atoms';
 
@@ -15,7 +14,6 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [soundEnabled, setSoundEnabled] = useState(true);
 
   useEffect(() => {
     if (sessionStatus === 'unauthenticated') {
@@ -26,19 +24,6 @@ export default function SettingsPage() {
   useEffect(() => {
     if (session?.user?.name) setName(session.user.name);
   }, [session?.user?.name]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('soundEnabled');
-    if (saved !== null) {
-      setSoundEnabled(saved !== 'false');
-    }
-  }, []);
-
-  const handleSoundToggle = () => {
-    const newValue = !soundEnabled;
-    setSoundEnabled(newValue);
-    localStorage.setItem('soundEnabled', String(newValue));
-  };
 
   const handleSave = async () => {
     const trimmed = name.trim();
@@ -107,23 +92,6 @@ export default function SettingsPage() {
               Saved
             </span>
           )}
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label className="text-[11px] font-bold uppercase tracking-widest" style={{ color: tokens.sisal }}>
-            Sound effects
-          </label>
-          <button
-            onClick={handleSoundToggle}
-            className="w-full px-4 py-2 rounded-none font-semibold transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
-            style={{
-              backgroundColor: soundEnabled ? tokens.double : tokens.sisal,
-              color: tokens.oche,
-            }}
-          >
-            {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            {soundEnabled ? 'Enabled' : 'Disabled'}
-          </button>
         </div>
 
         <button

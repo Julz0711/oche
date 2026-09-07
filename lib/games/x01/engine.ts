@@ -304,6 +304,15 @@ function endVisit(
 }
 
 export function undo(state: X01State): X01State {
+  // If there are darts in the current visit, just remove the last one.
+  if (state.currentVisit.length > 0) {
+    return {
+      ...state,
+      currentVisit: state.currentVisit.slice(0, -1),
+    };
+  }
+
+  // Otherwise, revert the entire last visit from history.
   if (state.visitHistory.length === 0) return state;
 
   const lastVisit = state.visitHistory[state.visitHistory.length - 1];

@@ -58,6 +58,7 @@ const AchievementSchema = new mongoose.Schema({
   rarity: { type: String, enum: ['common', 'rare', 'epic', 'legendary'], required: true },
   icon: { type: String, required: true },
   is_repeatable: { type: Boolean, default: false },
+  trigger_condition: { type: mongoose.Schema.Types.Mixed, required: true },
   category: { type: String, required: true },
   display_order: { type: Number, required: true },
   created_at: { type: Date, default: Date.now },

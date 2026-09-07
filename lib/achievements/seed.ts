@@ -10,29 +10,32 @@ interface AchievementDefinition {
   is_repeatable: boolean;
   category: string;
   display_order: number;
+  trigger_condition: Record<string, unknown>;
 }
 
 export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
   // Legendary (4) - display_order 1-4
   {
-    achievement_id: 'first_win',
+    achievement_id: 'nine_dart_finish',
     name: '9-Dart Finish',
     description: 'Score a perfect 9-dart game (180 in 3 throws)',
     rarity: 'legendary',
     icon: 'Crown',
-    is_repeatable: true,
+    is_repeatable: false,
     category: 'scoring',
     display_order: 1,
+    trigger_condition: { event: 'match_win', darts_thrown: 9, score_sequence: ['180', '180', '180'] },
   },
   {
     achievement_id: 'unstoppable',
     name: 'Unstoppable',
     description: 'Win 10 consecutive matches',
     rarity: 'legendary',
-    icon: 'Fire',
-    is_repeatable: true,
+    icon: 'Flame',
+    is_repeatable: false,
     category: 'streaks',
     display_order: 2,
+    trigger_condition: { event: 'win_streak', count: 10 },
   },
   {
     achievement_id: 'flawless_victory',
@@ -40,9 +43,10 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Win 3 matches in a row without losing a leg',
     rarity: 'legendary',
     icon: 'Star',
-    is_repeatable: true,
+    is_repeatable: false,
     category: 'streaks',
     display_order: 3,
+    trigger_condition: { event: 'match_win_streak', consecutive_matches: 3, no_legs_lost: true },
   },
   {
     achievement_id: 'cricket_god',
@@ -50,9 +54,10 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     description: 'Win a Cricket leg by only hitting required numbers',
     rarity: 'legendary',
     icon: 'Trophy',
-    is_repeatable: true,
+    is_repeatable: false,
     category: 'cricket',
     display_order: 4,
+    trigger_condition: { event: 'cricket_leg_win', only_required_numbers: true },
   },
 
   // Epic (5) - display_order 5-9
@@ -65,16 +70,18 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: true,
     category: 'scoring',
     display_order: 5,
+    trigger_condition: { event: 'round_score', points: 180 },
   },
   {
     achievement_id: 'five_win_streak',
     name: '5-Win Streak',
     description: 'Win 5 consecutive matches',
     rarity: 'epic',
-    icon: 'Lightning',
+    icon: 'Zap',
     is_repeatable: true,
     category: 'streaks',
     display_order: 6,
+    trigger_condition: { event: 'win_streak', count: 5 },
   },
   {
     achievement_id: 'ten_dart_finish',
@@ -85,6 +92,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: true,
     category: 'x01',
     display_order: 7,
+    trigger_condition: { event: 'match_win', game_type: 'x01', darts_thrown_max: 10 },
   },
   {
     achievement_id: 'grand_slam',
@@ -95,6 +103,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: false,
     category: 'milestones',
     display_order: 8,
+    trigger_condition: { event: 'first_win_all_modes', modes: ['x01', 'cricket', 'around_the_board'] },
   },
   {
     achievement_id: 'one_eighty',
@@ -105,6 +114,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: true,
     category: 'scoring',
     display_order: 9,
+    trigger_condition: { event: 'score_180', is_first: false },
   },
 
   // Rare (8) - display_order 10-17
@@ -117,6 +127,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: false,
     category: 'milestones',
     display_order: 10,
+    trigger_condition: { event: 'total_wins', count: 25 },
   },
   {
     achievement_id: 'comeback_kid',
@@ -127,6 +138,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: true,
     category: 'comebacks',
     display_order: 11,
+    trigger_condition: { event: 'match_win', points_behind_min: 100 },
   },
   {
     achievement_id: 'hundred_point_round',
@@ -137,6 +149,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: true,
     category: 'scoring',
     display_order: 12,
+    trigger_condition: { event: 'round_score', points_min: 100 },
   },
   {
     achievement_id: 'triple_trouble',
@@ -147,6 +160,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: true,
     category: 'technique',
     display_order: 13,
+    trigger_condition: { event: 'round_score', only_triples: true },
   },
   {
     achievement_id: 'double_down',
@@ -157,6 +171,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: true,
     category: 'technique',
     display_order: 14,
+    trigger_condition: { event: 'round_score', only_doubles: true },
   },
   {
     achievement_id: 'fifty_plus_average',
@@ -167,16 +182,18 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: true,
     category: 'averages',
     display_order: 15,
+    trigger_condition: { event: 'leg_average', average_min: 50 },
   },
   {
     achievement_id: 'first_180',
     name: 'First 180',
     description: 'Score your first 180',
     rarity: 'rare',
-    icon: 'Lightning',
+    icon: 'Zap',
     is_repeatable: false,
     category: 'milestones',
     display_order: 16,
+    trigger_condition: { event: 'score_180', is_first: true },
   },
   {
     achievement_id: 'bounce_back',
@@ -187,11 +204,12 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: true,
     category: 'comebacks',
     display_order: 17,
+    trigger_condition: { event: 'match_win', lost_first_leg: true },
   },
 
   // Common (4) - display_order 18-21
   {
-    achievement_id: 'first_win_common',
+    achievement_id: 'first_win',
     name: 'First Win',
     description: 'Win your first match',
     rarity: 'common',
@@ -199,6 +217,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: false,
     category: 'milestones',
     display_order: 18,
+    trigger_condition: { event: 'match_win', count: 1 },
   },
   {
     achievement_id: 'first_20',
@@ -209,6 +228,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: false,
     category: 'milestones',
     display_order: 19,
+    trigger_condition: { event: 'segment_hit', segment: 20 },
   },
   {
     achievement_id: 'first_triple',
@@ -219,6 +239,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: false,
     category: 'milestones',
     display_order: 20,
+    trigger_condition: { event: 'triple_hit' },
   },
   {
     achievement_id: 'winning_streak',
@@ -229,6 +250,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: true,
     category: 'streaks',
     display_order: 21,
+    trigger_condition: { event: 'win_streak', count: 3 },
   },
 
   // Common (4 more) - display_order 22-25
@@ -241,6 +263,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: false,
     category: 'milestones',
     display_order: 22,
+    trigger_condition: { event: 'bullseye_hit', is_double: true },
   },
   {
     achievement_id: 'practice_makes_perfect',
@@ -251,6 +274,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: false,
     category: 'milestones',
     display_order: 23,
+    trigger_condition: { event: 'total_matches_played', count: 10 },
   },
   {
     achievement_id: 'round_the_board',
@@ -261,6 +285,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: false,
     category: 'technique',
     display_order: 24,
+    trigger_condition: { event: 'different_segments_hit', count: 10, per_leg: true },
   },
   {
     achievement_id: 'sharpshooter',
@@ -271,21 +296,18 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     is_repeatable: false,
     category: 'technique',
     display_order: 25,
+    trigger_condition: { event: 'bullseye_hit_count', count: 10 },
   },
 ];
 
 export async function seedAchievements(): Promise<void> {
   try {
-    const operations = ACHIEVEMENT_DEFINITIONS.map((definition) => ({
-      updateOne: {
-        filter: { achievement_id: definition.achievement_id },
-        update: { $set: definition },
-        upsert: true,
-      },
-    }));
-
-    if (operations.length > 0) {
-      await (Achievement as any).bulkWrite(operations);
+    for (const definition of ACHIEVEMENT_DEFINITIONS) {
+      await Achievement.updateOne(
+        { achievement_id: definition.achievement_id },
+        { $set: definition },
+        { upsert: true },
+      );
     }
   } catch (error) {
     console.error('Failed to seed achievements:', error);

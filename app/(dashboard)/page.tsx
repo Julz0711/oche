@@ -72,7 +72,7 @@ function GameCard({
     >
       <BoardMotif
         name={motif}
-        className={`pointer-events-none absolute -right-11 -bottom-14 w-[168px] h-[168px] ${ACCENT_TEXT[accent]} group-hover:rotate-[9deg]`}
+        className={`pointer-events-none absolute -right-11 -bottom-14 w-[168px] h-[168px] ${ACCENT_TEXT[accent]} transition-transform duration-300 group-hover:rotate-[3deg]`}
         style={{ opacity: 'var(--motif-rest)' }}
       />
       <span className="relative block p-[18px] pt-[18px]">

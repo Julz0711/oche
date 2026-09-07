@@ -8,6 +8,7 @@ import { User, Trophy, Zap } from 'lucide-react';
 import { tokens } from '@/lib/theme';
 import { Panel, BackLink } from '@/components/atoms';
 import type { Achievement, AchievementRarity, UserAchievement } from '@/lib/achievements/types';
+import { getIconForAchievement } from '@/lib/achievements/icons';
 
 interface UserStats {
   totalMatches: number;
@@ -19,31 +20,6 @@ interface UserStats {
 interface AchievementsResponse {
   unlocked: UserAchievement[];
   definitions: Achievement[];
-}
-
-/**
- * Achievement definitions carry a lucide-react icon *name* (they are seeded as plain data, so
- * they cannot reference a component). Rendering emoji keeps the grid a pure data render — no
- * dynamic icon-component lookup, and no bundling of every lucide icon that might be seeded.
- */
-function getIconForAchievement(iconName: string): string {
-  const icons: Record<string, string> = {
-    Trophy: '🏆',
-    Zap: '⚡',
-    Target: '🎯',
-    Star: '⭐',
-    Flame: '🔥',
-    Crown: '👑',
-    Lock: '🔒',
-    Medal: '🏅',
-    Gem: '💎',
-    Rocket: '🚀',
-    Shield: '🛡️',
-    Crosshair: '🎯',
-    Repeat: '🔁',
-    Circle: '⚪',
-  };
-  return icons[iconName] || '❓';
 }
 
 const RARITY_ORDER: AchievementRarity[] = ['legendary', 'epic', 'rare', 'common'];

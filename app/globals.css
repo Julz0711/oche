@@ -122,3 +122,23 @@ button:not(:disabled) {
     height: 5px !important;
   }
 }
+
+/**
+ * Achievement toast slide-in — enters from off-screen right (see
+ * components/organisms/AchievementToast.tsx). The global prefers-reduced-motion block above
+ * collapses the duration to ~0, so the toast simply appears in its resting position.
+ */
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
+}

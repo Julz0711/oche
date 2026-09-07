@@ -4,6 +4,7 @@ import { SessionProvider } from "next-auth/react";
 import { PwaRegistration } from "@/components/PwaRegistration";
 import { PendingSyncManager } from "@/components/PendingSyncManager";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { AchievementToastContainer } from "@/components/organisms/AchievementToast";
 import "./globals.css";
 
 const barlowCondensed = Barlow_Condensed({
@@ -73,6 +74,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <PendingSyncManager />
         <OfflineBanner />
         <SessionProvider>{children}</SessionProvider>
+        <AchievementToastContainer />
       </body>
     </html>
   );

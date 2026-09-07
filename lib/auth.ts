@@ -16,7 +16,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   jwt: {
     async encode({ token, secret }) {
       console.log('[jwt.encode] Encoding token:', token);
-      const secretBytes = new TextEncoder().encode(secret || authSecret || 'dev-secret');
+      const secretStr = (Array.isArray(secret) ? secret[0] : secret) || authSecret || 'dev-secret';
+      const secretBytes = new TextEncoder().encode(secretStr);
       const { SignJWT } = await import('jose');
       const now = Math.floor(Date.now() / 1000);
       const encoded = await new SignJWT(token)
@@ -27,27 +28,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       console.log('[jwt.encode] Encoded length:', encoded.length);
       return encoded;
     },
-    async decode({ token, secret, req }) {
-      // Dev-only: check for dev user ID in cookies
-      if (process.env.NODE_ENV === 'development' && req) {
-        const devUserId = req.cookies?.get('__dev-user-id')?.value;
-        if (devUserId) {
-          console.log('[jwt.decode] Dev login detected, returning fake token');
-          return {
-            id: devUserId,
-            name: 'Test User',
-            email: 'test@oche.local',
-            picture: null,
-            iat: Math.floor(Date.now() / 1000),
-            exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
-          };
-        }
-      }
-
+    async decode({ token, secret }) {
       console.log('[jwt.decode] Decoding token length:', token?.length);
       if (!token) return null;
       try {
-        const secretBytes = new TextEncoder().encode(secret || authSecret || 'dev-secret');
+        const secretStr = (Array.isArray(secret) ? secret[0] : secret) || authSecret || 'dev-secret';
+        const secretBytes = new TextEncoder().encode(secretStr);
         const { jwtVerify } = await import('jose');
         const verified = await jwtVerify(token, secretBytes);
         console.log('[jwt.decode] Verified payload:', verified.payload);
@@ -96,6 +82,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: 'Test User',
           email: 'test@oche.local',
           image: null,
+          emailVerified: null,
         };
         return session;
       }
@@ -105,6 +92,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.name = token.name as string | null;
         session.user.email = token.email as string;
         session.user.image = token.picture as string | null;
+        session.user.emailVerified = (token.emailVerified as any) || null;
       }
       console.log('[session callback] session after:', session);
       return session;

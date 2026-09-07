@@ -88,7 +88,7 @@ export function Panel({
   const notchExpr = notchSize[notch];
 
   // Selection upgrades the trace to a bold, unmistakable full-strength accent border.
-  const borderWidth = active ? 2 : 1;
+  const borderWidth = active ? 2.5 : 1.5;
   const borderColor = active ? accentVar[accent] : 'rgba(228,216,188,0.28)';
 
   // A real `border` (or box-shadow used as a border substitute) can't trace an arbitrary

@@ -7,8 +7,10 @@ import Link from 'next/link';
 import { Panel, BoardMotif } from '@/components/atoms';
 import type { AccentToken, MotifName } from '@/components/atoms';
 import { gameRegistry, GameId, getGameModule } from '@/lib/games/registry';
+import { toggleSound } from '@/lib/sounds';
+import { tokens } from '@/lib/theme';
 import type { LucideIcon } from 'lucide-react';
-import { X } from 'lucide-react';
+import { X, Volume2, VolumeX } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 interface ActiveMatch {
@@ -139,12 +141,26 @@ export default function Dashboard() {
 
   const { data: session } = useSession();
   const [activeMatches, setActiveMatches] = useState<ActiveMatch[]>([]);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   const [startingScore, setStartingScore] = useState<(typeof STARTING_SCORES)[number]>(501);
   const [x01FirstTo, setX01FirstTo] = useState<(typeof LEG_OPTIONS)[number]>(3);
   const [sets, setSets] = useState<(typeof SET_OPTIONS)[number]>(0);
   const [cricketFirstTo, setCricketFirstTo] = useState<(typeof LEG_OPTIONS)[number]>(3);
   const [copycatFirstTo, setCopycatFirstTo] = useState<(typeof COPYCAT_LIMIT_OPTIONS)[number]>(3);
+
+  const handleSoundToggle = () => {
+    const newState = toggleSound();
+    setSoundEnabled(newState);
+  };
+
+  useEffect(() => {
+    // Load sound preference from localStorage
+    const saved = localStorage.getItem('soundEnabled');
+    if (saved !== null) {
+      setSoundEnabled(saved !== 'false');
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -232,35 +248,49 @@ export default function Dashboard() {
             <span className="text-xs font-bold uppercase tracking-widest text-sisal">
               {session?.user ? session.user.name ?? 'Signed in' : 'Not signed in'}
             </span>
-            {session?.user ? (
-              <div className="flex items-center gap-4">
-                <Link
-                  href="/stats"
-                  className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
-                >
-                  History
-                </Link>
-                <Link
-                  href="/settings"
-                  className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
-                >
-                  Settings
-                </Link>
-                <Link
-                  href="/signout"
-                  className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk transition-colors"
-                >
-                  Sign out
-                </Link>
-              </div>
-            ) : (
-              <Link
-                href="/signin"
-                className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleSoundToggle}
+                className="p-1 hover:text-chalk transition-colors"
+                style={{ color: soundEnabled ? 'inherit' : tokens.sisal }}
+                title={soundEnabled ? 'Mute sound' : 'Unmute sound'}
               >
-                Sign in
-              </Link>
-            )}
+                {soundEnabled ? (
+                  <Volume2 className="w-4 h-4" />
+                ) : (
+                  <VolumeX className="w-4 h-4" />
+                )}
+              </button>
+              {session?.user ? (
+                <div className="flex items-center gap-4">
+                  <Link
+                    href="/stats"
+                    className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
+                  >
+                    History
+                  </Link>
+                  <Link
+                    href="/settings"
+                    className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
+                  >
+                    Settings
+                  </Link>
+                  <Link
+                    href="/signout"
+                    className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk transition-colors"
+                  >
+                    Sign out
+                  </Link>
+                </div>
+              ) : (
+                <Link
+                  href="/signin"
+                  className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
+                >
+                  Sign in
+                </Link>
+              )}
+            </div>
           </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold tracking-tight leading-none">
             OCHE

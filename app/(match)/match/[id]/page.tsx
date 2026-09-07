@@ -278,7 +278,7 @@ export default function MatchPage({ params }: MatchPageProps) {
   }, [id]);
 
   const handleThrow = (throw_: Throw) => {
-    playDartSound();
+    playDartSound(throw_.ring);
     useMatchStore.getState().applyThrow(throw_);
   };
 

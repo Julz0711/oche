@@ -10,45 +10,56 @@ function getAudioContext(): AudioContext {
   return audioContext;
 }
 
-/** Play a short "dart impact" sound — a quick percussive thump.
- *  Mimics the sound of a dart hitting a board. */
-export function playDartSound() {
+function playSoundInternal(startFreq: number, endFreq: number, duration: number) {
   try {
     const ctx = getAudioContext();
     const now = ctx.currentTime;
 
-    // Create noise buffer for a more percussive, traditional dart sound
-    const bufferSize = ctx.sampleRate * 0.08; // 80ms of noise
-    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const noiseData = noiseBuffer.getChannelData(0);
+    const osc = ctx.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(startFreq, now);
+    osc.frequency.exponentialRampToValueAtTime(endFreq, now + duration);
 
-    // Fill with white noise
-    for (let i = 0; i < bufferSize; i++) {
-      noiseData[i] = Math.random() * 2 - 1;
-    }
-
-    // Create noise source
-    const noiseSource = ctx.createBufferSource();
-    noiseSource.buffer = noiseBuffer;
-
-    // Create a low-pass filter to shape the noise (more bassy for a thump)
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(4000, now);
-    filter.Q.setValueAtTime(0.8, now);
-
-    // Gain envelope — quick attack, rapid decay for impact
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.25, now);
-    gain.gain.linearRampToValueAtTime(0, now + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
 
-    // Connect and play
-    noiseSource.connect(filter);
-    filter.connect(gain);
+    osc.connect(gain);
     gain.connect(ctx.destination);
-    noiseSource.start(now);
-    noiseSource.stop(now + 0.08);
+    osc.start(now);
+    osc.stop(now + duration);
   } catch (err) {
-    // Silently ignore errors (audio context may not be available, or user hasn't interacted yet)
+    // Silently ignore errors
   }
+}
+
+function isSoundEnabled(): boolean {
+  if (typeof window === 'undefined') return true;
+  return localStorage.getItem('soundEnabled') !== 'false';
+}
+
+/** Play a single/miss dart sound — a dull thud. */
+export function playDartSound(ringType: 'S' | 'D' | 'T' | 'OB' | 'IB' | 'M' = 'S') {
+  if (!isSoundEnabled()) return;
+
+  // Different frequencies for different dart types
+  if (ringType === 'D') {
+    // Double: higher pitch
+    playSoundInternal(350, 260, 0.05);
+  } else if (ringType === 'T') {
+    // Triple: even higher pitch
+    playSoundInternal(420, 310, 0.05);
+  } else if (ringType === 'OB' || ringType === 'IB') {
+    // Bull: highest pitch
+    playSoundInternal(500, 380, 0.05);
+  } else {
+    // Single/Miss: default lower thud
+    playSoundInternal(250, 180, 0.05);
+  }
+}
+
+export function toggleSound() {
+  const current = localStorage.getItem('soundEnabled') !== 'false';
+  localStorage.setItem('soundEnabled', String(!current));
+  return !current;
 }

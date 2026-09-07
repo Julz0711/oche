@@ -264,6 +264,12 @@ export default function Dashboard() {
               {session?.user ? (
                 <div className="flex items-center gap-4">
                   <Link
+                    href="/profile"
+                    className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
+                  >
+                    Profile
+                  </Link>
+                  <Link
                     href="/stats"
                     className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
                   >

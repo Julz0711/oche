@@ -59,7 +59,7 @@ export default function SignInPage() {
           </button>
         </div>
 
-        <p
+        <div
           className="text-xs text-center mt-6 space-y-1"
           style={{ color: tokens.sisal }}
         >
@@ -73,7 +73,7 @@ export default function SignInPage() {
               Terms of Service
             </Link>
           </div>
-        </p>
+        </div>
       </Panel>
     </div>
   );

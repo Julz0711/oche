@@ -98,7 +98,7 @@ export function Panel({
   // the straight edges even with identical padding. Shrinking the notch by less than the full
   // borderWidth widens just that diagonal sliver to compensate, without touching the straight-edge
   // padding (which already looks right).
-  const notchBorderWidth = borderWidth * 0.85;
+  const notchBorderWidth = borderWidth * 0.6;
 
   // A real `border` (or box-shadow used as a border substitute) can't trace an arbitrary
   // clip-path polygon — box-shadow is computed from the element's plain rectangular

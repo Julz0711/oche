@@ -2,21 +2,17 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import Link from "next/link";
 import { tokens } from "@/lib/theme";
 import { Panel } from "@/components/atoms";
 
 export default function SignInPage() {
-  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignIn = async (provider: string) => {
     setIsLoading(true);
     try {
-      if (provider === "email") {
-        await signIn(provider, { email, redirect: false });
-      } else {
-        await signIn(provider, { callbackUrl: "/" });
-      }
+      await signIn(provider, { callbackUrl: "/" });
     } finally {
       setIsLoading(false);
     }
@@ -24,7 +20,7 @@ export default function SignInPage() {
 
   return (
     <div
-      className="flex items-center justify-center min-h-screen"
+      className="flex items-center justify-center min-h-screen p-4"
       style={{ backgroundColor: tokens.oche }}
     >
       <Panel notch="card" className="w-full max-w-md p-8">
@@ -35,41 +31,7 @@ export default function SignInPage() {
           Sign in to Oche
         </h1>
 
-        <div className="space-y-4">
-          {/* Email Magic Link */}
-          <div className="space-y-3">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 rounded-none border-2 focus:outline-none focus:border-current"
-              style={{
-                borderColor: tokens.wire,
-                color: tokens.chalk,
-                backgroundColor: `${tokens.slate}dd`,
-              }}
-            />
-            <button
-              onClick={() => handleSignIn("email")}
-              disabled={isLoading || !email}
-              className="w-full px-4 py-2 rounded-none font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
-              style={{
-                backgroundColor: tokens.wire,
-                color: tokens.slate,
-              }}
-            >
-              {isLoading ? "Sending..." : "Sign in with Email"}
-            </button>
-          </div>
-
-          <div
-            className="text-center text-sm"
-            style={{ color: tokens.sisal }}
-          >
-            or
-          </div>
-
+        <div className="space-y-3">
           {/* Google */}
           <button
             onClick={() => handleSignIn("google")}
@@ -98,10 +60,19 @@ export default function SignInPage() {
         </div>
 
         <p
-          className="text-xs text-center mt-6"
+          className="text-xs text-center mt-6 space-y-1"
           style={{ color: tokens.sisal }}
         >
-          We'll never share your information. Read our privacy policy.
+          <div>By signing in, you agree to our</div>
+          <div className="flex gap-2 justify-center">
+            <Link href="/privacy" className="hover:text-chalk transition-colors underline">
+              Privacy Policy
+            </Link>
+            <span>and</span>
+            <Link href="/terms" className="hover:text-chalk transition-colors underline">
+              Terms of Service
+            </Link>
+          </div>
         </p>
       </Panel>
     </div>

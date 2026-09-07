@@ -31,6 +31,17 @@ export default function SignInPage() {
           Sign in to Oche
         </h1>
 
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 p-3 rounded-none border border-sisal/30 bg-slate/50">
+            <a
+              href="/api/auth/test-login"
+              className="text-xs font-bold uppercase tracking-widest text-double hover:text-chalk transition-colors"
+            >
+              🧪 Quick Test Login
+            </a>
+          </div>
+        )}
+
         <div className="space-y-3">
           {/* Google */}
           <button

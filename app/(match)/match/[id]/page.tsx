@@ -1,7 +1,9 @@
 // app/(match)/match/[id]/page.tsx
 'use client';
-import { useEffect, useState, useRef, use } from 'react';
+import { useEffect, useState, useRef, useCallback, use } from 'react';
 import { useMatchStore } from '@/store/match';
+import { useAchievementStore } from '@/lib/stores/achievementStore';
+import type { Achievement } from '@/lib/achievements/types';
 import { getGameModule, GameId } from '@/lib/games/registry';
 import { DartboardInput } from '@/components/organisms/DartboardInput';
 import { DartBadge } from '@/components/atoms/DartBadge';
@@ -324,6 +326,29 @@ export default function MatchPage({ params }: MatchPageProps) {
   };
 
   const completionSentRef = useRef(false);
+  const achievementsRequestedRef = useRef(false);
+
+  /**
+   * Ask the server which achievements this match just unlocked and toast them.
+   *
+   * Only meaningful once the match is persisted as complete, so callers fire it after the
+   * completion write (local) or once the server-published status says complete (remote). The
+   * route is idempotent per user, and the ref keeps a single mount from asking twice; a failure
+   * here is deliberately silent — a missed toast must never disturb the finished-match screen.
+   */
+  const requestAchievements = useCallback(async () => {
+    if (achievementsRequestedRef.current) return;
+    achievementsRequestedRef.current = true;
+    try {
+      const res = await fetch(`/api/matches/${id}/achievements`, { method: 'POST' });
+      if (!res.ok) return;
+      const body = (await res.json()) as { achievements?: (Achievement & { count?: number })[] };
+      const { showToast } = useAchievementStore.getState();
+      (body.achievements ?? []).forEach((achievement) => showToast(achievement));
+    } catch {
+      // Offline or a transient server error — no toast this time.
+    }
+  }, [id]);
 
   useEffect(() => {
     if (mode !== 'local' || !gameModule || !gameState) return;
@@ -340,6 +365,9 @@ export default function MatchPage({ params }: MatchPageProps) {
       .then((res) => {
         if (res.ok) {
           clearLocalMatch(id);
+          // Only after the match is stored as complete — the evaluation route reads the
+          // persisted document, not the in-memory game state.
+          requestAchievements();
         } else {
           markPendingCompletion(id, winnerId);
         }
@@ -349,7 +377,15 @@ export default function MatchPage({ params }: MatchPageProps) {
         // PendingSyncManager to retry later instead of silently losing the sync forever.
         markPendingCompletion(id, winnerId);
       });
-  }, [mode, gameModule, gameState, id]);
+  }, [mode, gameModule, gameState, id, requestAchievements]);
+
+  // Remote matches are completed by the server when the winning throw is submitted, so there is
+  // no client-side write to hang the evaluation off — every connected client learns about it
+  // through the broadcast status instead. Each client asks for its own user's achievements.
+  useEffect(() => {
+    if (mode !== 'remote' || status !== 'complete') return;
+    requestAchievements();
+  }, [mode, status, requestAchievements]);
 
   // Once a local match has finished loading (via either the localStorage or network path), warm
   // the service worker's cache for this exact URL. A normal visit to this page is a client-side

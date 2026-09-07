@@ -22,6 +22,10 @@ const MatchSchema = new mongoose.Schema({
   startedAt: Date,
   completedAt: Date,
   durationMs: Number,
+  // User ids whose achievements have already been evaluated for this finished match. Written
+  // once per user by POST /api/matches/[id]/achievements so a reload of a completed match can't
+  // award repeatable achievements a second time.
+  achievementsEvaluatedFor: [String],
   createdAt: { type: Date, default: Date.now },
 });
 

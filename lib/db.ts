@@ -1,5 +1,6 @@
 // lib/db.ts
 import mongoose from 'mongoose';
+import { seedAchievements } from './achievements/seed';
 
 let cached = global.mongoose;
 
@@ -20,6 +21,10 @@ export async function connectDB() {
   }
 
   cached.conn = await cached.promise;
+
+  // Seed achievements on initial connection
+  await seedAchievements();
+
   return cached.conn;
 }
 

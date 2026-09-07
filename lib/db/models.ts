@@ -50,3 +50,32 @@ const VisitSchema = new mongoose.Schema({
 });
 
 export const Visit = mongoose.models.Visit || mongoose.model('Visit', VisitSchema);
+
+const AchievementSchema = new mongoose.Schema({
+  achievement_id: { type: String, required: true, unique: true, index: true },
+  name: { type: String, required: true },
+  description: { type: String, required: true },
+  rarity: { type: String, enum: ['common', 'rare', 'epic', 'legendary'], required: true },
+  icon: { type: String, required: true },
+  is_repeatable: { type: Boolean, default: false },
+  category: { type: String, required: true },
+  display_order: { type: Number, required: true },
+  created_at: { type: Date, default: Date.now },
+});
+
+export const Achievement =
+  mongoose.models.Achievement || mongoose.model('Achievement', AchievementSchema);
+
+const UserAchievementSchema = new mongoose.Schema({
+  user_id: { type: String, required: true, index: true },
+  achievement_id: { type: String, required: true },
+  unlocked_at: { type: Date, default: Date.now },
+  count: { type: Number, default: 1 },
+  progress_data: mongoose.Schema.Types.Mixed,
+});
+
+UserAchievementSchema.index({ user_id: 1, achievement_id: 1 }, { unique: true });
+
+export const UserAchievement =
+  mongoose.models.UserAchievement ||
+  mongoose.model('UserAchievement', UserAchievementSchema);

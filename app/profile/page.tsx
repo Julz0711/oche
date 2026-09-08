@@ -37,7 +37,7 @@ function AchievementsGrid({ unlocked, definitions }: AchievementsResponse) {
   );
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       {RARITY_ORDER.map((rarity) => {
         const achievements = definitions.filter((d) => d.rarity === rarity);
         if (achievements.length === 0) return null;
@@ -45,12 +45,12 @@ function AchievementsGrid({ unlocked, definitions }: AchievementsResponse) {
         return (
           <div key={rarity}>
             <h3
-              className="text-lg font-bold uppercase mb-4"
+              className="text-sm font-bold uppercase mb-3 tracking-widest"
               style={{ color: rarity === 'legendary' ? tokens.wire : tokens.sisal }}
             >
               {rarity.charAt(0).toUpperCase() + rarity.slice(1)}
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
               {achievements.map((achievement) => {
                 const userAch = unlockedMap.get(achievement.achievement_id);
                 const isUnlocked = !!userAch;
@@ -59,22 +59,21 @@ function AchievementsGrid({ unlocked, definitions }: AchievementsResponse) {
                   <div
                     key={achievement.achievement_id}
                     title={achievement.description}
-                    className={`relative border-2 p-4 flex flex-col items-center gap-2 text-center ${
+                    className={`relative border rounded-sm p-3 flex flex-col items-center gap-1.5 text-center transition-opacity ${
                       rarityColors[rarity]
-                    } ${isUnlocked ? '' : 'opacity-30 grayscale'}`}
+                    } ${isUnlocked ? '' : 'opacity-40 grayscale'}`}
                   >
-                    <div className="text-3xl">{getIconForAchievement(achievement.icon)}</div>
+                    <div className="text-2xl">{getIconForAchievement(achievement.icon)}</div>
 
-                    <p className="text-xs font-bold uppercase">{achievement.name}</p>
+                    <p className="text-xs font-bold uppercase leading-tight">{achievement.name}</p>
 
-                    {/* Repeatable achievements show how many times they have been earned. */}
                     {achievement.is_repeatable && userAch && (
-                      <div className="absolute top-0 right-0 -m-2 w-6 h-6 rounded-full bg-green-600 text-white text-xs font-bold flex items-center justify-center">
+                      <div className="absolute top-0 right-0 -m-2 w-5 h-5 rounded-full bg-green-600 text-white text-xs font-bold flex items-center justify-center">
                         {userAch.count}
                       </div>
                     )}
 
-                    {!isUnlocked && <div className="text-sm">🔒</div>}
+                    {!isUnlocked && <div className="text-xs">🔒</div>}
                   </div>
                 );
               })}
@@ -134,13 +133,14 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: tokens.oche }}>
-      <div className="max-w-2xl mx-auto px-4 py-8" style={{ color: tokens.chalk }}>
-        <div className="mb-8">
-          <BackLink href="/" />
-        </div>
+      <div
+        className="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-6 md:gap-8"
+        style={{ color: tokens.chalk }}
+      >
+        <BackLink href="/" />
 
         {/* Profile Header */}
-        <Panel notch="card" className="p-8 flex flex-col gap-6 mb-8">
+        <Panel notch="card" className="p-8 flex flex-col gap-6">
           <div className="flex items-start gap-6">
             {/* Profile Image */}
             <div className="flex-shrink-0">
@@ -186,7 +186,7 @@ export default function ProfilePage() {
         {loading ? (
           <div style={{ color: tokens.sisal }}>Loading stats...</div>
         ) : stats ? (
-          <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-2 gap-4">
             <Panel notch="panel" className="p-4 flex flex-col items-center gap-2">
               <div className="text-xs font-bold uppercase tracking-widest" style={{ color: tokens.sisal }}>
                 Games Played
@@ -232,7 +232,7 @@ export default function ProfilePage() {
         ) : null}
 
         {/* Achievements Placeholder */}
-        <Panel notch="panel" className="p-6 mb-8">
+        <Panel notch="panel" className="p-6">
           <h2 className="text-xl font-display font-bold mb-4" style={{ color: tokens.wire }}>
             Achievements
           </h2>

@@ -144,9 +144,9 @@ export default function Dashboard() {
   const [soundEnabled, setSoundEnabled] = useState(true);
 
   const [startingScore, setStartingScore] = useState<(typeof STARTING_SCORES)[number]>(501);
-  const [x01FirstTo, setX01FirstTo] = useState<(typeof LEG_OPTIONS)[number]>(3);
+  const [x01FirstTo, setX01FirstTo] = useState<(typeof LEG_OPTIONS)[number]>(1);
   const [sets, setSets] = useState<(typeof SET_OPTIONS)[number]>(0);
-  const [cricketFirstTo, setCricketFirstTo] = useState<(typeof LEG_OPTIONS)[number]>(3);
+  const [cricketFirstTo, setCricketFirstTo] = useState<(typeof LEG_OPTIONS)[number]>(1);
   const [copycatFirstTo, setCopycatFirstTo] = useState<(typeof COPYCAT_LIMIT_OPTIONS)[number]>(3);
 
   const handleSoundToggle = () => {

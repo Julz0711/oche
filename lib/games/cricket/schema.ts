@@ -8,5 +8,5 @@ export const CricketSettingsSchema = z.object({
 export type CricketSettings = z.infer<typeof CricketSettingsSchema>;
 
 export const CricketDefaultSettings: CricketSettings = {
-  firstTo: 3,
+  firstTo: 1,
 };

@@ -17,7 +17,7 @@ export const X01DefaultSettings: X01Settings = {
   startingScore: 501,
   checkOut: 'double',
   checkIn: 'straight',
-  firstTo: 3,
+  firstTo: 1,
   sets: 0,
   firstThrow: 'alternate',
 };

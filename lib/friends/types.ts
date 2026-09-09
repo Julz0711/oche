@@ -1,4 +1,4 @@
-export interface FriendPerson { id: string; name: string }
+export interface FriendPerson { id: string; name: string; image?: string }
 export interface FriendsResponse {
   code: string;
   friends: FriendPerson[];

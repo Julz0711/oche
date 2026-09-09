@@ -51,12 +51,13 @@ vi.mock('@/lib/db/models', () => {
             (ua) => ua.user_id === filter.user_id && ua.achievement_id === filter.achievement_id
           ) ?? null
         ),
-      findOneAndUpdate: (filter: { user_id: string; achievement_id: string }) => {
+      findOneAndUpdate: (filter: { user_id: string; achievement_id: string }, update: { $set?: { last_unlocked_at?: Date } }) => {
         const existing = store.userAchievements.find(
           (ua) => ua.user_id === filter.user_id && ua.achievement_id === filter.achievement_id
         );
         if (existing) {
           existing.count += 1;
+          Object.assign(existing, update.$set);
           return query(existing);
         }
         const created: UserAchievement = {
@@ -64,6 +65,7 @@ vi.mock('@/lib/db/models', () => {
           achievement_id: filter.achievement_id,
           unlocked_at: new Date(),
           count: 1,
+          ...update.$set,
         };
         store.userAchievements.push(created);
         return query(created);
@@ -245,6 +247,20 @@ describe('evaluateVisitAchievements', () => {
 
     const triple20 = store.userAchievements.find((ua) => ua.achievement_id === 'triple_20');
     expect(triple20?.count).toBe(2);
+  });
+
+  it('keeps the first award date and records the latest recurring award date', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-09-01T12:00:00Z'));
+      await evaluateVisitAchievements({ score: 100, throws: [] }, USER);
+      vi.setSystemTime(new Date('2026-09-09T15:30:00Z'));
+      await evaluateVisitAchievements({ score: 100, throws: [] }, USER);
+      const award = store.userAchievements.find(ua => ua.achievement_id === 'hundred_point_round');
+      expect(award?.unlocked_at).toEqual(new Date('2026-09-01T12:00:00Z'));
+      expect(award?.last_unlocked_at).toEqual(new Date('2026-09-09T15:30:00Z'));
+      expect(award?.count).toBe(2);
+    } finally { vi.useRealTimers(); }
   });
 
   it('awards the 100-point round without a 180', async () => {

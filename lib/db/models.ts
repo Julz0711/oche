@@ -6,6 +6,9 @@ const MatchSchema = new mongoose.Schema({
   settings: mongoose.Schema.Types.Mixed,
   mode: { type: String, enum: ['local', 'remote'], required: true },
   roomCode: String,
+  rematch: mongoose.Schema.Types.Mixed,
+  nextMatchId: String,
+  previousMatchId: String,
   hostId: String,
   userId: String,
   players: [
@@ -75,6 +78,7 @@ const UserAchievementSchema = new mongoose.Schema({
   user_id: { type: String, required: true, index: true },
   achievement_id: { type: String, required: true },
   unlocked_at: { type: Date, default: Date.now },
+  last_unlocked_at: Date,
   count: { type: Number, default: 1 },
   progress_data: mongoose.Schema.Types.Mixed,
 });

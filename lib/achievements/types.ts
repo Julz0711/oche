@@ -29,6 +29,7 @@ export interface UserAchievement {
   user_id: string;
   achievement_id: string;
   unlocked_at: Date;
+  last_unlocked_at?: Date;
   count: number;
   progress_data?: Record<string, unknown> | null;
 }

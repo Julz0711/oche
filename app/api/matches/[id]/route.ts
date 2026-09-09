@@ -25,6 +25,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   return applyIdentityCookie(
     NextResponse.json({
+      nextMatchId: isSeated(match.players, identity) ? match.nextMatchId ?? null : null,
       gameId: match.gameId,
       mode: match.mode,
       status: match.status,

@@ -5,6 +5,7 @@ import { HeatmapBoard } from './HeatmapBoard';
 import { Button } from '@/components/atoms/Button';
 import { Panel } from '@/components/atoms';
 import { ShareResultButton, ShareResultPlayer } from './ShareResultButton';
+import { PlayAgain } from './PlayAgain';
 import { PlayerStatTiles } from './PlayerStatTiles';
 
 interface PostMatchStatsProps {
@@ -69,6 +70,8 @@ export function PostMatchStats({
           );
         })}
       </div>
+
+      <PlayAgain key={matchId} matchId={matchId} gameId={gameModule.id} settings={settings} />
 
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
         <ShareResultButton

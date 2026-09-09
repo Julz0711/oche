@@ -6,9 +6,14 @@ import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { tokens } from '@/lib/theme';
 import { Panel } from '@/components/atoms';
+import { PlayerAvatar } from '@/components/profile/PlayerAvatar';
+import { Button } from '@/components/atoms/Button';
+import { useSoundPreference } from '@/hooks/useSoundPreference';
+import { Volume2, VolumeX } from 'lucide-react';
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { enabled: soundEnabled, toggle: toggleSound } = useSoundPreference();
   const { data: session, status: sessionStatus, update } = useSession();
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
@@ -47,6 +52,8 @@ export default function SettingsPage() {
       }
       await update({ name: trimmed });
       setSaved(true);
+    } catch {
+      setError('Connection failed. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -61,55 +68,24 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="auth-page page-gutters flex items-center justify-center min-h-screen p-3" style={{ backgroundColor: tokens.oche }}>
-      <div className="w-full max-w-md"><Panel notch="card" className="p-4 md:p-8 flex flex-col gap-4 md:gap-6">
-        <h1 className="text-2xl font-bold text-center font-display" style={{ color: tokens.wire }}>
-          Settings
-        </h1>
-
-        <div className="flex flex-col gap-2">
-          <label htmlFor="display-name" className="text-[11px] font-bold uppercase tracking-widest" style={{ color: tokens.sisal }}>
-            Display name
-          </label>
-          <input
-            id="display-name"
-            type="text"
-            autoComplete="nickname"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              setSaved(false);
-            }}
-            maxLength={60}
-            className="w-full min-h-11 px-3 py-2 rounded-none border-2 focus:outline-none focus:border-current"
-            style={{
-              borderColor: tokens.wire,
-              color: tokens.chalk,
-              backgroundColor: `${tokens.slate}dd`,
-            }}
-          />
-          {error && <span className="text-xs" style={{ color: tokens.treble }}>{error}</span>}
-          {saved && !error && (
-            <span className="text-xs" style={{ color: tokens.double }}>
-              Saved
-            </span>
-          )}
+    <main className="account-page page-gutters">
+      <header className="page-heading"><div><p className="eyebrow">Your account</p><h1>Settings</h1></div><Link href="/profile" className="quiet-action">← Profile</Link></header>
+      <div className="settings-layout">
+        <Panel notch="card" className="account-section">
+          <div className="section-heading"><h2>Profile details</h2></div>
+          <div className="flex items-center gap-3"><PlayerAvatar name={session.user.name || 'Player'} image={session.user.image} large /><p className="text-sm text-sisal">Your name and photo identify you to friends and other players.</p></div>
+          <form className="flex flex-col gap-3" onSubmit={e => { e.preventDefault(); void handleSave(); }}>
+            <div className="flex flex-col gap-1.5"><label htmlFor="display-name" className="eyebrow">Display name</label><input id="display-name" disabled={saving} autoComplete="nickname" value={name} onChange={e => { setName(e.target.value); setSaved(false); setError(null); }} maxLength={60} required className="account-input" aria-describedby="name-help" /><p id="name-help" className="text-xs text-sisal">Shown in rooms, on your profile and in your friends list.</p></div>
+            {error && <p role="alert" className="text-sm text-treble">{error}</p>}
+            {saved && !error && <p role="status" className="text-sm text-wire">Changes saved.</p>}
+            <div><Button type="submit" disabled={saving || name.trim() === (session.user.name ?? '')}>{saving ? 'Saving…' : 'Save changes'}</Button></div>
+          </form>
+        </Panel>
+        <div className="flex flex-col gap-4">
+          <Panel notch="panel" className="account-section"><div className="section-heading"><h2>Account</h2></div><p className="text-sm text-sisal">Signed in as <span className="text-chalk">{session.user.name}</span></p><p className="text-sm text-sisal break-all">{session.user.email}</p><div className="border-t border-sisal/20 pt-3"><Button variant="secondary" onClick={() => signOut({ callbackUrl: '/' })}>Sign out</Button></div></Panel>
+          <Panel notch="panel" className="account-section"><div className="section-heading"><h2>Sound</h2></div><div className="flex items-center justify-between gap-3"><p className="text-sm text-sisal">Game effects on this device</p><Button variant="secondary" onClick={toggleSound} aria-pressed={!soundEnabled} aria-label={soundEnabled ? 'Mute sound' : 'Unmute sound'} className="flex items-center gap-2 shrink-0">{soundEnabled ? <Volume2 size={16} aria-hidden="true" /> : <VolumeX size={16} aria-hidden="true" />}{soundEnabled ? 'Sound on' : 'Muted'}</Button></div></Panel>
         </div>
-
-        <button
-          onClick={handleSave}
-          disabled={saving || name.trim() === (session.user.name ?? '')}
-          className="w-full min-h-11 px-3 py-2 rounded-none font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
-          style={{ backgroundColor: tokens.wire, color: tokens.slate }}
-        >
-          {saving ? 'Saving...' : 'Save changes'}
-        </button>
-
-        <div className="border-t border-sisal/20 pt-3 flex flex-col gap-2">
-          <Link href="/profile" className="social-link">Back to account</Link>
-          <button onClick={() => signOut({ callbackUrl: '/' })} className="min-h-11 text-sm text-sisal text-left">Sign out</button>
-        </div>
-      </Panel></div>
-    </div>
+      </div>
+    </main>
   );
 }

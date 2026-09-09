@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { MongoClient, ObjectId, type Db } from 'mongodb';
-import { changeFriend, headToHead, listFriends, requestFriend } from './repository';
+import { changeFriend, headToHead, listFriends, requestFriend, friendProfile } from './repository';
 
 // Opt-in: isolated disposable database. Never writes into the application's database.
 const uri = process.env.OCHE_TEST_MONGODB_URI;
@@ -26,6 +26,18 @@ describe.skipIf(!uri)('friends database integration', () => {
     await requestFriend(db, alice, b.code);
     await changeFriend(db, bob, alice, 'accept');
   }
+  it('restricts friend profiles to accepted friends and exposes only public identity fields', async () => {
+    await db.collection('users').updateOne({ _id: new ObjectId(bob) }, { $set: { image: '/test-avatar.png', email: 'private@example.invalid' } });
+    await expect(friendProfile(db, alice, bob)).rejects.toMatchObject({ status: 404 });
+    const b = await listFriends(db, bob);
+    await requestFriend(db, alice, b.code);
+    await expect(friendProfile(db, alice, bob)).rejects.toMatchObject({ status: 404 });
+    await changeFriend(db, bob, alice, 'accept');
+    expect(await friendProfile(db, alice, bob)).toEqual({ id: bob, name: 'Bob', image: '/test-avatar.png' });
+    await expect(friendProfile(db, outsider, bob)).rejects.toMatchObject({ status: 404 });
+    await changeFriend(db, alice, bob, 'remove');
+    await expect(friendProfile(db, alice, bob)).rejects.toMatchObject({ status: 404 });
+  });
   it('creates a stable private code, deduplicates requests, and only allows the recipient to accept', async () => {
     const [a1, a2, b] = await Promise.all([listFriends(db, alice), listFriends(db, alice), listFriends(db, bob)]);
     expect(a1.code).toBe(a2.code);

@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
 
   let roomCode = generateRoomCode();
-  while (await Match.exists({ roomCode, status: { $in: ['lobby', 'live'] } })) {
+  while (await Match.exists({ roomCode })) {
     roomCode = generateRoomCode();
   }
 

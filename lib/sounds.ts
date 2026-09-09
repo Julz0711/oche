@@ -61,6 +61,7 @@ export function playDartSound(ringType: 'S' | 'D' | 'T' | 'OB' | 'IB' | 'M' = 'S
 export function toggleSound() {
   const current = localStorage.getItem('soundEnabled') !== 'false';
   localStorage.setItem('soundEnabled', String(!current));
+  window.dispatchEvent(new Event('oche-sound-change'));
   return !current;
 }
 

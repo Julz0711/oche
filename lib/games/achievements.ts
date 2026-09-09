@@ -81,7 +81,7 @@ async function unlockAchievement(
   if (isRepeatable) {
     const userAchievement = await UserAchievementModel.findOneAndUpdate(
       { user_id: userId, achievement_id: achievementId },
-      { $inc: { count: 1 }, $setOnInsert: { unlocked_at: new Date() } },
+      { $inc: { count: 1 }, $set: { last_unlocked_at: new Date() }, $setOnInsert: { unlocked_at: new Date() } },
       { upsert: true, new: true, setDefaultsOnInsert: false }
     ).lean();
     return userAchievement as unknown as UserAchievement;

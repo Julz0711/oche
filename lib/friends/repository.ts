@@ -37,8 +37,8 @@ async function profile(db: Db, userId: string) {
   throw new FriendsError('Could not create your friend code. Please try again.', 503);
 }
 async function people(db: Db, ids: string[]) {
-  const users = await db.collection('users').find({ _id: { $in: ids.map(id => new ObjectId(id)) } }, { projection: { name: 1 } }).toArray();
-  return new Map(users.map(user => [user._id.toString(), { id: user._id.toString(), name: typeof user.name === 'string' ? user.name : 'Player' }]));
+  const users = await db.collection('users').find({ _id: { $in: ids.map(id => new ObjectId(id)) } }, { projection: { name: 1, image: 1 } }).toArray();
+  return new Map(users.map(user => [user._id.toString(), { id: user._id.toString(), name: typeof user.name === 'string' ? user.name : 'Player', ...(typeof user.image === 'string' ? { image: user.image } : {}) }]));
 }
 export async function listFriends(db: Db, actor: string): Promise<FriendsResponse> {
   const [own, relations] = await Promise.all([
@@ -109,4 +109,13 @@ export async function headToHead(db: Db, actor: string, other: string, cursor: s
   const summary = games.reduce((sum, g) => ({ played: sum.played + g.played, wins: sum.wins + g.wins, losses: sum.losses + g.losses }), { played: 0, wins: 0, losses: 0 });
   const page = recent.slice(0, 20);
   return { friend, summary, games, matches: page.map(m => ({ id: m._id.toString(), gameId: m.gameId, completedAt: m.completedAt instanceof Date ? m.completedAt.toISOString() : '', won: m.winnerId === actor })), nextCursor: recent.length > 20 ? page[19]._id.toString() : null };
+}
+
+/** Only accepted friends can see a player's profile. Never expose account fields or friend lists. */
+export async function friendProfile(db: Db, actor: string, other: string) {
+  const relation = await db.collection<Friendship>('friendships').findOne({ _id: friendshipKey(actor, other), status: 'accepted', members: { $all: [actor, other] } });
+  if (!relation) throw new FriendsError('Friend profile not found.', 404);
+  const person = (await people(db, [other])).get(other);
+  if (!person) throw new FriendsError('Player not found.', 404);
+  return person;
 }

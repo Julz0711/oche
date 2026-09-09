@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { gameRegistry, GameId } from '@/lib/games/registry';
 import { Panel, BackLink } from '@/components/atoms';
+import { StatsBoard } from '@/components/profile/StatsBoard';
+import type { StatsBoard as Board } from '@/lib/stats/board';
 
 interface HistoryMatch {
   id: string;
@@ -29,9 +31,9 @@ interface HistoryResponse {
 
 function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
-    <Panel notch="panel" className="p-2 md:p-4 flex flex-col gap-1">
+    <Panel notch="panel" className="p-2.5 flex flex-col gap-1">
       <span className="text-[11px] font-bold uppercase tracking-widest text-sisal">{label}</span>
-      <span className="text-2xl md:text-3xl font-display font-bold">{value}</span>
+      <span className="text-[26px] font-display font-bold">{value}</span>
     </Panel>
   );
 }
@@ -72,6 +74,16 @@ export default function StatsPage() {
   const { data: session, status: sessionStatus } = useSession();
   const [data, setData] = useState<HistoryResponse | null>(null);
   const [error, setError] = useState(false);
+  const [board, setBoard] = useState<Board | null>(null);
+  const [boardError, setBoardError] = useState(false);
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    if (sessionStatus !== 'authenticated') return;
+    const controller = new AbortController();
+    setBoardError(false);
+    fetch('/api/user/stats', { signal: controller.signal }).then(async res => { if (!res.ok) throw new Error(); const data = await res.json(); setBoard(data.periods); }).catch(() => { if (!controller.signal.aborted) setBoardError(true); });
+    return () => controller.abort();
+  }, [sessionStatus, retry]);
   const [gameFilter, setGameFilter] = useState<GameId | null>(null);
 
   useEffect(() => {
@@ -85,6 +97,7 @@ export default function StatsPage() {
     let cancelled = false;
     (async () => {
       const url = gameFilter ? `/api/matches/history?gameId=${gameFilter}` : '/api/matches/history';
+      try {
       const res = await fetch(url);
       if (cancelled) return;
       if (!res.ok) {
@@ -96,6 +109,7 @@ export default function StatsPage() {
         setError(false);
         setData(json);
       }
+      } catch { if (!cancelled) setError(true); }
     })();
     return () => {
       cancelled = true;
@@ -117,6 +131,8 @@ export default function StatsPage() {
           <p className="text-sisal text-sm md:text-base mt-1">Every completed match, all in one place</p>
         </header>
 
+        <Panel notch="panel" className="account-section"><div className="section-heading"><h2>Performance</h2></div>{boardError ? <p role="alert" className="text-sm text-sisal">Could not load performance. <button className="text-wire min-h-11" onClick={() => setRetry(n => n + 1)}>Try again</button></p> : board ? <StatsBoard board={board} /> : <p role="status" className="text-sm text-sisal">Loading performance…</p>}</Panel>
+        <h2 className="font-display text-[24px]">Match history</h2>
         {error ? (
           <p className="text-sisal text-center py-8">Couldn&apos;t load your stats — try refreshing the page.</p>
         ) : data === null ? (

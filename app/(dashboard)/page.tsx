@@ -7,10 +7,10 @@ import Link from 'next/link';
 import { Panel, BoardMotif } from '@/components/atoms';
 import type { AccentToken, MotifName } from '@/components/atoms';
 import { gameRegistry, GameId, getGameModule } from '@/lib/games/registry';
-import { toggleSound } from '@/lib/sounds';
+import { PlayerAvatar } from '@/components/profile/PlayerAvatar';
 import { tokens } from '@/lib/theme';
 import type { LucideIcon } from 'lucide-react';
-import { X, Volume2, VolumeX } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 interface ActiveMatch {
@@ -141,26 +141,13 @@ export default function Dashboard() {
 
   const { data: session } = useSession();
   const [activeMatches, setActiveMatches] = useState<ActiveMatch[]>([]);
-  const [soundEnabled, setSoundEnabled] = useState(true);
+
 
   const [startingScore, setStartingScore] = useState<(typeof STARTING_SCORES)[number]>(501);
   const [x01FirstTo, setX01FirstTo] = useState<(typeof LEG_OPTIONS)[number]>(1);
   const [sets, setSets] = useState<(typeof SET_OPTIONS)[number]>(0);
   const [cricketFirstTo, setCricketFirstTo] = useState<(typeof LEG_OPTIONS)[number]>(1);
   const [copycatFirstTo, setCopycatFirstTo] = useState<(typeof COPYCAT_LIMIT_OPTIONS)[number]>(3);
-
-  const handleSoundToggle = () => {
-    const newState = toggleSound();
-    setSoundEnabled(newState);
-  };
-
-  useEffect(() => {
-    // Load sound preference from localStorage
-    const saved = localStorage.getItem('soundEnabled');
-    if (saved !== null) {
-      setSoundEnabled(saved !== 'false');
-    }
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -244,27 +231,7 @@ export default function Dashboard() {
     >
       <div className="relative z-10 w-full max-w-3xl flex flex-col gap-3 md:gap-9 pt-0 md:pt-12">
         <header className="dashboard-header flex flex-col gap-2 md:gap-5">
-          <div className="dashboard-navigation flex items-center justify-between gap-2">
-            <span className="dashboard-user min-w-0 truncate text-xs font-bold uppercase tracking-widest text-sisal">
-              {session?.user ? session.user.name ?? 'Signed in' : 'Not signed in'}
-            </span>
-            <div className="dashboard-links flex items-center gap-2">
-              <button
-                onClick={handleSoundToggle}
-                className="min-w-11 min-h-11 flex items-center justify-center hover:text-chalk transition-colors"
-                style={{ color: soundEnabled ? 'inherit' : tokens.sisal }}
-                aria-label={soundEnabled ? 'Mute sound' : 'Unmute sound'}
-                title={soundEnabled ? 'Mute sound' : 'Unmute sound'}
-              >
-                {soundEnabled ? (
-                  <Volume2 className="w-4 h-4" />
-                ) : (
-                  <VolumeX className="w-4 h-4" />
-                )}
-              </button>
-
-            </div>
-          </div>
+          {session?.user && <Link href="/profile" className="dashboard-identity"><PlayerAvatar name={session.user.name || 'Player'} image={session.user.image} /><span className="min-w-0"><small>Currently logged in as</small><strong>{session.user.name || 'Player'}</strong></span></Link>}
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold tracking-tight leading-none">
             OCHE
           </h1>
@@ -332,7 +299,7 @@ export default function Dashboard() {
               ))}
             </div>
 
-            <Panel notch="panel" className="p-3 md:p-6 flex flex-col gap-3 md:gap-4">
+            <Panel notch="panel" className="dashboard-settings p-3 md:p-6">
               <SettingLabel>Match settings</SettingLabel>
 
               {selectedGameId === 'x01' && (
@@ -376,16 +343,16 @@ export default function Dashboard() {
               <div className="flex flex-col gap-2">
                 <Panel
                   as="button"
-                  notch="card"
+                  notch="panel"
                   accent="wire"
                   fill="wire"
                   onClick={() => handleCreateMatch(selectedGameId, 'remote')}
                   disabled={creating !== null}
-                  className="min-h-12 md:min-h-20 flex items-center justify-center text-base md:text-2xl font-display uppercase tracking-[0.08em] md:tracking-[0.14em] text-oche"
+                  className="play-action play-action-primary"
                 >
                   {creating === 'remote' ? 'Starting…' : 'Play Online'}
                 </Panel>
-                <span className="text-center text-[11px] font-bold uppercase tracking-widest text-sisal">
+                <span className="text-center text-xs text-sisal">
                   Room code
                 </span>
               </div>
@@ -393,15 +360,15 @@ export default function Dashboard() {
               <div className="flex flex-col gap-2">
                 <Panel
                   as="button"
-                  notch="card"
+                  notch="panel"
                   accent="wire"
                   onClick={() => handleCreateMatch(selectedGameId, 'local')}
                   disabled={creating !== null}
-                  className="min-h-12 md:min-h-20 flex items-center justify-center text-base md:text-2xl font-display uppercase tracking-[0.08em] md:tracking-[0.14em] text-chalk"
+                  className="play-action"
                 >
                   {creating === 'local' ? 'Starting…' : 'Play Local'}
                 </Panel>
-                <span className="text-center text-[11px] font-bold uppercase tracking-widest text-sisal">
+                <span className="text-center text-xs text-sisal">
                   Same device
                 </span>
               </div>

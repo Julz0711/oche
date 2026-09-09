@@ -25,16 +25,16 @@ export const heatScale = {
   hot: "#DC2626",
 } as const;
 
-// Type Scale (Font Sizes in px)
+// Type scale: large desktop display sizes with compact mobile overrides in globals.css.
 export const fontSize = {
   xs: "12px",
   sm: "14px",
   base: "16px",
-  lg: "20px",
-  xl: "28px",
-  "2xl": "40px",
-  "3xl": "72px",
-  "4xl": "128px",
+  lg: "var(--type-lg, 20px)",
+  xl: "var(--type-xl, 28px)",
+  "2xl": "var(--type-2xl, 40px)",
+  "3xl": "var(--type-3xl, 72px)",
+  "4xl": "var(--type-4xl, 128px)",
 } as const;
 
 // Font Families

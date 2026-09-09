@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Barlow_Condensed, Inter_Tight } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 import { PwaRegistration } from "@/components/PwaRegistration";
 import { PendingSyncManager } from "@/components/PendingSyncManager";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { AchievementToastContainer } from "@/components/organisms/AchievementToast";
+import { AppNavigation } from "@/components/AppNavigation";
 import "./globals.css";
 
 const barlowCondensed = Barlow_Condensed({
@@ -19,17 +20,16 @@ const interTight = Inter_Tight({
   weight: ["400", "500", "600", "700"],
 });
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#101614',
+};
+
 export const metadata: Metadata = {
   title: "Oche",
   description: "Real-time darts scoring web app",
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    minimumScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-    viewportFit: 'cover',
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -73,7 +73,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <PwaRegistration />
         <PendingSyncManager />
         <OfflineBanner />
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider><AppNavigation>{children}</AppNavigation></SessionProvider>
         <AchievementToastContainer />
       </body>
     </html>

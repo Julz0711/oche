@@ -29,9 +29,9 @@ interface HistoryResponse {
 
 function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
-    <Panel notch="panel" className="p-4 flex flex-col gap-1">
+    <Panel notch="panel" className="p-2 md:p-4 flex flex-col gap-1">
       <span className="text-[11px] font-bold uppercase tracking-widest text-sisal">{label}</span>
-      <span className="text-3xl font-display font-bold">{value}</span>
+      <span className="text-2xl md:text-3xl font-display font-bold">{value}</span>
     </Panel>
   );
 }
@@ -39,12 +39,12 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
 function GameFilterPills({ value, onChange }: { value: GameId | null; onChange: (value: GameId | null) => void }) {
   const gameIds = Object.keys(gameRegistry) as GameId[];
   return (
-    <div className="flex gap-2 flex-wrap">
+    <div className="flex gap-1.5 sm:gap-2 flex-wrap">
       <button
         type="button"
         onClick={() => onChange(null)}
         aria-pressed={value === null}
-        className={`px-4 py-2 rounded-none text-sm font-bold transition-colors ${
+        className={`min-h-11 px-3 sm:px-4 py-2 rounded-none text-sm font-bold transition-colors ${
           value === null ? 'bg-wire text-oche' : 'bg-oche text-sisal border border-sisal/30 hover:opacity-80'
         }`}
       >
@@ -56,7 +56,7 @@ function GameFilterPills({ value, onChange }: { value: GameId | null; onChange: 
           type="button"
           onClick={() => onChange(id)}
           aria-pressed={value === id}
-          className={`px-4 py-2 rounded-none text-sm font-bold capitalize transition-colors ${
+          className={`min-h-11 px-3 sm:px-4 py-2 rounded-none text-sm font-bold capitalize transition-colors ${
             value === id ? 'bg-wire text-oche' : 'bg-oche text-sisal border border-sisal/30 hover:opacity-80'
           }`}
         >
@@ -107,8 +107,8 @@ export default function StatsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-oche text-chalk p-4 md:p-8 flex flex-col items-center">
-      <div className="w-full max-w-3xl flex flex-col gap-6 md:gap-8 pt-6 md:pt-12">
+    <div className="page-gutters min-h-screen bg-oche text-chalk p-3 md:p-8 flex flex-col items-center">
+      <div className="w-full max-w-3xl flex flex-col gap-3 md:gap-8 pt-0 md:pt-12">
         <header className="flex flex-col gap-3">
           <BackLink />
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold tracking-tight leading-none">
@@ -120,14 +120,14 @@ export default function StatsPage() {
         {error ? (
           <p className="text-sisal text-center py-8">Couldn&apos;t load your stats — try refreshing the page.</p>
         ) : data === null ? (
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2 md:gap-4">
             {[0, 1, 2].map((i) => (
               <div key={i} className="h-20 bg-slate animate-pulse" style={{ clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%)' }} />
             ))}
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-2 md:gap-4">
               <SummaryCard label="Matches Played" value={String(data.summary.played)} />
               <SummaryCard label="Win Rate" value={`${Math.round(data.summary.winRate * 100)}%`} />
               <SummaryCard
@@ -150,9 +150,9 @@ export default function StatsPage() {
                   <Panel
                     key={match.id}
                     notch="panel"
-                    className="p-4 flex items-center justify-between gap-4"
+                    className="p-3 md:p-4 flex items-center justify-between gap-2 md:gap-4"
                   >
-                    <div className="flex flex-col gap-1">
+                    <div className="min-w-0 flex flex-col gap-1">
                       <div className="flex items-center gap-2">
                         <span
                           className={`text-[10px] font-bold uppercase tracking-widest rounded-none px-2.5 py-1 ${
@@ -163,12 +163,12 @@ export default function StatsPage() {
                         </span>
                         <span className="font-bold capitalize">{match.gameName}</span>
                       </div>
-                      <span className="text-xs text-sisal">
+                      <span className="text-xs text-sisal break-words">
                         {new Date(match.completedAt).toLocaleDateString()}
                         {match.opponents.length > 0 ? ` · vs ${match.opponents.join(', ')}` : ''}
                       </span>
                     </div>
-                    <div className="flex flex-col items-end gap-0.5">
+                    <div className="shrink-0 max-w-[35%] text-right flex flex-col items-end gap-0.5">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-sisal">
                         {match.headline.label}
                       </span>

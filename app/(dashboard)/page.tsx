@@ -70,21 +70,21 @@ function GameCard({
       active={selected}
       onClick={onSelect}
       aria-pressed={selected}
-      className="min-h-[172px]"
+      className="dashboard-game min-h-[72px] sm:min-h-[172px]"
     >
       <BoardMotif
         name={motif}
         className={`pointer-events-none absolute -right-11 -bottom-14 w-[168px] h-[168px] ${ACCENT_TEXT[accent]} transition-transform duration-300 group-hover:rotate-[3deg]`}
         style={{ opacity: 'var(--motif-rest)' }}
       />
-      <span className="relative block p-[18px] pt-[18px]">
-        <span className={`block font-display font-bold text-[10px] tracking-[0.2em] ${ACCENT_TEXT[accent]}`}>
+      <span className="game-card-content relative block px-3 py-2 sm:p-[18px]">
+        <span className={`game-card-index block font-display font-bold text-[10px] tracking-[0.2em] ${ACCENT_TEXT[accent]}`}>
           {String(index + 1).padStart(2, '0')}
         </span>
-        <span className="block font-display font-bold uppercase text-[30px] leading-[0.94] text-chalk mt-12 mb-1.5">
+        <span className="block font-display font-bold uppercase text-[22px] sm:text-[30px] leading-none text-chalk sm:mt-12 mb-1">
           {game.name}
         </span>
-        <span className="block text-[10px] leading-[1.4] text-sisal/60">
+        <span className="block text-xs sm:text-[10px] leading-[1.4] text-sisal/60">
           {game.playerRange[0]}–{game.playerRange[1]} players · {game.description}
         </span>
       </span>
@@ -106,14 +106,14 @@ function Pills<T extends string | number>({
   format?: (value: T) => string;
 }) {
   return (
-    <div className="flex gap-2 flex-wrap">
+    <div className="flex gap-1.5 sm:gap-2 flex-wrap">
       {options.map((option) => (
         <button
           key={String(option)}
           type="button"
           onClick={() => onChange(option)}
           aria-pressed={option === value}
-          className={`px-4 py-2 rounded-none text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wire focus-visible:ring-offset-2 focus-visible:ring-offset-oche ${
+          className={`min-h-11 min-w-11 px-3 sm:px-4 py-2 rounded-none text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wire focus-visible:ring-offset-2 focus-visible:ring-offset-oche ${
             option === value ? 'bg-wire text-oche' : 'bg-oche text-sisal border border-sisal/30 hover:opacity-80'
           }`}
         >
@@ -236,23 +236,24 @@ export default function Dashboard() {
 
   return (
     <div
-      className="min-h-screen bg-oche text-chalk p-4 md:p-8 flex flex-col items-center relative scanlines"
+      className="dashboard-page page-gutters min-h-screen bg-oche text-chalk p-3 md:p-8 flex flex-col items-center relative scanlines"
       style={{
         backgroundImage:
           'radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--wire) 10%, transparent), transparent 60%)',
       }}
     >
-      <div className="relative z-10 w-full max-w-3xl flex flex-col gap-7 md:gap-9 pt-6 md:pt-12">
-        <header className="flex flex-col gap-5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-widest text-sisal">
+      <div className="relative z-10 w-full max-w-3xl flex flex-col gap-3 md:gap-9 pt-0 md:pt-12">
+        <header className="dashboard-header flex flex-col gap-2 md:gap-5">
+          <div className="dashboard-navigation flex items-center justify-between gap-2">
+            <span className="dashboard-user min-w-0 truncate text-xs font-bold uppercase tracking-widest text-sisal">
               {session?.user ? session.user.name ?? 'Signed in' : 'Not signed in'}
             </span>
-            <div className="flex items-center gap-3">
+            <div className="dashboard-links flex items-center gap-2">
               <button
                 onClick={handleSoundToggle}
-                className="p-1 hover:text-chalk transition-colors"
+                className="min-w-11 min-h-11 flex items-center justify-center hover:text-chalk transition-colors"
                 style={{ color: soundEnabled ? 'inherit' : tokens.sisal }}
+                aria-label={soundEnabled ? 'Mute sound' : 'Unmute sound'}
                 title={soundEnabled ? 'Mute sound' : 'Unmute sound'}
               >
                 {soundEnabled ? (
@@ -261,35 +262,7 @@ export default function Dashboard() {
                   <VolumeX className="w-4 h-4" />
                 )}
               </button>
-              {session?.user ? (
-                <div className="flex items-center gap-4">
-                  <Link
-                    href="/profile"
-                    className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
-                  >
-                    Profile
-                  </Link>
-                  <Link
-                    href="/stats"
-                    className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
-                  >
-                    History
-                  </Link>
-                  <Link
-                    href="/signout"
-                    className="text-xs font-bold uppercase tracking-widest text-sisal hover:text-chalk transition-colors"
-                  >
-                    Sign out
-                  </Link>
-                </div>
-              ) : (
-                <Link
-                  href="/signin"
-                  className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors"
-                >
-                  Sign in
-                </Link>
-              )}
+
             </div>
           </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold tracking-tight leading-none">
@@ -310,10 +283,10 @@ export default function Dashboard() {
                     className="flex flex-1 items-center justify-between gap-3 min-w-0 text-left"
                   >
                     <div className="flex flex-col items-start gap-0.5 min-w-0">
-                      <span className="font-display font-bold uppercase text-sm text-chalk truncate">
+                      <span className="font-display font-bold uppercase text-sm text-chalk truncate max-w-full">
                         {m.gameName}
                       </span>
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-sisal truncate">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-sisal truncate max-w-full">
                         {m.status === 'lobby'
                           ? 'Waiting for players'
                           : m.opponents.length > 0
@@ -328,7 +301,7 @@ export default function Dashboard() {
                       type="button"
                       onClick={() => handleDeleteMatch(m.id)}
                       aria-label="Delete match"
-                      className="shrink-0 p-1 text-sisal hover:text-treble transition-colors"
+                      className="shrink-0 min-w-11 min-h-11 flex items-center justify-center text-sisal hover:text-treble transition-colors"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -347,7 +320,7 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3.5">
               {games.map((game, index) => (
                 <GameCard
                   key={game.id}
@@ -359,20 +332,20 @@ export default function Dashboard() {
               ))}
             </div>
 
-            <Panel notch="panel" className="p-5 md:p-6 flex flex-col gap-4">
+            <Panel notch="panel" className="p-3 md:p-6 flex flex-col gap-3 md:gap-4">
               <SettingLabel>Match settings</SettingLabel>
 
               {selectedGameId === 'x01' && (
                 <>
-                  <div className="flex flex-col gap-2">
+                  <div className="dashboard-setting flex flex-col gap-2">
                     <SettingLabel>Starting score</SettingLabel>
                     <Pills options={STARTING_SCORES} value={startingScore} onChange={setStartingScore} />
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="dashboard-setting flex flex-col gap-2">
                     <SettingLabel>Legs (first to)</SettingLabel>
                     <Pills options={LEG_OPTIONS} value={x01FirstTo} onChange={setX01FirstTo} />
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="dashboard-setting flex flex-col gap-2">
                     <SettingLabel>Sets (first to)</SettingLabel>
                     <Pills
                       options={SET_OPTIONS}
@@ -385,21 +358,21 @@ export default function Dashboard() {
               )}
 
               {selectedGameId === 'cricket' && (
-                <div className="flex flex-col gap-2">
+                <div className="dashboard-setting flex flex-col gap-2">
                   <SettingLabel>Legs (first to)</SettingLabel>
                   <Pills options={LEG_OPTIONS} value={cricketFirstTo} onChange={setCricketFirstTo} />
                 </div>
               )}
 
               {selectedGameId === 'copycat' && (
-                <div className="flex flex-col gap-2">
+                <div className="dashboard-setting flex flex-col gap-2">
                   <SettingLabel>Points (first to)</SettingLabel>
                   <Pills options={COPYCAT_LIMIT_OPTIONS} value={copycatFirstTo} onChange={setCopycatFirstTo} />
                 </div>
               )}
             </Panel>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+            <div className="grid grid-cols-2 gap-2 md:gap-4">
               <div className="flex flex-col gap-2">
                 <Panel
                   as="button"
@@ -408,7 +381,7 @@ export default function Dashboard() {
                   fill="wire"
                   onClick={() => handleCreateMatch(selectedGameId, 'remote')}
                   disabled={creating !== null}
-                  className="min-h-16 md:min-h-20 flex items-center justify-center text-xl md:text-2xl font-display uppercase tracking-[0.14em] text-oche"
+                  className="min-h-12 md:min-h-20 flex items-center justify-center text-base md:text-2xl font-display uppercase tracking-[0.08em] md:tracking-[0.14em] text-oche"
                 >
                   {creating === 'remote' ? 'Starting…' : 'Play Online'}
                 </Panel>
@@ -424,7 +397,7 @@ export default function Dashboard() {
                   accent="wire"
                   onClick={() => handleCreateMatch(selectedGameId, 'local')}
                   disabled={creating !== null}
-                  className="min-h-16 md:min-h-20 flex items-center justify-center text-xl md:text-2xl font-display uppercase tracking-[0.14em] text-chalk"
+                  className="min-h-12 md:min-h-20 flex items-center justify-center text-base md:text-2xl font-display uppercase tracking-[0.08em] md:tracking-[0.14em] text-chalk"
                 >
                   {creating === 'local' ? 'Starting…' : 'Play Local'}
                 </Panel>
@@ -433,6 +406,7 @@ export default function Dashboard() {
                 </span>
               </div>
             </div>
+            <Link href="/join" className="join-room-link">Have a room code? <span>Join a room →</span></Link>
           </>
         )}
       </div>

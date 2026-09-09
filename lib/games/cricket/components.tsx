@@ -56,11 +56,13 @@ export function ScoreboardSlot({
   state,
   playerId,
   displayName,
+  compact = false,
 }: {
   state: CricketState;
   playerId: PlayerId;
   settings: CricketSettings;
   displayName?: string;
+  compact?: boolean;
 }) {
   const isCurrentPlayer = state.players[state.currentPlayerIndex] === playerId;
   const totalMarks = totalMarksFor(state, playerId);
@@ -76,6 +78,15 @@ export function ScoreboardSlot({
     ...state.players.filter((p) => p !== playerId).map((p) => state.points[p])
   );
   const pointsBehind = hasClosedAll ? Math.max(0, maxOpponentPoints - state.points[playerId]) : 0;
+
+  if (compact) return (
+    <div className="compact-score">
+      <div className="compact-player-name" title={displayName ?? playerId}>{displayName ?? playerId}</div>
+      <span className="compact-score-value">{state.points[playerId]}</span>
+      <div className="compact-score-meta"><span>{totalMarks}/{TOTAL_MARKS} marks</span><span>L {state.legsWon[playerId]}</span></div>
+      {pointsBehind > 0 && <div className="compact-score-hint text-treble">Need {pointsBehind} more points</div>}
+    </div>
+  );
 
   return (
     <Panel notch="panel" accent="wire" active={isCurrentPlayer} activeBadge={false} className="p-5">

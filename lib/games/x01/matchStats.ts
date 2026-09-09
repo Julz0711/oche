@@ -1,4 +1,5 @@
 // lib/games/x01/matchStats.ts
+import { scoringVisitStats } from './visitStats';
 import { PlayerId } from '@/lib/types';
 import { X01State } from './engine';
 import { X01Settings } from './schema';
@@ -79,6 +80,7 @@ export function matchStats(state: X01State, playerId: PlayerId, settings: X01Set
   const treblesRate = trebleAttempts > 0 ? treblesHit / trebleAttempts : 0;
 
   return {
+    ...scoringVisitStats(entries),
     avg3Dart: Math.round(avg3Dart * 10) / 10,
     firstNineAvg: Math.round(firstNineAvg * 10) / 10,
     checkoutRate: Math.round(checkoutRate * 1000) / 10,

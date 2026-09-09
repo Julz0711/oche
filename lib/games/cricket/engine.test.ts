@@ -160,24 +160,25 @@ describe('leg and match completion', () => {
   });
 
   it('closing all 7 numbers with a points lead ends the leg and increments legsWon', () => {
-    let state = init([player1, player2], CricketDefaultSettings);
-    state = applyThrow(state, dart(20, 'T', 0), CricketDefaultSettings);
-    state = applyThrow(state, dart(19, 'T', 1), CricketDefaultSettings);
-    state = applyThrow(state, dart(18, 'T', 2), CricketDefaultSettings);
-    state = applyThrow(state, dart(1, 'M', 0), CricketDefaultSettings);
-    state = applyThrow(state, dart(1, 'M', 1), CricketDefaultSettings);
-    state = applyThrow(state, dart(1, 'M', 2), CricketDefaultSettings);
-    state = applyThrow(state, dart(17, 'T', 0), CricketDefaultSettings);
-    state = applyThrow(state, dart(16, 'T', 1), CricketDefaultSettings);
-    state = applyThrow(state, dart(15, 'T', 2), CricketDefaultSettings);
-    state = applyThrow(state, dart(1, 'M', 0), CricketDefaultSettings);
-    state = applyThrow(state, dart(1, 'M', 1), CricketDefaultSettings);
-    state = applyThrow(state, dart(1, 'M', 2), CricketDefaultSettings);
+    const multiLegSettings = { ...CricketDefaultSettings, firstTo: 3 };
+    let state = init([player1, player2], multiLegSettings);
+    state = applyThrow(state, dart(20, 'T', 0), multiLegSettings);
+    state = applyThrow(state, dart(19, 'T', 1), multiLegSettings);
+    state = applyThrow(state, dart(18, 'T', 2), multiLegSettings);
+    state = applyThrow(state, dart(1, 'M', 0), multiLegSettings);
+    state = applyThrow(state, dart(1, 'M', 1), multiLegSettings);
+    state = applyThrow(state, dart(1, 'M', 2), multiLegSettings);
+    state = applyThrow(state, dart(17, 'T', 0), multiLegSettings);
+    state = applyThrow(state, dart(16, 'T', 1), multiLegSettings);
+    state = applyThrow(state, dart(15, 'T', 2), multiLegSettings);
+    state = applyThrow(state, dart(1, 'M', 0), multiLegSettings);
+    state = applyThrow(state, dart(1, 'M', 1), multiLegSettings);
+    state = applyThrow(state, dart(1, 'M', 2), multiLegSettings);
     // player1 closes bull with exact outer-bull hits — no overflow anywhere, stays tied 0-0 with
     // player2, which is enough to win (the rule is "points >= every opponent", not "strictly more")
-    state = applyThrow(state, dart(25, 'OB', 0), CricketDefaultSettings);
-    state = applyThrow(state, dart(25, 'OB', 1), CricketDefaultSettings);
-    state = applyThrow(state, dart(25, 'OB', 2), CricketDefaultSettings);
+    state = applyThrow(state, dart(25, 'OB', 0), multiLegSettings);
+    state = applyThrow(state, dart(25, 'OB', 1), multiLegSettings);
+    state = applyThrow(state, dart(25, 'OB', 2), multiLegSettings);
     expect(state.legsWon[player1]).toBe(1);
     expect(state.currentLegNumber).toBe(2);
     expect(state.points[player1]).toBe(0); // reset for the new leg

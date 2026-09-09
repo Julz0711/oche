@@ -12,11 +12,13 @@ export function ScoreboardSlot({
   playerId,
   settings,
   displayName,
+  compact = false,
 }: {
   state: X01State;
   playerId: PlayerId;
   settings: X01Settings;
   displayName?: string;
+  compact?: boolean;
 }) {
   const isCurrentPlayer = state.players[state.currentPlayerIndex] === playerId;
   const startedOn = settings.checkIn === 'straight' ? true : state.isOnDouble[playerId];
@@ -44,6 +46,15 @@ export function ScoreboardSlot({
   // route to zero, independent of how many darts are actually left in the current visit. Shown
   // only for the player on throw, since it's meant as an in-the-moment prompt, not a running fact.
   const checkout = isCurrentPlayer ? suggestCheckout(score, settings.checkOut) : null;
+
+  if (compact) return (
+    <div className="compact-score">
+      <div className="compact-player-name" title={displayName ?? playerId}>{displayName ?? playerId}</div>
+      <span className="compact-score-value">{score}</span>
+      <div className="compact-score-meta"><span>Ø {legAvg3Dart.toFixed(1)}</span><span>L {legsWon}{setsEnabled ? ` · S ${setsWon}` : ''}</span></div>
+      {checkout && <div className="compact-score-hint text-wire">{checkout.join(' · ')}</div>}
+    </div>
+  );
 
   return (
     <Panel notch="panel" accent="wire" active={isCurrentPlayer} activeBadge={false} className="p-5">

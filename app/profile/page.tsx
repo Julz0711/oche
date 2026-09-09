@@ -134,18 +134,18 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: tokens.oche }}>
       <div
-        className="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-6 md:gap-8"
+        className="page-gutters max-w-2xl mx-auto px-3 py-3 md:px-4 md:py-8 flex flex-col gap-3 md:gap-8"
         style={{ color: tokens.chalk }}
       >
         <BackLink href="/" />
 
         {/* Profile Header */}
-        <Panel notch="card" className="p-8 flex flex-col gap-6">
-          <div className="flex items-start gap-6">
+        <Panel notch="card" className="p-3 md:p-8 flex flex-col gap-3 md:gap-6">
+          <div className="flex items-start gap-3 md:gap-6">
             {/* Profile Image */}
             <div className="flex-shrink-0">
               <div
-                className="w-24 h-24 rounded-none border-2 flex items-center justify-center"
+                className="w-12 h-12 md:w-24 md:h-24 rounded-none border-2 flex items-center justify-center"
                 style={{
                   borderColor: tokens.wire,
                   backgroundColor: tokens.slate,
@@ -158,25 +158,25 @@ export default function ProfilePage() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <User className="w-12 h-12" style={{ color: tokens.wire }} />
+                  <User className="w-6 h-6 md:w-12 md:h-12" style={{ color: tokens.wire }} />
                 )}
               </div>
             </div>
 
             {/* User Info */}
-            <div className="flex-1 flex flex-col gap-3">
+            <div className="min-w-0 flex-1 flex flex-col gap-1 md:gap-3">
               <div>
                 <div className="text-xs font-bold uppercase tracking-widest" style={{ color: tokens.sisal }}>
                   Display Name
                 </div>
-                <h1 className="text-3xl font-display font-bold mt-1">{session.user.name || 'Guest'}</h1>
+                <h1 className="text-2xl md:text-3xl font-display font-bold mt-1 break-words">{session.user.name || 'Guest'}</h1>
               </div>
               <Link
                 href="/settings"
-                className="text-xs font-bold uppercase tracking-widest transition-colors w-fit"
+                className="text-xs font-bold uppercase tracking-widest transition-colors min-h-11 flex items-center w-fit"
                 style={{ color: tokens.wire }}
               >
-                Edit Profile →
+                Account settings →
               </Link>
             </div>
           </div>
@@ -186,45 +186,45 @@ export default function ProfilePage() {
         {loading ? (
           <div style={{ color: tokens.sisal }}>Loading stats...</div>
         ) : stats ? (
-          <div className="grid grid-cols-2 gap-4">
-            <Panel notch="panel" className="p-4 flex flex-col items-center gap-2">
+          <div className="grid grid-cols-2 gap-2 md:gap-4">
+            <Panel notch="panel" className="p-3 md:p-4 flex flex-col items-center gap-1 md:gap-2">
               <div className="text-xs font-bold uppercase tracking-widest" style={{ color: tokens.sisal }}>
                 Games Played
               </div>
-              <div className="text-3xl font-display font-bold" style={{ color: tokens.wire }}>
+              <div className="text-2xl md:text-3xl font-display font-bold" style={{ color: tokens.wire }}>
                 {stats.totalMatches}
               </div>
             </Panel>
 
-            <Panel notch="panel" className="p-4 flex flex-col items-center gap-2">
+            <Panel notch="panel" className="p-3 md:p-4 flex flex-col items-center gap-1 md:gap-2">
               <div className="text-xs font-bold uppercase tracking-widest" style={{ color: tokens.sisal }}>
                 Win Rate
               </div>
-              <div className="text-3xl font-display font-bold" style={{ color: tokens.double }}>
+              <div className="text-2xl md:text-3xl font-display font-bold" style={{ color: tokens.double }}>
                 {stats.winRate}%
               </div>
             </Panel>
 
-            <Panel notch="panel" className="p-4 flex flex-col items-center gap-2">
+            <Panel notch="panel" className="p-3 md:p-4 flex flex-col items-center gap-1 md:gap-2">
               <div className="flex items-center gap-1.5">
                 <Trophy className="w-4 h-4" style={{ color: tokens.double }} />
                 <span className="text-xs font-bold uppercase tracking-widest" style={{ color: tokens.sisal }}>
                   Wins
                 </span>
               </div>
-              <div className="text-3xl font-display font-bold" style={{ color: tokens.double }}>
+              <div className="text-2xl md:text-3xl font-display font-bold" style={{ color: tokens.double }}>
                 {stats.wins}
               </div>
             </Panel>
 
-            <Panel notch="panel" className="p-4 flex flex-col items-center gap-2">
+            <Panel notch="panel" className="p-3 md:p-4 flex flex-col items-center gap-1 md:gap-2">
               <div className="flex items-center gap-1.5">
                 <Zap className="w-4 h-4" style={{ color: tokens.treble }} />
                 <span className="text-xs font-bold uppercase tracking-widest" style={{ color: tokens.sisal }}>
                   Losses
                 </span>
               </div>
-              <div className="text-3xl font-display font-bold" style={{ color: tokens.treble }}>
+              <div className="text-2xl md:text-3xl font-display font-bold" style={{ color: tokens.treble }}>
                 {stats.losses}
               </div>
             </Panel>
@@ -232,8 +232,8 @@ export default function ProfilePage() {
         ) : null}
 
         {/* Achievements Placeholder */}
-        <Panel notch="panel" className="p-6">
-          <h2 className="text-xl font-display font-bold mb-4" style={{ color: tokens.wire }}>
+        <Panel notch="panel" className="p-3 md:p-6">
+          <h2 className="text-xl font-display font-bold mb-3 md:mb-4" style={{ color: tokens.wire }}>
             Achievements
           </h2>
           {achievementsLoading ? (
@@ -248,21 +248,10 @@ export default function ProfilePage() {
           )}
         </Panel>
 
-        {/* Friends Placeholder */}
-        <Panel notch="panel" className="p-6">
-          <h2 className="text-xl font-display font-bold mb-4" style={{ color: tokens.wire }}>
-            Friends
-          </h2>
-          <div
-            className="p-8 text-center rounded-none border-2 border-dashed"
-            style={{
-              borderColor: tokens.sisal + '33',
-            }}
-          >
-            <div style={{ color: tokens.sisal }}>
-              <p className="text-sm">Friend list coming soon</p>
-            </div>
-          </div>
+        <Panel notch="panel" className="p-3 md:p-6">
+          <h2 className="text-xl font-display font-bold mb-2 text-wire">Friends</h2>
+          <p className="text-sm text-sisal">Add players and follow your head-to-head records.</p>
+          <Link href="/friends" className="social-link">Your friends →</Link>
         </Panel>
       </div>
     </div>

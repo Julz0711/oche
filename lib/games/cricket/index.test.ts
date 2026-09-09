@@ -32,27 +32,28 @@ describe('CricketModule.lastCompletedVisit', () => {
   });
 
   it('still returns a visit that won a leg, even though visitHistory no longer does', () => {
-    let state = CricketModule.init([player1, player2], CricketDefaultSettings);
+    const multiLegSettings = { ...CricketDefaultSettings, firstTo: 3 };
+    let state = CricketModule.init([player1, player2], multiLegSettings);
     // player1's visit 1: closes 20, 19, 18
-    state = CricketModule.applyThrow(state, dart(20, 'T', 0), CricketDefaultSettings);
-    state = CricketModule.applyThrow(state, dart(19, 'T', 1), CricketDefaultSettings);
-    state = CricketModule.applyThrow(state, dart(18, 'T', 2), CricketDefaultSettings);
+    state = CricketModule.applyThrow(state, dart(20, 'T', 0), multiLegSettings);
+    state = CricketModule.applyThrow(state, dart(19, 'T', 1), multiLegSettings);
+    state = CricketModule.applyThrow(state, dart(18, 'T', 2), multiLegSettings);
     // player2's visit 1: passes
-    state = CricketModule.applyThrow(state, dart(1, 'M', 0), CricketDefaultSettings);
-    state = CricketModule.applyThrow(state, dart(1, 'M', 1), CricketDefaultSettings);
-    state = CricketModule.applyThrow(state, dart(1, 'M', 2), CricketDefaultSettings);
+    state = CricketModule.applyThrow(state, dart(1, 'M', 0), multiLegSettings);
+    state = CricketModule.applyThrow(state, dart(1, 'M', 1), multiLegSettings);
+    state = CricketModule.applyThrow(state, dart(1, 'M', 2), multiLegSettings);
     // player1's visit 2: closes 17, 16, 15
-    state = CricketModule.applyThrow(state, dart(17, 'T', 0), CricketDefaultSettings);
-    state = CricketModule.applyThrow(state, dart(16, 'T', 1), CricketDefaultSettings);
-    state = CricketModule.applyThrow(state, dart(15, 'T', 2), CricketDefaultSettings);
+    state = CricketModule.applyThrow(state, dart(17, 'T', 0), multiLegSettings);
+    state = CricketModule.applyThrow(state, dart(16, 'T', 1), multiLegSettings);
+    state = CricketModule.applyThrow(state, dart(15, 'T', 2), multiLegSettings);
     // player2's visit 2: passes
-    state = CricketModule.applyThrow(state, dart(1, 'M', 0), CricketDefaultSettings);
-    state = CricketModule.applyThrow(state, dart(1, 'M', 1), CricketDefaultSettings);
-    state = CricketModule.applyThrow(state, dart(1, 'M', 2), CricketDefaultSettings);
+    state = CricketModule.applyThrow(state, dart(1, 'M', 0), multiLegSettings);
+    state = CricketModule.applyThrow(state, dart(1, 'M', 1), multiLegSettings);
+    state = CricketModule.applyThrow(state, dart(1, 'M', 2), multiLegSettings);
     // player1's visit 3: closes bull tied 0-0 with player2 — enough to win the leg
-    state = CricketModule.applyThrow(state, dart(25, 'OB', 0), CricketDefaultSettings);
-    state = CricketModule.applyThrow(state, dart(25, 'OB', 1), CricketDefaultSettings);
-    state = CricketModule.applyThrow(state, dart(25, 'OB', 2), CricketDefaultSettings); // wins the leg
+    state = CricketModule.applyThrow(state, dart(25, 'OB', 0), multiLegSettings);
+    state = CricketModule.applyThrow(state, dart(25, 'OB', 1), multiLegSettings);
+    state = CricketModule.applyThrow(state, dart(25, 'OB', 2), multiLegSettings); // wins the leg
 
     expect(state.currentLegNumber).toBe(2); // leg advanced as part of this same throw
     expect(CricketModule.visitHistory(state, player1)).toHaveLength(0); // filtered out — the bug lastCompletedVisit exists to fix

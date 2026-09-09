@@ -15,13 +15,15 @@ export function useRemoteMatchSync(matchId: string | null) {
 
     const channel = client.channels.get(`match:${matchId}`);
 
+    // Navigating away can close the client while subscription is still pending.
+    // Ably handles reconnects; lobby polling below covers unavailable transport.
     channel.subscribe('lobby', (msg) => {
       useMatchStore.getState().setPlayers(msg.data.players);
-    });
+    }).catch(() => {});
 
     channel.subscribe('state', (msg) => {
       useMatchStore.getState().setGameState(msg.data.state, msg.data.status);
-    });
+    }).catch(() => {});
 
     const refetchSnapshot = async () => {
       const res = await fetch(`/api/matches/${matchId}`);

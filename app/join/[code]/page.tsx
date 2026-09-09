@@ -21,7 +21,8 @@ export default function JoinPage({ params }: JoinPageProps) {
     if (hasJoined.current) return;
     hasJoined.current = true;
     const join = async () => {
-      const res = await fetch(`/api/matches/join/${code}`, { method: 'POST' });
+      try {
+      const res = await fetch(`/api/matches/join/${encodeURIComponent(code)}`, { method: 'POST' });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         setError(body.error ?? 'Could not join this match');
@@ -29,19 +30,20 @@ export default function JoinPage({ params }: JoinPageProps) {
       }
       const { id } = await res.json();
       router.push(`/match/${id}`);
+      } catch { setError('Could not connect. Please try joining again.'); }
     };
     join();
   }, [code, router]);
 
   if (error) {
     return (
-      <div className="min-h-screen bg-oche text-chalk flex flex-col items-center justify-center gap-4">
+      <div className="page-gutters min-h-screen bg-oche text-chalk p-4 text-center flex flex-col items-center justify-center gap-4">
         <span>{error}</span>
-        <Link href="/" className="text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors">
-          Back to dashboard
+        <Link href="/join" className="min-h-11 flex items-center text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors">
+          Try another room code
         </Link>
       </div>
     );
   }
-  return <div className="min-h-screen bg-oche text-chalk flex items-center justify-center">Joining…</div>;
+  return <div className="page-gutters min-h-screen bg-oche text-chalk p-4 text-center flex items-center justify-center">Joining…</div>;
 }

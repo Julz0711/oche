@@ -211,7 +211,7 @@ export interface GameModule<TState = any, TSettings = any> {
   /**
    * React component to render one player's scoreboard slot
    */
-  ScoreboardSlot: React.FC<{ state: TState; playerId: PlayerId; settings: TSettings; displayName?: string }>;
+  ScoreboardSlot: React.FC<{ state: TState; playerId: PlayerId; settings: TSettings; displayName?: string; compact?: boolean }>;
   /**
    * Optional per-game override for the "history" slot next to a player's dartboard column
    * (same slot the generic dart-by-dart HistoryPanel occupies for games that don't provide

@@ -116,16 +116,17 @@ describe('X01 Engine', () => {
 
   describe('applyThrow: checkout detection', () => {
     it('recognizes checkout with double-out across 3 darts (finish on a double)', () => {
-      let state = init([player1, player2], { ...X01DefaultSettings, checkOut: 'double' });
+      const multiLegSettings = { ...X01DefaultSettings, firstTo: 3 };
+      let state = init([player1, player2], { ...multiLegSettings, checkOut: 'double' });
       state.playerScores[player1] = 100;
 
       const throw1 = { sector: 20 as const, ring: 'T' as const, points: 60, order: 0 as const };
       const throw2 = { sector: 20 as const, ring: 'S' as const, points: 20, order: 1 as const };
       const throw3 = { sector: 10 as const, ring: 'D' as const, points: 20, order: 2 as const }; // remaining 20, double finish
 
-      state = applyThrow(state, throw1, X01DefaultSettings);
-      state = applyThrow(state, throw2, X01DefaultSettings);
-      state = applyThrow(state, throw3, X01DefaultSettings);
+      state = applyThrow(state, throw1, multiLegSettings);
+      state = applyThrow(state, throw2, multiLegSettings);
+      state = applyThrow(state, throw3, multiLegSettings);
 
       expect(state.playerScores[player1]).toBe(501); // new leg started, scores reset
       expect(state.legsWon[player1]).toBe(1);
@@ -134,12 +135,13 @@ describe('X01 Engine', () => {
     });
 
     it('recognizes a checkout on the first dart of a visit (leg ends mid-visit, remaining darts not thrown)', () => {
-      const state = init([player1, player2], { ...X01DefaultSettings, checkOut: 'double' });
+      const multiLegSettings = { ...X01DefaultSettings, firstTo: 3 };
+      const state = init([player1, player2], { ...multiLegSettings, checkOut: 'double' });
       state.playerScores[player1] = 40;
 
       const throw1 = { sector: 20 as const, ring: 'D' as const, points: 40, order: 0 as const }; // D20 finishes immediately
 
-      const after = applyThrow(state, throw1, X01DefaultSettings);
+      const after = applyThrow(state, throw1, multiLegSettings);
 
       expect(after.legsWon[player1]).toBe(1);
       expect(after.currentVisit).toHaveLength(0); // remaining darts never thrown
@@ -147,7 +149,8 @@ describe('X01 Engine', () => {
     });
 
     it('allows straight checkout (any dart to 0)', () => {
-      const settings = { ...X01DefaultSettings, checkOut: 'straight' as const };
+      const multiLegSettings = { ...X01DefaultSettings, firstTo: 3 };
+      const settings = { ...multiLegSettings, checkOut: 'straight' as const };
       let state = init([player1, player2], settings);
       state.playerScores[player1] = 20;
 
@@ -250,12 +253,13 @@ describe('X01 Engine', () => {
     });
 
     it('reverts a leg-winning checkout, restoring legsWon, both players scores, and leg number', () => {
-      const state = init([player1, player2], { ...X01DefaultSettings, checkOut: 'double', firstTo: 3 });
+      const multiLegSettings = { ...X01DefaultSettings, firstTo: 3 };
+      const state = init([player1, player2], { ...multiLegSettings, checkOut: 'double', firstTo: 3 });
       state.playerScores[player1] = 40;
       state.playerScores[player2] = 300; // arbitrary mid-leg score for player2
 
       const finishDart = { sector: 20 as const, ring: 'D' as const, points: 40, order: 0 as const };
-      const stateAfterCheckout = applyThrow(state, finishDart, X01DefaultSettings);
+      const stateAfterCheckout = applyThrow(state, finishDart, multiLegSettings);
 
       expect(stateAfterCheckout.legsWon[player1]).toBe(1);
       expect(stateAfterCheckout.currentLegNumber).toBe(2);
@@ -354,7 +358,7 @@ describe('X01 Engine', () => {
       visits: Omit<Throw, 'order'>[][],
       finishDart: Omit<Throw, 'order'>
     ) {
-      const settings = { ...X01DefaultSettings, checkOut };
+      const settings = { ...X01DefaultSettings, checkOut, firstTo: 3 };
       let state = init([player1, player2], settings);
       state.playerScores[player1] = startingScore;
 

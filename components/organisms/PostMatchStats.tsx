@@ -43,31 +43,34 @@ export function PostMatchStats({
   });
 
   return (
-    <Panel notch="card" className="p-4 flex flex-col gap-4">
-      <p className="text-lg font-display font-bold text-center">Match Complete!</p>
+    <Panel notch="card" className="p-2.5 sm:p-3 flex flex-col gap-2.5">
+      <h2 className="text-[20px] leading-6 font-display font-bold text-center">Match Complete!</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-start">
         {players.map((playerId) => {
           const heatmap = gameModule.heatmap(state, playerId);
           const isWinner = playerId === winnerId;
 
           return (
-            <Panel key={playerId} notch="none" accent="wire" active={isWinner} className="p-4 flex flex-col gap-3">
+            <Panel key={playerId} notch="none" accent="wire" active={isWinner} activeBadge={false} className="p-2.5 flex flex-col gap-1">
               <PlayerStatTiles
                 gameModule={gameModule}
                 state={state}
                 settings={settings}
                 playerId={playerId}
-                displayName={displayNames.get(playerId)}
+                displayName={displayNames.get(playerId) ?? playerId.replace(/^player(\d+)$/, 'Player $1')}
                 isWinner={isWinner}
               />
-              <HeatmapBoard heatmap={heatmap} />
+              <details className="summary-heatmap">
+                <summary>Throw heatmap</summary>
+                <div className="w-full max-w-[220px] mx-auto"><HeatmapBoard heatmap={heatmap} /></div>
+              </details>
             </Panel>
           );
         })}
       </div>
 
-      <div className="flex gap-3 justify-center">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
         <ShareResultButton
           matchId={matchId}
           gameName={gameModule.name}

@@ -12,11 +12,13 @@ export function ScoreboardSlot({
   playerId,
   settings,
   displayName,
+  compact = false,
 }: {
   state: CopycatState;
   playerId: PlayerId;
   settings: CopycatSettings;
   displayName?: string;
+  compact?: boolean;
 }) {
   const isCurrentPlayer = state.players[state.currentPlayerIndex] === playerId;
   const pointsWon = state.pointsWon[playerId];
@@ -25,6 +27,15 @@ export function ScoreboardSlot({
   // player doesn't know the rule is active. Surfaced here so it's visible before it costs a
   // point, not discovered after the fact.
   const isMatchPoint = pointsWon === settings.firstTo - 1;
+
+  if (compact) return (
+    <div className="compact-score">
+      <div className="compact-player-name" title={displayName ?? playerId}>{displayName ?? playerId}</div>
+      <span className="compact-score-value">{pointsWon}</span>
+      <div className="compact-score-meta">First to {settings.firstTo}</div>
+      {isMatchPoint && <div className="compact-score-hint text-treble">Match point · double finish</div>}
+    </div>
+  );
 
   return (
     <Panel notch="panel" accent="wire" active={isCurrentPlayer} activeBadge={false} className="p-5">

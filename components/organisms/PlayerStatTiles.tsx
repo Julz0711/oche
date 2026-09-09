@@ -1,8 +1,7 @@
-// components/organisms/PlayerStatTiles.tsx
-import { GameModule, PlayerId, StatTileDef } from '@/lib/types';
+import { GameModule, PlayerId } from '@/lib/types';
 
 interface PlayerStatTilesProps {
-  gameModule: GameModule<any, any>;
+  gameModule: GameModule;
   state: any;
   settings: any;
   playerId: PlayerId;
@@ -10,32 +9,51 @@ interface PlayerStatTilesProps {
   isWinner?: boolean;
 }
 
-/** A player's name header plus their computed stat-tile grid (3-dart avg, checkout %, MPR,
- *  etc. — whatever `gameModule.statTiles` defines). Shared by `PostMatchStats` (end of match)
- *  and `LiveStatsDrawer` (mid-match) so the two surfaces can never disagree on a number — both
- *  call `gameModule.matchStats` and render `gameModule.statTiles` the same way.
- *
- *  Deliberately unstyled at the card level (no border/background) — each consumer wraps this
- *  in whatever card treatment fits its own layout (e.g. PostMatchStats nests a HeatmapBoard
- *  inside the same bordered card; LiveStatsDrawer doesn't). */
+interface Metric { label: string; value: string | number }
+
+function MetricGrid({ metrics }: { metrics: Metric[] }) {
+  return <dl className="player-stat-grid">
+    {metrics.map(metric => <div key={metric.label}>
+      <dt>{metric.label}</dt>
+      <dd>{metric.value}</dd>
+    </div>)}
+  </dl>;
+}
+
+/** Live and final views use the same completed-visit stats. Secondary metrics are
+ * optional, keeping the first comparison short regardless of the game. */
 export function PlayerStatTiles({ gameModule, state, settings, playerId, displayName, isWinner }: PlayerStatTilesProps) {
   const stats = gameModule.matchStats(state, playerId, settings);
+  const counts = gameModule.heatmap(state, playerId);
+  let darts = 0, doubles = 0, trebles = 0, bulls = 0, misses = 0;
+  for (const [segment, count] of Object.entries(counts)) {
+    darts += count;
+    if (segment.startsWith('D') || segment.startsWith('IB')) doubles += count;
+    if (segment.startsWith('T')) trebles += count;
+    if (segment.startsWith('IB') || segment.startsWith('OB')) bulls += count;
+    if (segment.startsWith('M')) misses += count;
+  }
+  const metrics: Metric[] = [
+    ...gameModule.statTiles.map(tile => ({ label: tile.label, value: tile.value(stats) })),
+    { label: 'Darts thrown', value: darts },
+    { label: 'Misses', value: misses },
+    { label: 'Double hits', value: doubles },
+    { label: 'Treble hits', value: trebles },
+    { label: 'Bull hits', value: bulls },
+  ];
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="text-sm font-bold uppercase tracking-widest text-sisal">
-        {displayName ?? playerId}
-        {isWinner ? ' — Winner' : ''}
+    <section className="player-stats" aria-label={`Statistics for ${displayName ?? playerId}`}>
+      <div className="player-stats-heading">
+        <h3>{displayName ?? playerId.replace(/^player(\d+)$/, 'Player $1')}</h3>
+        {isWinner && <span className="text-wire">Winner</span>}
       </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        {gameModule.statTiles.map((tile: StatTileDef<any>) => (
-          <div key={tile.key} className="text-center">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-sisal">{tile.label}</div>
-            <div className="text-xl font-display font-bold">{tile.value(stats)}</div>
-          </div>
-        ))}
-      </div>
-    </div>
+      <MetricGrid metrics={metrics.slice(0, 6)} />
+      <details className="additional-stats">
+        <summary>More stats</summary>
+        <MetricGrid metrics={metrics.slice(6)} />
+        <p className="stat-note">Hit counts include busts. Double hits include inner bulls; bull hits include both bulls.</p>
+      </details>
+    </section>
   );
 }

@@ -1,6 +1,6 @@
 // components/organisms/LiveStatsDrawer.tsx
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { GameModule, PlayerId } from '@/lib/types';
 import { PlayerStatTiles } from './PlayerStatTiles';
@@ -31,51 +31,47 @@ export function LiveStatsDrawer({
   winnerId = null,
   displayNames,
 }: LiveStatsDrawerProps) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    if (!open && dialog.open) dialog.close();
     if (!open) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [open, onClose]);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previous; };
+  }, [open]);
 
   return (
-    <div
-      className={`fixed inset-0 z-40 flex items-end justify-center transition-opacity duration-200 ${
-        open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-      }`}
-      aria-hidden={!open}
-    >
-      <div className="absolute inset-0 bg-oche/70" onClick={onClose} />
-
+    <dialog ref={dialogRef} onCancel={onClose} onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      aria-labelledby="live-stats-title" className="stats-dialog">
       <div
-        className={`relative w-full max-w-2xl bg-slate border-t-2 border-x-2 border-wire/30 p-4 flex flex-col gap-4 max-h-[80vh] transition-transform duration-200 ${
-          open ? 'translate-y-0' : 'translate-y-full'
-        }`}
+        className="relative w-full max-w-2xl bg-slate border-t-2 border-x-2 border-wire/30 p-3 flex flex-col gap-2 max-h-[85dvh] pb-[max(16px,env(safe-area-inset-bottom))]"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-6 rounded-full bg-wire" />
-            <span className="text-sm font-bold uppercase tracking-widest text-sisal">Live Stats</span>
+            <h2 id="live-stats-title" className="text-sm font-bold uppercase tracking-widest text-sisal">Live Stats</h2>
           </div>
           <button
             onClick={onClose}
             aria-label="Close stats"
-            className="w-8 h-8 flex items-center justify-center border-2 border-sisal/30 bg-oche text-sisal hover:text-chalk hover:border-wire transition-colors"
+            className="w-11 h-11 flex items-center justify-center border-2 border-sisal/30 bg-oche text-sisal hover:text-chalk hover:border-wire transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto">
+        <p className="stat-note">Completed visits · current visit appears when finished</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 overflow-y-auto overscroll-contain min-h-0 items-start">
           {players.map((playerId) => (
             <Panel
               key={playerId}
               notch="none"
               accent="wire"
               active={winnerId !== null && playerId === winnerId}
-              className="p-4"
+              className="p-2.5"
             >
               <PlayerStatTiles
                 gameModule={gameModule}
@@ -89,6 +85,6 @@ export function LiveStatsDrawer({
           ))}
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

@@ -1,8 +1,14 @@
 // lib/games/x01/stats.ts
 import { Visit, StatTileDef, GameStats } from '@/lib/types';
+import { scoringVisitStats } from './visitStats';
 import { X01Settings } from './schema';
 
 export interface X01Stats extends GameStats {
+  bestVisit: number;
+  visits100: number;
+  visits140: number;
+  visits180: number;
+  busts: number;
   avg3Dart: number;
   firstNineAvg: number;
   checkoutRate: number;
@@ -17,6 +23,11 @@ export interface X01Stats extends GameStats {
 }
 
 export const EMPTY_X01_STATS: X01Stats = {
+  bestVisit: 0,
+  visits100: 0,
+  visits140: 0,
+  visits180: 0,
+  busts: 0,
   avg3Dart: 0,
   firstNineAvg: 0,
   checkoutRate: 0,
@@ -95,6 +106,7 @@ export function computeStats(visits: Visit[], settings: X01Settings): X01Stats {
   const treblesRate = trebleAttempts > 0 ? treblesHit / trebleAttempts : 0;
 
   return {
+    ...scoringVisitStats(visits),
     avg3Dart: Math.round(avg3Dart * 10) / 10,
     firstNineAvg: Math.round(firstNineAvg * 10) / 10,
     checkoutRate: Math.round(checkoutRate * 1000) / 10, // Percentage
@@ -131,13 +143,13 @@ export const statTiles: StatTileDef<X01Stats>[] = [
     value: (stats) => (stats.bestLeg ? `${stats.bestLeg}` : '—'),
   },
   {
-    label: 'Highest checkout',
+    label: 'High checkout',
     key: 'highestCheckout',
     value: (stats) => (stats.highestCheckout ? `${stats.highestCheckout}` : '—'),
   },
-  {
-    label: 'Doubles %',
-    key: 'doublesRate',
-    value: (stats) => `${stats.doublesRate.toFixed(0)}%`,
-  },
+  { label: 'Best visit', key: 'bestVisit', value: (s) => String(s.bestVisit) },
+  { label: '100–139', key: 'visits100', value: (s) => String(s.visits100) },
+  { label: '140–179', key: 'visits140', value: (s) => String(s.visits140) },
+  { label: '180s', key: 'visits180', value: (s) => String(s.visits180) },
+  { label: 'Busts', key: 'busts', value: (s) => String(s.busts) },
 ];

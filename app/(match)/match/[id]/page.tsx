@@ -5,6 +5,7 @@ import { useMatchStore } from '@/store/match';
 import { useAchievementStore } from '@/lib/stores/achievementStore';
 import type { Achievement } from '@/lib/achievements/types';
 import { getGameModule, GameId } from '@/lib/games/registry';
+import { MobileMatch } from '@/components/organisms/MobileMatch';
 import { DartboardInput } from '@/components/organisms/DartboardInput';
 import { DartBadge } from '@/components/atoms/DartBadge';
 import { PostMatchStats } from '@/components/organisms/PostMatchStats';
@@ -544,13 +545,13 @@ export default function MatchPage({ params }: MatchPageProps) {
 
   return (
     <div
-      className="min-h-screen bg-oche text-chalk p-4 flex flex-col gap-4"
+      className={`match-page min-h-screen bg-oche text-chalk p-4 flex flex-col gap-4 ${!isComplete ? 'match-live' : ''}`}
       style={{
         backgroundImage:
           'radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--wire) 8%, transparent), transparent 60%)',
       }}
     >
-      <header className="flex items-center justify-between">
+      <header className="match-header flex items-center justify-between">
         <div className="flex items-center gap-3">
           <BackLink />
           <h1 className="text-xl font-display font-bold">{gameModule.name}</h1>
@@ -560,6 +561,7 @@ export default function MatchPage({ params }: MatchPageProps) {
             <button
               onClick={handleSoundToggle}
               className="flex items-center justify-center rounded-none border-2 border-sisal/30 bg-slate px-3 py-1.5 hover:border-wire transition-colors"
+              aria-label={soundEnabled ? 'Mute sound' : 'Unmute sound'}
               title={soundEnabled ? 'Mute sound' : 'Unmute sound'}
             >
               {soundEnabled ? (
@@ -577,7 +579,7 @@ export default function MatchPage({ params }: MatchPageProps) {
             </button>
             <button
               onClick={handleUndo}
-              className="flex items-center gap-1.5 rounded-none border-2 border-sisal/30 bg-slate px-3 py-1.5 hover:border-wire transition-colors"
+              className="desktop-undo flex items-center gap-1.5 rounded-none border-2 border-sisal/30 bg-slate px-3 py-1.5 hover:border-wire transition-colors"
             >
               <Undo2 className="w-4 h-4 text-wire" />
               <span className="text-xs font-bold uppercase tracking-widest text-chalk">Undo</span>
@@ -586,6 +588,12 @@ export default function MatchPage({ params }: MatchPageProps) {
         )}
       </header>
 
+      {!isComplete && <MobileMatch gameModule={gameModule} state={gameState} settings={settings}
+        displayNames={displayNames} disabled={mode === 'remote' && currentPlayerId !== you}
+        onThrow={handleThrow} onUndo={handleUndo} error={throwError}
+        onDismissError={() => useMatchStore.getState().clearThrowError()} />}
+
+      <div className={isComplete ? 'completed-scoreboards' : 'desktop-match'}>
       {useCompactOpponentsLayout && youPlayerId ? (
         <>
           {/* Top row: score / match info / score — same 3-equal-column layout as local mode.
@@ -860,6 +868,8 @@ export default function MatchPage({ params }: MatchPageProps) {
           )}
         </>
       )}
+
+      </div>
 
       {/* Match end */}
       {isComplete && (

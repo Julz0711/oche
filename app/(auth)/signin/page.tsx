@@ -20,12 +20,12 @@ export default function SignInPage() {
 
   return (
     <div
-      className="flex items-center justify-center min-h-screen p-4"
+      className="auth-page page-gutters flex items-center justify-center min-h-screen p-3"
       style={{ backgroundColor: tokens.oche }}
     >
-      <Panel notch="card" className="w-full max-w-md p-8">
+      <div className="w-full max-w-md"><Panel notch="card" className="p-4 md:p-8">
         <h1
-          className="text-2xl font-bold text-center mb-8 font-display"
+          className="text-2xl font-bold text-center mb-4 md:mb-8 font-display"
           style={{ color: tokens.wire }}
         >
           Sign in to Oche
@@ -47,7 +47,7 @@ export default function SignInPage() {
           <button
             onClick={() => handleSignIn("google")}
             disabled={isLoading}
-            className="w-full px-4 py-2 rounded-none font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full min-h-11 px-3 py-2 rounded-none font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
             style={{
               backgroundColor: tokens.treble,
               color: tokens.chalk,
@@ -66,7 +66,7 @@ export default function SignInPage() {
           <button
             onClick={() => handleSignIn("discord")}
             disabled={isLoading}
-            className="w-full px-4 py-2 rounded-none font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full min-h-11 px-3 py-2 rounded-none font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
             style={{
               backgroundColor: tokens.chalk,
               color: tokens.oche,
@@ -84,7 +84,7 @@ export default function SignInPage() {
           style={{ color: tokens.sisal }}
         >
           <div>By signing in, you agree to our</div>
-          <div className="flex gap-2 justify-center">
+          <div className="flex flex-wrap gap-2 justify-center">
             <Link href="/privacy" className="hover:text-chalk transition-colors underline">
               Privacy Policy
             </Link>
@@ -94,7 +94,7 @@ export default function SignInPage() {
             </Link>
           </div>
         </div>
-      </Panel>
+      </Panel></div>
     </div>
   );
 }

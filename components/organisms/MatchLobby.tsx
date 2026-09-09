@@ -51,7 +51,7 @@ export function MatchLobby({ matchId, roomCode, players, playerRange, isHost, on
   };
 
   return (
-    <Panel notch="card" className="p-6 flex flex-col items-center gap-4 max-w-md mx-auto">
+    <div className="w-full max-w-md min-w-0 mx-auto"><Panel notch="card" className="p-3 md:p-6 flex flex-col items-center gap-3 md:gap-4 max-w-md mx-auto">
       <Crosshair className="w-8 h-8 text-wire" />
       <div className="text-center border-2 border-wire/20 bg-oche px-4 py-2 w-full">
         <div className="text-xs font-bold uppercase tracking-widest text-sisal">Room code</div>
@@ -63,7 +63,7 @@ export function MatchLobby({ matchId, roomCode, players, playerRange, isHost, on
 
       <button
         onClick={handleCopy}
-        className="flex items-center gap-2 justify-center text-sm text-sisal hover:text-chalk hover:border-wire px-3 py-1.5 bg-oche border-2 border-sisal/30 w-full max-w-full overflow-hidden transition-colors"
+        className="flex items-center gap-2 justify-center text-sm text-sisal hover:text-chalk hover:border-wire min-h-11 px-3 py-1.5 bg-oche border-2 border-sisal/30 w-full max-w-full overflow-hidden transition-colors"
       >
         <Copy className="w-3.5 h-3.5 shrink-0" />
         <span className="truncate">{copied ? 'Copied!' : joinUrl}</span>
@@ -80,17 +80,17 @@ export function MatchLobby({ matchId, roomCode, players, playerRange, isHost, on
         {players.map((player, index) => (
           <div
             key={identityIdOf(player)}
-            className="flex items-center gap-2 p-3 bg-double/15 border-2 border-double/40 text-double font-bold"
+            className="flex items-center gap-2 p-2 md:p-3 bg-double/15 border-2 border-double/40 text-double font-bold"
           >
             <span className="flex-1 text-left truncate">{player.name}</span>
             {isHost && players.length > 1 && (
-              <div className="flex flex-col gap-0.5 shrink-0">
+              <div className="flex gap-1 shrink-0">
                 <button
                   type="button"
                   onClick={() => handleMove(index, -1)}
                   disabled={index === 0 || reordering}
                   aria-label={`Move ${player.name} up`}
-                  className="w-6 h-5 flex items-center justify-center border border-sisal/30 bg-oche text-sisal disabled:opacity-30 hover:border-wire transition-colors"
+                  className="w-11 h-11 flex items-center justify-center border border-sisal/30 bg-oche text-sisal disabled:opacity-30 hover:border-wire transition-colors"
                 >
                   <ChevronUp className="w-3.5 h-3.5" />
                 </button>
@@ -99,7 +99,7 @@ export function MatchLobby({ matchId, roomCode, players, playerRange, isHost, on
                   onClick={() => handleMove(index, 1)}
                   disabled={index === players.length - 1 || reordering}
                   aria-label={`Move ${player.name} down`}
-                  className="w-6 h-5 flex items-center justify-center border border-sisal/30 bg-oche text-sisal disabled:opacity-30 hover:border-wire transition-colors"
+                  className="w-11 h-11 flex items-center justify-center border border-sisal/30 bg-oche text-sisal disabled:opacity-30 hover:border-wire transition-colors"
                 >
                   <ChevronDown className="w-3.5 h-3.5" />
                 </button>
@@ -124,6 +124,6 @@ export function MatchLobby({ matchId, roomCode, players, playerRange, isHost, on
           {starting ? 'Starting…' : 'Start Match'}
         </Button>
       )}
-    </Panel>
+    </Panel></div>
   );
 }

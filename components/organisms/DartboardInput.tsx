@@ -1,12 +1,15 @@
 // components/organisms/DartboardInput.tsx
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Undo2 } from 'lucide-react';
 import { Throw } from '@/lib/types';
 import { CENTER, RADIUS, BOARD_ORDER, annularWedgePath, segmentAngles } from '@/lib/dartboard-geometry';
 import { HeatmapBoard } from './HeatmapBoard';
 
 interface DartboardInputProps {
   onThrow: (throw_: Throw) => void;
+  compact?: boolean;
+  onUndo?: () => void;
   disabled?: boolean;
   /** How many darts have already landed in the current, still-open visit (0, 1, or 2). Used to tag the correct `order` on the next dart. Defaults to 0. */
   visitDartCount?: number;
@@ -21,7 +24,7 @@ const KEYPAD_NUMBERS = Array.from({ length: 20 }, (_, i) => i + 1);
 
 const HIGHLIGHT_CLASS = 'fill-transparent hover:fill-wire/20 active:fill-wire/50 transition-colors cursor-pointer';
 
-export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, heatmap = {} }: DartboardInputProps) {
+export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, heatmap = {}, compact = false, onUndo }: DartboardInputProps) {
   const [modifier, setModifier] = useState<Modifier>('S');
   const order = Math.min(visitDartCount, 2) as 0 | 1 | 2;
 
@@ -30,9 +33,12 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
   // hover/active states. 'S' matches both physical single-band wedges (inner and outer single),
   // since a keypad press doesn't disambiguate which one — lighting up both is the honest answer.
   const [flash, setFlash] = useState<{ sector: number; ring: BoardRing | 'OB' | 'IB' } | null>(null);
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (flashTimer.current) clearTimeout(flashTimer.current); }, []);
   const flashRegion = (sector: number, ring: BoardRing | 'OB' | 'IB') => {
     setFlash({ sector, ring });
-    setTimeout(() => setFlash(null), 220);
+    if (flashTimer.current) clearTimeout(flashTimer.current);
+    flashTimer.current = setTimeout(() => setFlash(null), 220);
   };
 
   const throwSector = (sector: number) => {
@@ -68,6 +74,25 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
     if (disabled) return;
     setModifier((current) => (current === target ? 'S' : target));
   };
+
+  if (compact) return (
+    <div className="scoring-pad" aria-label="Dart scoring keypad">
+      <div className="scoring-numbers">
+        {[...KEYPAD_NUMBERS, 25].map(n => (
+          <button key={n} onClick={() => throwSector(n)} disabled={disabled || (n === 25 && modifier === 'T')}
+            aria-label={n === 25 ? (modifier === 'D' ? 'Bullseye 50' : 'Outer bull 25') : `${modifier === 'D' ? 'Double' : modifier === 'T' ? 'Triple' : 'Single'} ${n}`}>
+            {n}
+          </button>
+        ))}
+      </div>
+      <div className="scoring-actions">
+        <button onClick={handleMiss} disabled={disabled} aria-label="Miss, zero points">0</button>
+        <button onClick={() => toggleModifier('D')} disabled={disabled} aria-pressed={modifier === 'D'} className="modifier-double">Double</button>
+        <button onClick={() => toggleModifier('T')} disabled={disabled} aria-pressed={modifier === 'T'} className="modifier-triple">Triple</button>
+        <button onClick={onUndo} aria-label="Undo last dart or visit"><Undo2 className="w-5 h-5 mx-auto" /></button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-md">

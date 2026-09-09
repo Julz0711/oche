@@ -9,7 +9,7 @@ describe.skipIf(!uri)('statistics database aggregation', () => {
   it('includes local and remote results, filters calendar periods, and excludes other players and unfinished matches', async () => {
     const local = { mode: 'local', userId: 'alice', status: 'complete', gameId: 'x01' };
     const remote = { mode: 'remote', players: [{ userId: 'alice' }], status: 'complete', gameId: 'cricket' };
-    await db.collection('matches').insertMany([
+    const inserted = await db.collection('matches').insertMany([
       { ...remote, completedAt: new Date('2026-09-09T11:00Z'), winnerId: 'alice' },
       { ...local, completedAt: new Date('2026-09-07T00:00Z'), winnerId: 'player2' },
       { ...remote, completedAt: new Date('2026-09-01T00:00Z'), winnerId: 'alice' },
@@ -19,12 +19,21 @@ describe.skipIf(!uri)('statistics database aggregation', () => {
       { ...remote, players: [{ userId: 'bob' }], hostId: 'alice', completedAt: new Date('2026-09-09T10:00Z') },
       { ...local, userId: 'bob', completedAt: new Date('2026-09-09T10:00Z') },
     ]);
+    await db.collection('visits').insertMany([
+      { matchId: inserted.insertedIds[0].toString(), playerId: 'alice', throws: [{ ring: 'T', sector: 20 }, { ring: 'S', sector: 1 }, { ring: 'M', sector: 0 }] },
+      { matchId: inserted.insertedIds[0].toString(), playerId: 'opponent', throws: [{ ring: 'T', sector: 20 }] },
+      { matchId: inserted.insertedIds[1].toString(), playerId: 'player1', throws: [{ ring: 'D', sector: 20 }] },
+      { matchId: inserted.insertedIds[1].toString(), playerId: 'player2', throws: [{ ring: 'IB', sector: 25 }] },
+      { matchId: inserted.insertedIds[6].toString(), playerId: 'alice', throws: [{ ring: 'T', sector: 19 }] },
+    ]);
     const board = await getStatsBoard(db, 'alice', new Date('2026-09-09T12:00Z'));
     expect(board.day).toMatchObject({ totalMatches: 1, wins: 1, losses: 0, winRate: 100 });
     expect(board.week).toMatchObject({ totalMatches: 2, wins: 1, losses: 1, winRate: 50 });
     expect(board.month).toMatchObject({ totalMatches: 4, wins: 2, losses: 2, winRate: 50 });
     expect(board.all).toMatchObject({ totalMatches: 5, wins: 3, losses: 2, winRate: 60 });
     expect(board.all.games).toEqual([{ gameId: 'cricket', totalMatches: 2, wins: 2, winRate: 100 }, { gameId: 'x01', totalMatches: 3, wins: 1, winRate: 33 }]);
+    expect(board.day).toMatchObject({ dartsThrown: 3, heatmap: { T20: 1, S1: 1, M0: 1 } });
+    expect(board.week).toMatchObject({ dartsThrown: 4, heatmap: { T20: 1, S1: 1, M0: 1, D20: 1 } });
     expect((await getStatsBoard(db, 'unknown')).all.totalMatches).toBe(0);
   });
 });

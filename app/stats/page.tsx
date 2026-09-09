@@ -29,19 +29,10 @@ interface HistoryResponse {
   };
 }
 
-function SummaryCard({ label, value }: { label: string; value: string }) {
-  return (
-    <Panel notch="panel" className="p-2.5 flex flex-col gap-1">
-      <span className="text-[11px] font-bold uppercase tracking-widest text-sisal">{label}</span>
-      <span className="text-[26px] font-display font-bold">{value}</span>
-    </Panel>
-  );
-}
-
 function GameFilterPills({ value, onChange }: { value: GameId | null; onChange: (value: GameId | null) => void }) {
   const gameIds = Object.keys(gameRegistry) as GameId[];
   return (
-    <div className="flex gap-1.5 sm:gap-2 flex-wrap">
+    <div className="stats-filter flex gap-1.5 sm:gap-2 flex-wrap">
       <button
         type="button"
         onClick={() => onChange(null)}
@@ -131,7 +122,7 @@ export default function StatsPage() {
           <p className="text-sisal text-sm md:text-base mt-1">Every completed match, all in one place</p>
         </header>
 
-        <Panel notch="panel" className="account-section"><div className="section-heading"><h2>Performance</h2></div>{boardError ? <p role="alert" className="text-sm text-sisal">Could not load performance. <button className="text-wire min-h-11" onClick={() => setRetry(n => n + 1)}>Try again</button></p> : board ? <StatsBoard board={board} /> : <p role="status" className="text-sm text-sisal">Loading performance…</p>}</Panel>
+        <Panel notch="panel" className="account-section stats-performance"><div className="section-heading"><h2>Performance</h2></div>{boardError ? <p role="alert" className="text-sm text-sisal">Could not load performance. <button className="text-wire min-h-11" onClick={() => setRetry(n => n + 1)}>Try again</button></p> : board ? <StatsBoard board={board} showHeatmap /> : <p role="status" className="text-sm text-sisal">Loading performance…</p>}</Panel>
         <h2 className="font-display text-[24px]">Match history</h2>
         {error ? (
           <p className="text-sisal text-center py-8">Couldn&apos;t load your stats — try refreshing the page.</p>
@@ -143,18 +134,11 @@ export default function StatsPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-3 gap-2 md:gap-4">
-              <SummaryCard label="Matches Played" value={String(data.summary.played)} />
-              <SummaryCard label="Win Rate" value={`${Math.round(data.summary.winRate * 100)}%`} />
-              <SummaryCard
-                label="Current Streak"
-                value={
-                  data.summary.currentStreak.type === null
-                    ? '—'
-                    : `${data.summary.currentStreak.count} ${data.summary.currentStreak.type === 'win' ? 'W' : 'L'}`
-                }
-              />
-            </div>
+            <dl className="history-summary">
+              <div><dt>Played</dt><dd>{data.summary.played}</dd></div>
+              <div><dt>Win rate</dt><dd>{Math.round(data.summary.winRate * 100)}%</dd></div>
+              <div><dt>Streak</dt><dd>{data.summary.currentStreak.type === null ? '—' : `${data.summary.currentStreak.count} ${data.summary.currentStreak.type === 'win' ? 'W' : 'L'}`}</dd></div>
+            </dl>
 
             <GameFilterPills value={gameFilter} onChange={setGameFilter} />
 

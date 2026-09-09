@@ -253,10 +253,12 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   .auth-page { align-items: flex-start; padding-top: max(32px, env(safe-area-inset-top)); }
 }
 
-@media (min-width: 375px) and (max-width: 639px) {
-  .dashboard-setting { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; }
-  .dashboard-setting > span { letter-spacing: .04em; }
-  .dashboard-setting > div { gap: 4px; }
+@media (max-width: 639px) {
+  .dashboard-settings { display: flex; flex-direction: column; gap: 16px; }
+  .dashboard-setting { display: flex; flex-direction: column; gap: 8px; }
+  .dashboard-setting > span { letter-spacing: .06em; }
+  .dashboard-setting > div { display: grid; grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); gap: 6px; width: 100%; }
+  .dashboard-setting > div > button { width: 100%; min-width: 0; padding-inline: 8px; }
 }
 
 /* Phones omit visit history; Cricket's per-number score details remain available.
@@ -363,6 +365,15 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 .stats-board-table th, .stats-board-table td { padding: 10px 6px; text-align: right; border-bottom: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); }
 .stats-board-table th:first-child { text-align: left; text-transform: uppercase; }
 .stats-board-table thead { color: var(--sisal); font-size: 11px; }
+.stats-heatmap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 320px); align-items: start; gap: 24px; padding-top: 16px; border-top: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); }
+.stats-heatmap h3 { font: 600 20px/1.2 var(--font-display); }
+.stats-heatmap p { margin-top: 4px; color: var(--sisal); font-size: 12px; }
+.stats-heatmap-board { width: 100%; max-width: 320px; justify-self: end; }
+.history-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid color-mix(in srgb, var(--sisal) 25%, transparent); }
+.history-summary > div { padding: 10px 12px; border-left: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); }
+.history-summary > div:first-child { border-left: 0; }
+.history-summary dt { color: var(--sisal); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.history-summary dd { margin-top: 2px; font: 600 24px/1.2 var(--font-display); }
 .profile-friends { display: flex; flex-direction: column; gap: 4px; }
 .profile-friend { display: flex; align-items: center; gap: 10px; padding-block: 8px; min-height: 52px; font-size: 14px; border-bottom: 1px solid color-mix(in srgb, var(--sisal) 15%, transparent); }
 .achievement-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -404,6 +415,10 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   .section-heading h2 { font-size: 22px; }
   .profile-totals dd { font-size: 25px; }
   .profile-totals > div { padding-inline: 6px; }
+  .stats-heatmap { grid-template-columns: 1fr; gap: 10px; }
+  .stats-heatmap-board { max-width: 280px; justify-self: center; }
+  .stats-filter { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .stats-filter button { min-width: 0; padding-inline: 5px; font-size: 12px; }
   .play-action { min-height: 48px; padding: 12px; font-size: 20px; }
 }
 

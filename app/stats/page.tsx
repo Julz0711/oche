@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { gameRegistry, GameId } from '@/lib/games/registry';
-import { Panel, BackLink } from '@/components/atoms';
+import { Panel } from '@/components/atoms';
 import { StatsBoard } from '@/components/profile/StatsBoard';
 import type { StatsBoard as Board } from '@/lib/stats/board';
 
@@ -115,7 +115,6 @@ export default function StatsPage() {
     <div className="page-gutters min-h-screen bg-oche text-chalk p-3 md:p-8 flex flex-col items-center">
       <div className="w-full max-w-3xl flex flex-col gap-3 md:gap-8 pt-0 md:pt-12">
         <header className="flex flex-col gap-3">
-          <BackLink />
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold tracking-tight leading-none">
             Your Stats
           </h1>

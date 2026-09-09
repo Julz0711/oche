@@ -29,15 +29,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   const gameModule = await getGameModule(match.gameId as GameId);
+  const removedCompletedVisit = gameModule.visitProgress(match.state).darts === 0;
   const newState = gameModule.undo(match.state);
 
   match.state = newState;
   await match.save();
 
-  // A Visit row is written iff a visit actually completed (see the throws route), and undo
-  // always pops exactly one completed visit when any exist (or is a no-op) — so deleting the
-  // newest row is the correct inverse in every case, including "nothing to delete."
-  await Visit.findOneAndDelete({ matchId: id }).sort({ createdAt: -1 });
+  // Mid-turn undo only removes a dart; preserve the previously completed Visit row.
+  // At a visit boundary the engine removes the last completed visit, so remove its row too.
+  if (removedCompletedVisit) await Visit.findOneAndDelete({ matchId: id }).sort({ createdAt: -1 });
 
   await publishMatchEvent(id, { name: 'state', data: { state: newState, status: match.status } });
 

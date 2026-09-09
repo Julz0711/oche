@@ -1,4 +1,5 @@
 'use client';
+import { CricketMarksStrip } from '@/lib/games/cricket/components';
 
 import { useEffect, useRef } from 'react';
 import type { GameModule, PlayerId, Throw } from '@/lib/types';
@@ -61,6 +62,7 @@ export function MobileMatch({ gameModule: game, state, settings, displayNames, d
                 </div>
                 <span className="text-xs text-sisal/70">{isActive ? 'This visit' : last?.busted ? 'Bust' : 'Last visit'} <strong className="text-chalk tabular-nums">{!isActive && last?.busted ? 0 : darts.reduce((sum, dart) => sum + dart.points, 0)}</strong></span>
               </div>
+              {game.id === 'cricket' && <CricketMarksStrip state={state} playerId={player} />}
               <details className="mobile-player-details" data-history-only={!game.HistoryPanel}>
                 <summary aria-label={`${game.HistoryPanel ? 'Score details' : 'Visit history'} for ${name(player)}`}><span className="sr-only">{game.HistoryPanel ? 'Score details' : 'Visit history'}</span></summary>
                 {game.HistoryPanel ? <game.HistoryPanel state={state} settings={settings} playerId={player} displayName={name(player)} /> : (

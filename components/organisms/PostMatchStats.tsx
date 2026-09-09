@@ -62,10 +62,10 @@ export function PostMatchStats({
                 displayName={displayNames.get(playerId) ?? playerId.replace(/^player(\d+)$/, 'Player $1')}
                 isWinner={isWinner}
               />
-              <details className="summary-heatmap">
+              {gameModule.id === 'x01' && <details className="summary-heatmap">
                 <summary>Throw heatmap</summary>
                 <div className="w-full max-w-[220px] mx-auto"><HeatmapBoard heatmap={heatmap} /></div>
-              </details>
+              </details>}
             </Panel>
           );
         })}

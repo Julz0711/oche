@@ -13,6 +13,49 @@ const dart = (sector: number, ring: 'S' | 'D' | 'T' | 'OB' | 'IB' | 'M', order: 
   order,
 });
 
+describe('live scoring regressions', () => {
+  it('undoes both marks and points mid-visit without removing the previous visit', () => {
+    let state = init([player1, player2], CricketDefaultSettings);
+    state = applyThrow(state, dart(20, 'T'), CricketDefaultSettings);
+    const beforeExtraHit = state;
+    state = applyThrow(state, dart(20, 'T', 1), CricketDefaultSettings);
+    expect(state.points[player1]).toBe(60);
+    state = undo(state);
+    expect(state.marks).toEqual(beforeExtraHit.marks);
+    expect(state.points).toEqual(beforeExtraHit.points);
+    state = undo(state);
+    expect(state.marks[player1][20]).toBe(0);
+    expect(state.points[player1]).toBe(0);
+  });
+  it('disables overflow points and ignores a points deficit in no-points mode', () => {
+    const settings = { firstTo: 1, scoring: 'no-points' as const };
+    let state = init([player1, player2], settings);
+    state = applyThrow(state, dart(20, 'T'), settings);
+    state = applyThrow(state, dart(20, 'T', 1), settings);
+    expect(state.points[player1]).toBe(0);
+    state.marks[player1] = { 20: 3, 19: 3, 18: 3, 17: 3, 16: 3, 15: 3, bull: 2 };
+    state.points[player2] = 100;
+    state = applyThrow(state, dart(25, 'OB', 2), settings);
+    expect(winner(state)).toBe(player1);
+  });
+  it('can complete several legs without retaining the previous leg’s marks or points', () => {
+    const settings = { firstTo: 3, scoring: 'standard' as const };
+    let state = init([player1, player2], settings);
+    for (let i = 0; i < 200 && !isComplete(state); i++) {
+      const player = state.players[state.currentPlayerIndex];
+      const number = ([20, 19, 18, 17, 16, 15, 'bull'] as const).find(n => state.marks[player][n] < 3)!;
+      const leg = state.currentLegNumber;
+      state = applyThrow(state, number === 'bull' ? dart(25, state.marks[player].bull === 0 ? 'IB' : 'OB') : dart(number, 'T'), settings);
+      if (state.currentLegNumber !== leg) {
+        expect(Object.values(state.marks[player1])).toEqual([0, 0, 0, 0, 0, 0, 0]);
+        expect(state.points).toEqual({ [player1]: 0, [player2]: 0 });
+      }
+    }
+    expect(isComplete(state)).toBe(true);
+    expect(Math.max(...Object.values(state.legsWon))).toBe(3);
+  });
+});
+
 describe('marksForThrow', () => {
   it('maps single/double/treble on a cricket number to 1/2/3 marks', () => {
     expect(marksForThrow(20, 'S')).toEqual({ number: 20, marks: 1 });

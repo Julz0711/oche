@@ -147,6 +147,7 @@ export default function Dashboard() {
   const [x01FirstTo, setX01FirstTo] = useState<(typeof LEG_OPTIONS)[number]>(1);
   const [sets, setSets] = useState<(typeof SET_OPTIONS)[number]>(0);
   const [cricketFirstTo, setCricketFirstTo] = useState<(typeof LEG_OPTIONS)[number]>(1);
+  const [cricketScoring, setCricketScoring] = useState<'standard' | 'no-points'>('standard');
   const [copycatFirstTo, setCopycatFirstTo] = useState<(typeof COPYCAT_LIMIT_OPTIONS)[number]>(3);
 
   useEffect(() => {
@@ -193,7 +194,7 @@ export default function Dashboard() {
     const defaults = games?.find((g) => g.id === gameId)?.defaultSettings;
     if (!defaults) return undefined;
     if (gameId === 'x01') return { ...defaults, startingScore: String(startingScore), firstTo: x01FirstTo, sets };
-    if (gameId === 'cricket') return { ...defaults, firstTo: cricketFirstTo };
+    if (gameId === 'cricket') return { ...defaults, firstTo: cricketFirstTo, scoring: cricketScoring };
     if (gameId === 'copycat') return { ...defaults, firstTo: copycatFirstTo };
     return defaults;
   };
@@ -223,11 +224,7 @@ export default function Dashboard() {
 
   return (
     <div
-      className="dashboard-page page-gutters min-h-screen bg-oche text-chalk p-3 md:p-8 flex flex-col items-center relative scanlines"
-      style={{
-        backgroundImage:
-          'radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--wire) 10%, transparent), transparent 60%)',
-      }}
+      className="dashboard-page page-gutters min-h-screen text-chalk p-3 md:p-8 flex flex-col items-center relative"
     >
       <div className="relative z-10 w-full max-w-3xl flex flex-col gap-3 md:gap-9 pt-0 md:pt-12">
         <header className="dashboard-header flex flex-col gap-2 md:gap-5">
@@ -237,6 +234,11 @@ export default function Dashboard() {
           </h1>
           <p className="text-sisal text-sm md:text-base mt-1">Pick a game, grab your darts</p>
         </header>
+
+        <Link href="/solo" className="border border-wire/50 bg-slate p-4 flex items-center justify-between gap-4 text-sisal hover:border-wire">
+          <span><span className="block text-[10px] tracking-[0.18em] text-wire uppercase">New · Solo roguelike</span><strong className="block font-display text-2xl text-chalk">House Rules</strong><span className="text-xs">Build your darts. Beat the bosses. Challenge your friends.</span></span>
+          <span aria-hidden="true" className="text-wire text-2xl">↗</span>
+        </Link>
 
         {activeMatches.length > 0 && (
           <div className="flex flex-col gap-2">
@@ -325,10 +327,17 @@ export default function Dashboard() {
               )}
 
               {selectedGameId === 'cricket' && (
+                <>
                 <div className="dashboard-setting flex flex-col gap-2">
                   <SettingLabel>Legs (first to)</SettingLabel>
                   <Pills options={LEG_OPTIONS} value={cricketFirstTo} onChange={setCricketFirstTo} />
                 </div>
+                <div className="dashboard-setting flex flex-col gap-2">
+                  <SettingLabel>Scoring</SettingLabel>
+                  <Pills options={['standard', 'no-points'] as const} value={cricketScoring} onChange={setCricketScoring} format={value => value === 'standard' ? 'Standard' : 'No points'} />
+                  <p className="text-xs text-sisal max-w-xs">{cricketScoring === 'standard' ? 'Extra hits score while an opponent has the number open. Close all numbers and lead or tie on points to win.' : 'First to close all seven numbers wins the leg. Extra hits do not score.'}</p>
+                </div>
+                </>
               )}
 
               {selectedGameId === 'copycat' && (

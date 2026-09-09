@@ -6,7 +6,6 @@ import clientPromise from "./mongodb-client";
 import { jwtDecrypt, jwtVerify } from "jose";
 
 const authSecret = process.env.NEXTAUTH_SECRET;
-console.log('[NextAuth init] Using secret:', authSecret?.substring(0, 20) + '...');
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: authSecret,
@@ -15,7 +14,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   debug: process.env.NODE_ENV === 'development',
   jwt: {
     async encode({ token, secret }) {
-      console.log('[jwt.encode] Encoding token:', token);
       const secretStr = (Array.isArray(secret) ? secret[0] : secret) || authSecret || 'dev-secret';
       const secretBytes = new TextEncoder().encode(secretStr);
       const { SignJWT } = await import('jose');
@@ -25,21 +23,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         .setIssuedAt(now)
         .setExpirationTime(now + 30 * 24 * 60 * 60)
         .sign(secretBytes);
-      console.log('[jwt.encode] Encoded length:', encoded.length);
       return encoded;
     },
     async decode({ token, secret }) {
-      console.log('[jwt.decode] Decoding token length:', token?.length);
       if (!token) return null;
       try {
         const secretStr = (Array.isArray(secret) ? secret[0] : secret) || authSecret || 'dev-secret';
         const secretBytes = new TextEncoder().encode(secretStr);
         const { jwtVerify } = await import('jose');
         const verified = await jwtVerify(token, secretBytes);
-        console.log('[jwt.decode] Verified payload:', verified.payload);
         return verified.payload as any;
       } catch (error) {
-        console.error('[jwt.decode] Error:', error);
         return null;
       }
     },
@@ -56,7 +50,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user, trigger, session }) {
-      console.log('[jwt callback] user:', user, 'token before:', token);
       if (user) {
         token.id = user.id;
         token.name = user.name;
@@ -68,15 +61,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (trigger === "update" && session?.name) {
         token.name = session.name;
       }
-      console.log('[jwt callback] token after:', token);
       return token;
     },
     async session({ session, token, newSession, trigger }) {
-      console.log('[session callback] token:', token, 'newSession:', newSession);
 
       // Dev-only: handle dev login
       if (process.env.NODE_ENV === 'development' && token?.__devLogin) {
-        console.log('[session callback] Dev login detected, creating test session');
         session.user = {
           id: token.__devLogin as string,
           name: 'Test User',
@@ -94,7 +84,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.image = token.picture as string | null;
         session.user.emailVerified = (token.emailVerified as any) || null;
       }
-      console.log('[session callback] session after:', session);
       return session;
     },
   },

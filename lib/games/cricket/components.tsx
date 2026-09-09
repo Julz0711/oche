@@ -1,5 +1,5 @@
 // lib/games/cricket/components.tsx
-import { CricketState, CricketNumber, CRICKET_NUMBERS, Marks } from './engine';
+import { CricketState, CricketNumber, CRICKET_NUMBERS, Marks, marksForThrow } from './engine';
 import { CricketSettings } from './schema';
 import { PlayerId } from '@/lib/types';
 import { Numeral } from '@/components/atoms/Numeral';
@@ -11,6 +11,21 @@ const TOTAL_MARKS = CRICKET_NUMBERS.length * 3; // 7 numbers, 3 marks to close e
 
 function numberLabel(n: CricketNumber): string {
   return n === 'bull' ? 'BULL' : String(n);
+}
+
+/** Always-visible progress on phones, without opening the full score details. */
+export function CricketMarksStrip({ state, playerId }: { state: CricketState; playerId: PlayerId }) {
+  const recent = state.players[state.currentPlayerIndex] === playerId ? state.currentVisit :
+    state.visitHistory.at(-1)?.playerId === playerId && state.visitHistory.at(-1)?.legNumberBefore === state.currentLegNumber ? state.visitHistory.at(-1)!.throws : [];
+  return <div className="cricket-marks-strip" aria-label="Cricket marks">
+    {CRICKET_NUMBERS.map(number => {
+      const marks = state.marks[playerId][number];
+      const hit = recent.some(dart => marksForThrow(dart.sector, dart.ring)?.number === number);
+      return <span key={number} data-hit={hit} data-closed={marks === 3} aria-label={`${numberLabel(number)}: ${marks} of 3 marks${hit ? ', hit this visit' : ''}`}>
+        <small>{number === 'bull' ? 'B' : number}</small><strong>{['·', '/', '×', '⊗'][marks]}</strong>
+      </span>;
+    })}
+  </div>;
 }
 
 function MarkIndicator({ marks }: { marks: Marks }) {
@@ -55,6 +70,7 @@ function lastCompletedVisitFor(state: CricketState, playerId: PlayerId) {
 export function ScoreboardSlot({
   state,
   playerId,
+  settings,
   displayName,
   compact = false,
 }: {
@@ -77,12 +93,12 @@ export function ScoreboardSlot({
     0,
     ...state.players.filter((p) => p !== playerId).map((p) => state.points[p])
   );
-  const pointsBehind = hasClosedAll ? Math.max(0, maxOpponentPoints - state.points[playerId]) : 0;
+  const pointsBehind = settings.scoring !== 'no-points' && hasClosedAll ? Math.max(0, maxOpponentPoints - state.points[playerId]) : 0;
 
   if (compact) return (
     <div className="compact-score">
       <div className="compact-player-name" title={displayName ?? playerId}>{displayName ?? playerId}</div>
-      <span className="compact-score-value">{state.points[playerId]}</span>
+      <span className="compact-score-value">{settings.scoring === 'no-points' ? totalMarks : state.points[playerId]}</span>
       <div className="compact-score-meta"><span>{totalMarks}/{TOTAL_MARKS} marks</span><span>L {state.legsWon[playerId]}</span></div>
       {pointsBehind > 0 && <div className="compact-score-hint text-treble">Need {pointsBehind} more points</div>}
     </div>
@@ -94,7 +110,7 @@ export function ScoreboardSlot({
         <Crosshair className="absolute top-4 right-4 w-4 h-4 text-wire" aria-label="On throw" />
       )}
       <div className="text-xs font-bold uppercase tracking-widest text-sisal">{displayName ?? playerId}</div>
-      <Numeral value={state.points[playerId]} size="4xl" className="font-display leading-none block mt-1" />
+      <Numeral value={settings.scoring === 'no-points' ? totalMarks : state.points[playerId]} size="4xl" className="font-display leading-none block mt-1" />
       {pointsBehind > 0 && (
         <div className="flex items-center gap-1.5 mt-2 text-treble">
           <Target className="w-3.5 h-3.5 shrink-0" />
@@ -143,12 +159,16 @@ export function HistoryPanel({
       <div className="text-xs font-bold uppercase tracking-widest text-sisal">{displayName ?? playerId}</div>
 
       <div className="flex flex-col gap-1.5">
-        {CRICKET_NUMBERS.map((n) => (
-          <div key={n} className="flex items-center justify-between bg-oche border border-sisal/10 px-3 py-2">
+        {CRICKET_NUMBERS.map((n) => {
+          const recentThrows = state.players[state.currentPlayerIndex] === playerId ? state.currentVisit :
+            state.visitHistory.at(-1)?.playerId === playerId && state.visitHistory.at(-1)?.legNumberBefore === state.currentLegNumber ? state.visitHistory.at(-1)!.throws : [];
+          const hit = recentThrows.some(dart => marksForThrow(dart.sector, dart.ring)?.number === n);
+          return <div key={n} className="cricket-mark-row flex items-center justify-between bg-oche border border-sisal/10 px-3 py-2" data-hit={hit} data-closed={state.marks[playerId][n] === 3}>
             <span className="font-display font-bold text-xl text-chalk w-12">{numberLabel(n)}</span>
+            {hit && <span className="text-[10px] font-bold text-wire">HIT</span>}
             <MarkIndicator marks={state.marks[playerId][n]} />
-          </div>
-        ))}
+          </div>;
+        })}
       </div>
 
       <div className="mt-1 pt-2 border-t border-sisal/20 flex items-center gap-1.5 text-wire">

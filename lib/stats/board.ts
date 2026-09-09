@@ -24,8 +24,8 @@ export async function getStatsBoard(db: Db, userId: string, now = new Date()): P
     { status: 'complete', $or: [{ mode: 'local', userId }, { mode: 'remote', 'players.userId': userId }] },
     { projection: { gameId: 1, mode: 1, winnerId: 1, completedAt: 1 } }
   ).toArray();
-  const localIds = matches.filter(match => match.mode === 'local').map(match => match._id.toString());
-  const remoteIds = matches.filter(match => match.mode === 'remote').map(match => match._id.toString());
+  const localIds = matches.filter(match => match.gameId === 'x01' && match.mode === 'local').map(match => match._id.toString());
+  const remoteIds = matches.filter(match => match.gameId === 'x01' && match.mode === 'remote').map(match => match._id.toString());
   const visitFilters: Document[] = [];
   if (localIds.length) visitFilters.push({ matchId: { $in: localIds }, playerId: 'player1' });
   if (remoteIds.length) visitFilters.push({ matchId: { $in: remoteIds }, playerId: userId });

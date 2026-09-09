@@ -18,7 +18,7 @@ export function AppNavigation({ children }: { children: ReactNode }) {
   const { enabled: soundEnabled, toggle: toggleSound } = useSoundPreference();
   const hidden = pathname.startsWith('/match/') || pathname === '/signin' || pathname === '/signout';
   if (hidden) return children;
-  return <div className="app-shell">
+  return <div className={`app-shell${pathname === '/' ? ' app-shell-menu' : ''}`}>
     <nav className="app-navigation" aria-label="Main navigation">
       <Link href="/" className="nav-brand" aria-label="Oche home">OCHE</Link>
       <div className="nav-destinations">

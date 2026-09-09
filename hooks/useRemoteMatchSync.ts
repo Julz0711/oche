@@ -1,65 +1,68 @@
-// hooks/useRemoteMatchSync.ts
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Realtime } from 'ably';
 import { useMatchStore } from '@/store/match';
 
 export function useRemoteMatchSync(matchId: string | null) {
+  const [connection, setConnection] = useState('connecting');
+  const [onlinePlayers, setOnlinePlayers] = useState<string[]>([]);
+  const [presenceReady, setPresenceReady] = useState(false);
   useEffect(() => {
     if (!matchId) return;
-
-    const client = new Realtime({
-      authUrl: `/api/ably/token?matchId=${matchId}`,
-      authMethod: 'GET',
-    });
-
-    const channel = client.channels.get(`match:${matchId}`);
-
-    // Navigating away can close the client while subscription is still pending.
-    // Ably handles reconnects; lobby polling below covers unavailable transport.
-    channel.subscribe('lobby', (msg) => {
-      useMatchStore.getState().setPlayers(msg.data.players);
-    }).catch(() => {});
-
-    channel.subscribe('state', (msg) => {
-      useMatchStore.getState().setGameState(msg.data.state, msg.data.status);
-    }).catch(() => {});
-
-    const refetchSnapshot = async () => {
-      const res = await fetch(`/api/matches/${matchId}`);
-      if (!res.ok) return;
-      const snapshot = await res.json();
-      useMatchStore.getState().setGameState(snapshot.state, snapshot.status);
-      useMatchStore.getState().setPlayers(snapshot.players);
-    };
-
-    let wasConnected = false;
-    client.connection.on((stateChange) => {
-      if (stateChange.current === 'connected') {
-        if (wasConnected) {
-          // reconnected after a drop — cover any messages published while we were offline
-          refetchSnapshot();
+    setConnection('connecting'); setOnlinePlayers([]); setPresenceReady(false);
+    const controller = new AbortController();
+    let disposed = false, fetching = false, refreshAgain = false;
+    const refresh = async () => {
+      if (disposed) return;
+      if (fetching) { refreshAgain = true; return; }
+      fetching = true;
+      try {
+        const res = await fetch(`/api/matches/${matchId}`, { signal: controller.signal, cache: 'no-store' });
+        if (res.ok) {
+          const snapshot = await res.json();
+          if (!disposed && useMatchStore.getState().matchId === matchId) {
+            useMatchStore.getState().setGameState(snapshot.state, snapshot.status);
+            useMatchStore.getState().setPlayers(snapshot.players);
+          }
         }
-        wasConnected = true;
+      } catch { /* Polling and reconnection retry transient failures. */ }
+      finally {
+        fetching = false;
+        if (refreshAgain && !disposed) { refreshAgain = false; void refresh(); }
       }
+    };
+    const client = new Realtime({ authUrl: `/api/ably/token?matchId=${matchId}`, authMethod: 'GET' });
+    const channel = client.channels.get(`match:${matchId}`);
+    const updatePresence = async () => {
+      try {
+        const members = await channel.presence.get();
+        if (!disposed) { setOnlinePlayers([...new Set(members.map(member => member.clientId))]); setPresenceReady(true); }
+      } catch { if (!disposed) setPresenceReady(false); }
+    };
+    channel.subscribe('state', () => { void refresh(); }).catch(() => {});
+    channel.subscribe('lobby', () => { void refresh(); }).catch(() => {});
+    channel.presence.subscribe(() => { void updatePresence(); }).catch(() => {});
+    channel.presence.enter().then(updatePresence).catch(() => {});
+    client.connection.on(change => {
+      if (disposed) return;
+      setConnection(change.current);
+      if (change.current === 'connected') { void refresh(); void updatePresence(); }
+      else setPresenceReady(false);
     });
-
-    // Fallback poll for the lobby wait only: Ably's realtime push can be unavailable (no
-    // ABLY_API_KEY configured, a token/connection failure) and a host stuck on "waiting for
-    // player…" with no feedback is the worst version of that gap. Once the match leaves 'lobby'
-    // this stops itself — live play stays on the real-time push path, not polling.
-    const lobbyPoll = setInterval(() => {
-      if (useMatchStore.getState().status === 'lobby') {
-        refetchSnapshot();
-      } else {
-        clearInterval(lobbyPoll);
-      }
-    }, 3000);
-
+    const foreground = () => { if (!document.hidden) void refresh(); };
+    const mutation = (event: Event) => { if ((event as CustomEvent<string>).detail === matchId) void refresh(); };
+    window.addEventListener('oche-match-refresh', mutation);
+    window.addEventListener('online', foreground);
+    document.addEventListener('visibilitychange', foreground);
+    const poll = setInterval(foreground, 3000);
+    void refresh();
     return () => {
-      channel.unsubscribe();
-      client.close();
-      clearInterval(lobbyPoll);
+      disposed = true; controller.abort(); clearInterval(poll);
+      window.removeEventListener('oche-match-refresh', mutation);
+      window.removeEventListener('online', foreground);
+      document.removeEventListener('visibilitychange', foreground);
+      channel.unsubscribe(); channel.presence.unsubscribe(); client.close();
     };
   }, [matchId]);
+  return { connection, onlinePlayers, presenceReady };
 }

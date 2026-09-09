@@ -20,9 +20,14 @@ const visitProgress = (state: CopycatState): { darts: number; max: number; throw
 const matchInfo = (
   state: CopycatState,
   settings: CopycatSettings
-): { label: string; value: string; emphasis?: 'hero' | 'normal' }[] => [
-  { label: 'Target', value: state.target !== null ? String(state.target) : '—', emphasis: 'hero' },
-];
+): { label: string; value: string; emphasis?: 'hero' | 'normal' }[] => {
+  const total = state.currentVisit.reduce((sum, dart) => sum + dart.points, 0);
+  const remaining = state.target === null ? null : state.target - total;
+  return [
+    { label: 'Target', value: state.target !== null ? String(state.target) : 'Set a target', emphasis: state.target !== null ? 'hero' : 'normal' },
+    { label: remaining !== null && remaining < 0 ? 'Over by' : remaining === null ? 'Visit' : 'Left', value: String(remaining === null ? total : Math.abs(remaining)), emphasis: 'hero' },
+  ];
+};
 
 const raceProgress = (
   state: CopycatState,

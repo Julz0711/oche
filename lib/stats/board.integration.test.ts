@@ -32,8 +32,10 @@ describe.skipIf(!uri)('statistics database aggregation', () => {
     expect(board.month).toMatchObject({ totalMatches: 4, wins: 2, losses: 2, winRate: 50 });
     expect(board.all).toMatchObject({ totalMatches: 5, wins: 3, losses: 2, winRate: 60 });
     expect(board.all.games).toEqual([{ gameId: 'cricket', totalMatches: 2, wins: 2, winRate: 100 }, { gameId: 'x01', totalMatches: 3, wins: 1, winRate: 33 }]);
-    expect(board.day).toMatchObject({ dartsThrown: 3, heatmap: { T20: 1, S1: 1, M0: 1 } });
-    expect(board.week).toMatchObject({ dartsThrown: 4, heatmap: { T20: 1, S1: 1, M0: 1, D20: 1 } });
+    expect(board.day.heatmap).toEqual({});
+    expect(board.day.dartsThrown).toBe(0);
+    expect(board.week.heatmap).toEqual({ D20: 1 });
+    expect(board.week.dartsThrown).toBe(1);
     expect((await getStatsBoard(db, 'unknown')).all.totalMatches).toBe(0);
   });
 });

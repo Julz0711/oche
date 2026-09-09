@@ -8,6 +8,15 @@ describe('CopycatModule.lastCompletedVisit', () => {
   const player1 = createPlayerId('p1');
   const player2 = createPlayerId('p2');
 
+  it('previews the remaining target and overshoot after each dart', () => {
+    const state = CopycatModule.init([player1, player2], CopycatDefaultSettings);
+    state.target = 60;
+    state.currentVisit = [{ sector: 20, ring: 'S', points: 20, order: 0 }];
+    expect(CopycatModule.matchInfo(state, CopycatDefaultSettings)).toContainEqual({ label: 'Left', value: '40', emphasis: 'hero' });
+    state.currentVisit.push({ sector: 20, ring: 'T', points: 60, order: 1 });
+    expect(CopycatModule.matchInfo(state, CopycatDefaultSettings)).toContainEqual({ label: 'Over by', value: '20', emphasis: 'hero' });
+  });
+
   it('returns null when the player has no completed visits yet', () => {
     const state = CopycatModule.init([player1, player2], CopycatDefaultSettings);
     expect(CopycatModule.lastCompletedVisit(state, player1)).toBe(null);

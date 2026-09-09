@@ -12,6 +12,7 @@ import { PostMatchStats } from '@/components/organisms/PostMatchStats';
 import { GameModule, Throw, PlayerId, createPlayerId } from '@/lib/types';
 import { Target, Ban, Undo2, Crosshair, BarChart3, Volume2, VolumeX } from 'lucide-react';
 import { useRemoteMatchSync } from '@/hooks/useRemoteMatchSync';
+import { MatchPresence } from '@/components/organisms/MatchPresence';
 import { MatchLobby } from '@/components/organisms/MatchLobby';
 import { LiveStatsDrawer } from '@/components/organisms/LiveStatsDrawer';
 import { identityIdOf, MatchPlayerDoc } from '@/lib/matchLobby';
@@ -77,14 +78,36 @@ function MatchInfoPanel({
   const heroEntries = info.filter((entry) => entry.emphasis === 'hero');
   const normalEntries = info.filter((entry) => entry.emphasis !== 'hero');
 
+  if (heroEntries.length > 0 && raceProgress.length === 0) {
+    return (
+      <Panel notch="panel" className="p-3 flex items-center justify-between gap-3">
+        <div className="flex flex-1 flex-wrap items-center justify-around gap-x-4 gap-y-1 min-w-0">
+          {info.map((entry) => (
+            <div key={entry.label} className="flex items-baseline gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wide text-sisal">{entry.label}</span>
+              <span className={entry.emphasis === 'hero' ? 'font-display font-bold text-[28px] text-wire leading-none' : 'text-[12px] text-sisal'}>{entry.value}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-1 shrink-0" aria-label={`${visitProgress.darts} of ${visitProgress.max} darts thrown`}>
+          {Array.from({ length: visitProgress.max }, (_, i) => (
+            <span key={i} className={`w-2 h-2 rotate-45 rounded-[2px] ${i < visitProgress.darts ? 'bg-wire' : 'bg-oche border border-sisal/30'}`} />
+          ))}
+        </div>
+      </Panel>
+    );
+  }
+
   return (
     <Panel notch="panel" className="p-3 flex flex-col gap-2">
+      {heroEntries.length > 0 && <div className={heroEntries.length > 1 ? 'grid grid-cols-2 gap-3' : ''}>
       {heroEntries.map((entry) => (
         <div key={entry.label} className="flex flex-col items-center gap-0.5 pb-1.5 border-b border-sisal/15">
           <span className="text-[9px] font-bold uppercase tracking-widest text-sisal">{entry.label}</span>
           <span className="font-display font-bold text-4xl text-wire leading-none">{entry.value}</span>
         </div>
       ))}
+      </div>}
 
       {normalEntries.length > 0 && (
         <div className="flex items-center justify-center gap-1.5">
@@ -223,7 +246,7 @@ export default function MatchPage({ params }: MatchPageProps) {
   const { id } = use(params);
 
   const { mode, status, players: lobbyPlayers, you, hostId, throwError, roomCode } = useMatchStore();
-  useRemoteMatchSync(mode === 'remote' ? id : null);
+  const sync = useRemoteMatchSync(mode === 'remote' && !loading && you ? id : null);
   const [starting, setStarting] = useState(false);
   // Which opponent's compact row is expanded to show their fuller recent-throw history —
   // remote mode's opponents panel only, at most one open at a time.
@@ -496,7 +519,8 @@ export default function MatchPage({ params }: MatchPageProps) {
     const isHost = hostId !== null && you !== null && hostId === you;
 
     return (
-      <div className="min-h-screen bg-oche text-chalk p-4 flex items-center justify-center">
+      <div className="min-h-screen bg-oche text-chalk p-4 flex flex-col gap-3 items-center justify-center">
+        <MatchPresence players={lobbyPlayers as MatchPlayerDoc[]} {...sync} />
         <MatchLobby
           matchId={id}
           roomCode={roomCode ?? ''}
@@ -524,7 +548,7 @@ export default function MatchPage({ params }: MatchPageProps) {
   // Pips under each score), the shared middle panel gets an empty array instead — showing the
   // same data twice would both be redundant and make the panel taller than it needs to be.
   const raceProgress = gameModule.raceProgressInScoreboard ? [] : gameModule.raceProgress(gameState, settings);
-  const currentPlayerHeatmap = gameModule.heatmap(gameState, currentPlayerId);
+  const currentPlayerHeatmap = gameModule.id === 'x01' ? gameModule.heatmap(gameState, currentPlayerId) : undefined;
 
   // PlayerId -> display name lookup, built from the lobby snapshot's `players` field. Empty in
   // local mode (where `players` is []), so lookups simply miss and callers fall back to the raw
@@ -587,6 +611,8 @@ export default function MatchPage({ params }: MatchPageProps) {
           </div>
         )}
       </header>
+
+      {mode === 'remote' && <MatchPresence players={lobbyPlayers as MatchPlayerDoc[]} {...sync} />}
 
       {!isComplete && <MobileMatch gameModule={gameModule} state={gameState} settings={settings}
         displayNames={displayNames} disabled={mode === 'remote' && currentPlayerId !== you}

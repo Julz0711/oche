@@ -107,6 +107,7 @@ export function init(players: PlayerId[], settings: CricketSettings): CricketSta
 }
 
 export function applyThrow(state: CricketState, throw_: Throw, settings: CricketSettings): CricketState {
+  if (state.matchComplete) return state;
   const currentPlayer = state.players[state.currentPlayerIndex];
   const target = marksForThrow(throw_.sector, throw_.ring);
 
@@ -143,7 +144,7 @@ export function applyThrow(state: CricketState, throw_: Throw, settings: Cricket
     const allOpponentsClosed = state.players
       .filter((p) => p !== currentPlayer)
       .every((p) => state.marks[p][number] === 3);
-    dartPoints = isClosedByThrower && !allOpponentsClosed ? overflow * faceValue(number) : 0;
+    dartPoints = settings.scoring !== 'no-points' && isClosedByThrower && !allOpponentsClosed ? overflow * faceValue(number) : 0;
 
     marksAfterDart = { ...state.marks, [currentPlayer]: { ...state.marks[currentPlayer], [number]: newMarks } };
     pointsAfterDart = { ...state.points, [currentPlayer]: state.points[currentPlayer] + dartPoints };
@@ -156,7 +157,7 @@ export function applyThrow(state: CricketState, throw_: Throw, settings: Cricket
   const hasPointsLead = state.players
     .filter((p) => p !== currentPlayer)
     .every((p) => pointsAfterDart[currentPlayer] >= pointsAfterDart[p]);
-  const isLegWin = hasClosedAll && hasPointsLead;
+  const isLegWin = hasClosedAll && (settings.scoring === 'no-points' || hasPointsLead);
 
   if (isLegWin || newVisit.length === 3) {
     return endVisit(state, {
@@ -274,9 +275,20 @@ function endVisit(
 export function undo(state: CricketState): CricketState {
   // If there are darts in the current visit, just remove the last one.
   if (state.currentVisit.length > 0) {
+    const currentVisit = state.currentVisit.slice(0, -1);
+    const playerId = state.players[state.currentPlayerIndex];
+    const marks: CricketState['marks'] = { ...state.visitStart.marks, [playerId]: { ...state.visitStart.marks[playerId] } };
+    const points = { ...state.visitStart.points };
+    for (const dart of currentVisit) {
+      const hit = marksForThrow(dart.sector, dart.ring);
+      if (hit) marks[playerId][hit.number] = Math.min(3, marks[playerId][hit.number] + hit.marks) as Marks;
+      points[playerId] += dart.points;
+    }
     return {
       ...state,
-      currentVisit: state.currentVisit.slice(0, -1),
+      currentVisit,
+      marks,
+      points,
     };
   }
 

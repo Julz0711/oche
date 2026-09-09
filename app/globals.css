@@ -157,6 +157,20 @@ button:not(:disabled) {
 
 /* Live play: a viewport shell with one scroll region and an in-flow input dock. */
 .mobile-match { display: none; }
+.match-presence { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 4px 12px 8px; flex-shrink: 0; }
+.presence-player { display: inline-flex; align-items: center; gap: 5px; max-width: 180px; font-size: 11px; }
+.presence-player i { width: 6px; height: 6px; border-radius: 50%; background: var(--sisal); flex-shrink: 0; }
+.presence-player i[data-online="true"] { background: var(--double); }
+.presence-player small { color: var(--sisal); font-size: 10px; }
+.cricket-mark-row[data-closed="true"] { border-color: var(--double); background: color-mix(in srgb, var(--double) 12%, var(--oche)); }
+.cricket-mark-row[data-hit="true"] { border-color: var(--wire); background: color-mix(in srgb, var(--wire) 22%, var(--oche)); box-shadow: inset 3px 0 var(--wire); }
+.cricket-marks-strip { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; padding: 0 0 8px 10px; }
+.cricket-marks-strip > span { display: flex; align-items: center; justify-content: center; gap: 3px; min-height: 28px; background: var(--oche); border: 1px solid #e4d8bc22; }
+.cricket-marks-strip small { font-size: 10px; color: var(--sisal); }
+.cricket-marks-strip strong { font-size: 17px; line-height: 1; }
+.cricket-marks-strip [data-closed="true"] { color: var(--double); border-color: var(--double); }
+.cricket-marks-strip [data-hit="true"] { background: var(--wire); border-color: var(--wire); color: var(--oche); }
+.cricket-marks-strip [data-hit="true"] small { color: var(--oche); }
 .desktop-match, .completed-scoreboards { display: contents; }
 button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 :focus-visible { outline: 2px solid var(--wire); outline-offset: 3px; }
@@ -287,6 +301,11 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 
 /* A consistent destination bar; live matches keep their focused scoring shell. */
 .app-shell { min-height: 100dvh; }
+.app-shell-menu {
+  background-image:
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.009) 0 2px, transparent 2px 9px),
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--wire) 10%, transparent), transparent 60%);
+}
 .app-content > .min-h-screen { min-height: calc(100dvh - 62px); }
 .app-navigation { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px max(16px, calc((100vw - 960px) / 2)); background: var(--oche); border-bottom: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); }
 .nav-brand { font: 700 24px var(--font-display); color: var(--wire); }

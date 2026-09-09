@@ -24,6 +24,7 @@ const matchInfo = (
   // "Leg 3" alone reads ambiguously as "3 legs won" rather than "the 3rd leg is in play" —
   // legs actually won is the raceProgress/Pips display below; this is just which leg is live.
   { label: 'Leg', value: `${state.currentLegNumber} in play` },
+  { label: 'Scoring', value: settings.scoring === 'no-points' ? 'No points' : 'Standard' },
 ];
 
 const raceProgress = (

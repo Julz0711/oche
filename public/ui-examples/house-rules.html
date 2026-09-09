@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>House Rules — Oche UI concepts</title>
+  <link rel="stylesheet" href="house-rules.css">
+</head>
+<body>
+  <svg class="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <symbol id="dart" viewBox="0 0 100 100"><path d="M19 82 66 35M36 65l9 9M41 60l9 9M46 55l9 9M51 50l9 9M60 41 61 17 82 9 81 32 94 35 85 55 62 53"/><path d="m61 17 20 15 4 23M66 35l15-3"/></symbol>
+      <symbol id="pocket-art" viewBox="0 0 100 100"><path d="M23 35h54v40L50 91 23 75Z"/><path d="M29 43h42v28L50 83 29 71ZM35 35V13m15 22V6m15 29V17M31 13h8m7-7h8m7 11h8"/></symbol>
+      <symbol id="target" viewBox="0 0 100 100"><circle cx="50" cy="50" r="36"/><circle cx="50" cy="50" r="23"/><circle cx="50" cy="50" r="9"/><path d="M50 5v17m0 56v17M5 50h17m56 0h17"/></symbol>
+      <symbol id="repeat" viewBox="0 0 100 100"><path d="M21 41a31 31 0 0 1 57-8l5 11M65 41l18 3 3-20M79 59a31 31 0 0 1-57 8l-5-11m18 3-18-3-3 20"/><circle cx="50" cy="50" r="8"/></symbol>
+      <symbol id="crown" viewBox="0 0 100 100"><path d="m15 29 19 15L50 18l16 26 19-15-10 44H25ZM25 82h50M30 62h40"/><circle cx="15" cy="24" r="4"/><circle cx="50" cy="13" r="4"/><circle cx="85" cy="24" r="4"/></symbol>
+      <symbol id="ticket" viewBox="0 0 100 100"><path d="M16 23h68v20a9 9 0 0 0 0 18v17H16V61a9 9 0 0 0 0-18ZM62 23v8m0 8v8m0 8v8m0 8v7M30 39l16 24m0-24L30 63"/></symbol>
+    </defs>
+  </svg>
+  <header class="topbar">
+    <a class="brand" href="#round" aria-label="Oche House Rules round example">oche<span>®</span></a>
+    <div class="brand-divider"></div><span class="wordmark">HOUSE RULES</span>
+    <span class="concept-label">SOLO MODE / UI CONCEPT</span>
+  </header>
+  <div class="concept-nav">
+    <nav aria-label="Example screens">
+      <button data-screen="round" aria-current="page"><span>01</span> The round</button>
+      <button data-screen="shop"><span>02</span> The shop</button>
+      <button data-screen="boss"><span>03</span> The boss</button>
+      <button data-screen="summary"><span>04</span> The finish</button>
+    </nav>
+    <button class="reset" id="reset">Reset examples ↺</button>
+  </div>
+  <main>
+    <section id="round" class="screen" aria-labelledby="round-title">
+      <div class="heading-row"><div><p class="eyebrow">ACT I · THE LOCAL</p><h1 id="round-title">Find your rhythm.</h1><p class="subtitle">A familiar board. A very different game.</p></div><div class="round-stamp"><span>ROUND</span><strong>02 <i>/ 09</i></strong></div></div>
+      <div class="round-layout">
+        <div class="play-column">
+          <div class="score-panel panel">
+            <div class="line"><span class="eyebrow">ROUND SCORE</span><span class="pill">REGULAR</span></div>
+            <div class="scoreline"><strong id="score">0</strong><div><span>/ 210</span><small>POINTS TO CLEAR</small></div></div>
+            <div class="progress" role="progressbar" aria-label="Round score" aria-valuemin="0" aria-valuemax="210" aria-valuenow="0"><div id="progress-fill"></div></div>
+            <div class="line score-bottom"><span id="needed">210 points to go</span><span>Next up <b>♜ The Bouncer</b></span></div>
+          </div>
+          <div class="visit-panel panel">
+            <div class="line"><h2>Your visit</h2><span class="muted" id="visit-label">Visit 1 · record 3 darts</span></div>
+            <div class="throw-slots" id="throw-slots"></div>
+            <div class="score-explainer" id="breakdown" aria-live="polite">Throw your darts, then enter each hit in order.</div>
+            <div class="keypad" id="keypad" aria-label="Record a numbered hit"></div>
+            <div class="input-actions"><button id="double" aria-pressed="false">Double</button><button id="treble" aria-pressed="false">Treble</button><button data-hit="OB">Bull 25</button><button data-hit="IB">Bull 50</button><button data-hit="M">Miss</button><button id="undo" aria-label="Undo last recorded dart">↶ Undo</button></div>
+            <button class="primary wide" id="bank" disabled>Enter 3 darts to score this visit</button>
+          </div>
+        </div>
+        <aside class="loadout-column">
+          <div class="budget panel"><div><span class="eyebrow">DARTS REMAINING</span><div class="budget-number"><strong id="remaining">12</strong><svg><use href="#dart"/></svg></div></div><div id="pips" class="pips" aria-hidden="true"></div><p id="budget-note">12 standard darts · make them count.</p></div>
+          <div class="section-label"><h2>Your charms</h2><span>2 / 4</span></div>
+          <div class="mini-item"><div class="icon-tile gold"><svg><use href="#target"/></svg></div><div><h3>Single Minded</h3><p>+10 points for every single</p></div><span class="item-tag">+PTS</span></div>
+          <div class="mini-item"><div class="icon-tile green"><svg><use href="#repeat"/></svg></div><div><h3>Familiar Ground</h3><p>Repeat a number for +1 mult</p></div><span class="item-tag">MULT</span></div>
+          <div class="empty-slot">+ Two open charm slots</div>
+          <div class="section-label"><h2>In your pocket</h2><span>1 / 2</span></div>
+          <button class="powerup" id="pocket"><svg><use href="#dart"/></svg><span><strong>Pocket Dart</strong><small>Add one dart to this round</small></span><b>USE +1</b></button>
+          <p class="aside-note">Real throws. Unexpected possibilities.<br>Your board score is always kept separately.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="shop" class="screen" hidden aria-labelledby="shop-title">
+      <div class="heading-row"><div><p class="eyebrow">ROUND 02 CLEARED · THE BACK ROOM</p><h1 id="shop-title">A little unfair advantage.</h1><p class="subtitle">Spend your winnings. Give your next visit a twist.</p></div><div class="wallet"><span>YOUR COINS</span><strong>◉ <span id="coins">12</span></strong></div></div>
+      <div class="shop-warning"><span class="boss-mini">♜</span><div><b>The Bouncer is waiting.</b><span>Next round: 270 points. Sector 20 scores nothing. Build for another number.</span></div><button class="text-button" data-goto="boss">Meet the boss ↗</button></div>
+      <div class="section-label shop-label"><h2>Fresh on the counter</h2><span>Equipment lasts for this run</span></div>
+      <div class="shop-grid">
+        <article class="shop-card brass"><div class="card-top"><span>CHARM / EXTRA DARTS</span><span>41</span></div><div class="card-art"><svg><use href="#pocket-art"/></svg><span class="art-number">+2</span></div><div class="card-body"><span class="rarity">RARE</span><h2>Deep Pockets</h2><p>Start every round with <b>2 extra darts.</b> A little more room for a comeback.</p><div class="card-foot"><span>12 → <b>14 darts</b></span><button class="buy" data-item="pockets" data-price="7">Buy · ◉ 7</button></div></div></article>
+        <article class="shop-card forest"><div class="card-top"><span>CHARM / MULTIPLIER</span><span>19</span></div><div class="card-art"><svg><use href="#target"/></svg><span class="art-number">×</span></div><div class="card-body"><span class="rarity">COMMON</span><h2>Grand Tour</h2><p>Hit <b>3 different numbers</b> in a visit to add <b>+1 multiplier.</b> Take the scenic route.</p><div class="card-foot"><span>Explore the board</span><button class="buy" data-item="tour" data-price="5">Buy · ◉ 5</button></div></div></article>
+        <article class="shop-card cream"><div class="card-top"><span>DART / SLOT 02</span><span>03</span></div><div class="card-art"><svg><use href="#dart"/></svg><span class="art-number">D</span></div><div class="card-body"><span class="rarity">COMMON</span><h2>Precision Dart</h2><p>A numbered double with dart 2 adds <b>30 bonus points.</b> Find the thin green line.</p><div class="card-foot"><span>Replaces Standard</span><button class="buy" data-item="precision" data-price="5">Buy · ◉ 5</button></div></div></article>
+        <article class="shop-card wine"><div class="card-top"><span>POWERUP / SINGLE USE</span><span>53</span></div><div class="card-art"><svg><use href="#ticket"/></svg><span class="art-number">✓</span></div><div class="card-body"><span class="rarity">UNCOMMON</span><h2>House Pass</h2><p>Ignore the boss rule for <b>one visit.</b> Sometimes it helps to know the owner.</p><div class="card-foot"><span>A way past the door</span><button class="buy" data-item="pass" data-price="3">Buy · ◉ 3</button></div></div></article>
+      </div>
+      <div class="shop-footer panel"><div><p class="eyebrow">YOUR BUILD</p><div class="build-tags" id="shop-loadout"><span>Single Minded</span><span>Familiar Ground</span><span class="dashed">2 charm slots open</span></div><p class="muted" id="shop-budget">Next round: 12 darts · 2 / 4 charms</p></div><button class="primary" data-goto="boss">Preview next round <span>→</span></button></div>
+    </section>
+
+    <section id="boss" class="screen" hidden aria-labelledby="boss-title">
+      <div class="heading-row"><div><p class="eyebrow">ACT I · ROUND 03 / 09</p><h1 id="boss-title">The house has a rule.</h1><p class="subtitle">You knew this was coming. Now make your build count.</p></div><span class="pill danger">BOSS ENCOUNTER</span></div>
+      <div class="boss-layout panel">
+        <div class="boss-poster"><div class="poster-top"><span>THE LOCAL</span><span>No. 01</span></div><div class="bouncer-art" aria-hidden="true"><div class="halo"></div><svg viewBox="0 0 340 360"><path fill="#101614" d="M53 360v-68q6-61 79-75l38 18 38-18q73 14 79 75v68Z"/><path fill="#ba9a62" d="m142 189-4 43 32 29 33-29-5-43"/><path fill="#d4bf95" d="M123 112q0-65 47-65t47 65l-8 63q-13 38-39 42-26-4-39-42Z"/><path fill="#18201d" d="M122 112V76q4-53 51-52 53 6 46 73l-19-22-48 10-16 29Z"/><path fill="#101614" d="m120 117 45 4-7 25-31-4Zm55 4 45-4-7 25-31 4Z"/><path stroke="#101614" stroke-width="7" d="M158 127h25"/><path fill="#76553a" d="m166 140-5 26h18Zm-17 41h42l-11 10h-20Z"/><path fill="#26362f" d="m138 228-29 21 35 57 26-45 27 45 34-57-28-21-33 33Z"/><path stroke="#c0a15c" stroke-width="2" d="M170 272v88"/><circle cx="226" cy="289" r="15" fill="#c0a15c"/><text x="226" y="295" text-anchor="middle" font-size="17" fill="#101614">20</text><path stroke="#101614" stroke-width="3" d="m216 278 20 21"/></svg></div><p class="poster-kicker">NO EXCEPTIONS. NO TWENTIES.</p><h2>THE<br>BOUNCER</h2><div class="poster-bottom"><span>HOUSE RULE No. 01</span><span>♜</span></div></div>
+        <div class="boss-info"><span class="eyebrow">HE'S SEEN THAT T20 TRICK BEFORE.</span><h2>Find another<br>way in.</h2><div class="rule-block"><span class="rule-number">20̸</span><div><h3>Sector 20 is closed.</h3><p>Singles, doubles, and trebles on 20 generate no run points or equipment effects.</p></div></div><div class="boss-stats"><div><span>TARGET</span><strong>270</strong><small>run points</small></div><div><span>YOUR DARTS</span><strong id="boss-darts">12</strong><small id="boss-darts-note">standard budget</small></div></div><div class="tactical-note"><span>↗</span><p><b>Your build still works.</b><br>Try repeating 19s. Single Minded and Familiar Ground don't need the 20.</p></div><button class="primary wide" id="start-boss">Try the boss round →</button><button class="text-button wide" data-goto="shop">← Back to the shop example</button></div>
+      </div>
+      <div class="act-track"><span class="done">✓ Opening round</span><i></i><span class="done">✓ Raise the stakes</span><i></i><span class="current">♜ The Bouncer</span><i></i><span>Act II →</span></div>
+    </section>
+
+    <section id="summary" class="screen" hidden aria-labelledby="summary-title">
+      <div class="victory-heading"><p class="eyebrow">09 ROUNDS · 03 BOSSES · ONE VERY GOOD RUN</p><svg class="victory-crown"><use href="#crown"/></svg><h1 id="summary-title">The house is yours.</h1><p class="subtitle">You came for a few throws. You left a local legend.</p><span class="pill">RUN COMPLETE · REGULAR</span></div>
+      <div class="summary-stats panel"><div><span>TOTAL RUN POINTS</span><strong>6,482</strong></div><div><span>BEST VISIT</span><strong>486</strong></div><div><span>PHYSICAL DARTS</span><strong>117</strong></div><div><span>BOARD AVERAGE / 3</span><strong>43.6</strong></div></div>
+      <div class="summary-grid"><div class="panel final-build"><div class="section-label"><h2>The winning combination</h2><span>4 / 4 CHARMS</span></div><div class="winning-cards"><div class="winning-card brass"><svg><use href="#pocket-art"/></svg><h3>Deep Pockets</h3><p>More chances.</p></div><div class="winning-card forest"><svg><use href="#target"/></svg><h3>Grand Tour</h3><p>More places.</p></div><div class="winning-card cream"><svg><use href="#dart"/></svg><h3>Patient Player</h3><p>Stronger late visits.</p></div><div class="winning-card wine"><svg><use href="#crown"/></svg><h3>House Special</h3><p>A bigger finish.</p></div></div></div><div class="panel run-highlight"><span class="eyebrow">THE EXTRA DARTS PAID OFF</span><strong>+18</strong><h3>chances to turn it around</h3><p>Deep Pockets added two darts to every round. Your extra attempts helped carry the build to the final boss.</p></div></div>
+      <div class="summary-actions"><button class="primary" id="new-run">One more run ↗</button><button class="secondary" id="copy-build">Copy example build</button></div>
+    </section>
+  </main>
+  <footer class="page-footer"><span>OCHE / HOUSE RULES</span><p>Interactive UI examples · sample data · resets on reload</p><span>REAL DARTS. HOUSE RULES.</span></footer>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="house-rules.js"></script>
+</body>
+</html>

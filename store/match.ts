@@ -102,9 +102,9 @@ export const useMatchStore = create<MatchStore>((set, get) => ({
       return;
     }
 
-    // remote: the store only updates once the server's Ably broadcast arrives (see the
-    // useRemoteMatchSync hook) — no optimistic local mutation for this milestone.
+    // Remote scores come from the saved snapshot, including after failed realtime delivery.
     set({ throwError: null });
+    try {
     const res = await fetch(`/api/matches/${state.matchId}/throws`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -113,6 +113,11 @@ export const useMatchStore = create<MatchStore>((set, get) => ({
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       set({ throwError: body.error ?? "Couldn't send that throw — try again" });
+    } else {
+      window.dispatchEvent(new CustomEvent('oche-match-refresh', { detail: state.matchId }));
+    }
+    } catch {
+      set({ throwError: 'Connection lost. Check the saved score after reconnecting before retrying.' });
     }
   },
 
@@ -131,7 +136,13 @@ export const useMatchStore = create<MatchStore>((set, get) => ({
       return;
     }
 
-    await fetch(`/api/matches/${state.matchId}/undo`, { method: 'POST' });
+    try {
+    const res = await fetch(`/api/matches/${state.matchId}/undo`, { method: 'POST' });
+    if (res.ok) window.dispatchEvent(new CustomEvent('oche-match-refresh', { detail: state.matchId }));
+    else set({ throwError: 'Could not undo. Please try again.' });
+    } catch {
+      set({ throwError: 'Connection lost. Reconnect to check the saved score.' });
+    }
   },
 
   addVisit: (visit) =>

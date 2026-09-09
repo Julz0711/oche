@@ -30,7 +30,9 @@ export type MatchEvent =
 export async function publishMatchEvent(matchId: string, event: MatchEvent): Promise<void> {
   try {
     const channel = getRestClient().channels.get(matchChannelName(matchId));
-    await channel.publish(event.name, event.data);
+    // History grows across legs. Keep Ably messages constant-sized; clients load the
+    // authoritative snapshot over HTTP instead of broadcasting history with every dart.
+    await channel.publish(event.name, { refresh: true });
   } catch (err) {
     console.error(`publishMatchEvent failed for match ${matchId}, event '${event.name}':`, err);
   }
@@ -40,6 +42,6 @@ export async function createMatchToken(matchId: string, clientId: string) {
   const client = getRestClient();
   return client.auth.createTokenRequest({
     clientId,
-    capability: { [matchChannelName(matchId)]: ['subscribe'] },
+    capability: { [matchChannelName(matchId)]: ['subscribe', 'presence'] },
   });
 }

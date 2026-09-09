@@ -6,7 +6,7 @@ import { useMatchStore } from '@/store/match';
 
 const defaults: Record<string, Record<string, string | number>> = {
   x01: { startingScore: '501', checkOut: 'double', checkIn: 'straight', firstTo: 1, sets: 0, firstThrow: 'alternate' },
-  cricket: { firstTo: 1 },
+  cricket: { firstTo: 1, scoring: 'standard' },
   copycat: { firstTo: 3, firstThrow: 'alternate' },
 };
 
@@ -18,7 +18,7 @@ export function PlayAgain({ matchId, gameId, settings }: {
   const hostId = useMatchStore(s => s.hostId);
   const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState(gameId);
-  const [values, setValues] = useState<Record<string, string | number>>({ ...settings, startingScore: String(settings.startingScore ?? 501) });
+  const [values, setValues] = useState<Record<string, string | number>>({ ...defaults[gameId], ...settings, startingScore: String(settings.startingScore ?? 501) });
   const [nextId, setNextId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -77,6 +77,7 @@ export function PlayAgain({ matchId, gameId, settings }: {
             <option value="x01">X01</option><option value="cricket">Cricket</option><option value="copycat">Copycat</option>
           </select>
         </div>
+        {selected === 'cricket' && field('scoring', 'Scoring', ['standard', 'no-points'], ['Standard', 'No points'])}
         {selected === 'x01' && <>
           {field('startingScore', 'Starting score', ['301', '501', '701'])}
           {field('checkOut', 'Check out', ['double', 'straight', 'master'], ['Double', 'Straight', 'Master'])}

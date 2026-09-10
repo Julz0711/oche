@@ -10,7 +10,10 @@ import {
   Coins,
   Backpack,
   ArrowUpRight,
+  ArrowRight,
+  Undo2,
 } from "lucide-react";
+import { BackLink } from "@/components/atoms/BackLink";
 import { CATALOGUE, item } from "@/lib/games/roguelike/catalogue";
 import {
   canonicalActions,
@@ -352,9 +355,7 @@ export default function SoloGame() {
       }`}
     >
       <header className={styles.header}>
-        <Link href="/" className={styles.back}>
-          ← Play
-        </Link>
+        <BackLink href="/" label="Back to dashboard" />
         <span className={styles.eyebrow}>OCHE / HOUSE RULES</span>
         <span className={styles.badge}>BETA · SOLO</span>
       </header>
@@ -584,7 +585,7 @@ export default function SoloGame() {
                             : "Submit to friends leaderboard"}
                         </button>
                         <button onClick={() => setTab("friends")}>
-                          View friends ranking →
+                          View friends ranking <ArrowRight size={16} aria-hidden="true" />
                         </button>
                       </div>
                     )}
@@ -640,7 +641,7 @@ export default function SoloGame() {
                   </button>
                 ) : (
                   <Link href="/signin?callbackUrl=/solo">
-                    Sign in to challenge friends →
+                    Sign in to challenge friends <ArrowRight size={16} aria-hidden="true" />
                   </Link>
                 )}
               </div>
@@ -791,7 +792,7 @@ export default function SoloGame() {
                         act({ type: "start", home, dealer, wager })
                       }
                     >
-                      Step up to the oche →
+                      Step up to the oche <ArrowRight size={16} aria-hidden="true" />
                     </button>
                     <p className={styles.muted}>
                       Choices lock when the round starts. You can correct
@@ -935,7 +936,7 @@ export default function SoloGame() {
                           disabled={!canUndo}
                           onClick={() => act({ type: "undo" })}
                         >
-                          ↶ Undo dart
+                          <Undo2 size={16} aria-hidden="true" /> Undo dart
                         </button>
                         {run.phase === "playing" ? (
                           <button
@@ -944,7 +945,7 @@ export default function SoloGame() {
                             onClick={() => act({ type: "bank" })}
                           >
                             {r.hits.length === visitSize
-                              ? `Score visit · +${preview?.score} →`
+                              ? <>Score visit · +{preview?.score} <ArrowRight size={16} aria-hidden="true" /></>
                               : `Record ${visitSize - r.hits.length} more dart${
                                   visitSize - r.hits.length === 1 ? "" : "s"
                                 }`}
@@ -955,8 +956,8 @@ export default function SoloGame() {
                             onClick={() => act({ type: "commit" })}
                           >
                             {r.score >= r.target && r.index < 8
-                              ? "Confirm result & open shop →"
-                              : "Confirm final result →"}
+                              ? <>Confirm result &amp; open shop <ArrowRight size={16} aria-hidden="true" /></>
+                              : <>Confirm final result <ArrowRight size={16} aria-hidden="true" /></>}
                           </button>
                         )}
                       </div>
@@ -1252,7 +1253,7 @@ export default function SoloGame() {
                                 ? "Not enough coins"
                                 : slotBlocked
                                 ? "Free a slot to buy"
-                                : "Buy upgrade →"}
+                                : <>Buy upgrade <ArrowRight size={16} aria-hidden="true" /></>}
                             </button>
                           </div>
                         </Panel>

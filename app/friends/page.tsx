@@ -57,9 +57,9 @@ export default function FriendsPage() {
     catch { setError('Could not copy. You can select and copy the code below.'); }
   }
   if (status === 'loading') return <LoadingIndicator fullPage label="Loading friends…" />;
-  if (status === 'unauthenticated') return <main className="social-page page-gutters"><header><h1>Friends</h1><p>Sign in to add friends and keep your head-to-head records.</p></header><Link href="/signin" className="social-link">Sign in</Link></main>;
+  if (status === 'unauthenticated') return <main className="social-page page-gutters"><header><h1 className="page-title">Friends</h1><p>Sign in to add friends and keep your head-to-head records.</p></header><Link href="/signin" className="social-link">Sign in</Link></main>;
   return <main className="social-page page-gutters">
-    <header><h1>Friends</h1><p>Your players, your rivalries.</p></header>
+    <header><h1 className="page-title">Friends</h1><p>Your players, your rivalries.</p></header>
     {error && <div role="alert" className="social-error"><span>{error}</span><Button size="sm" variant="ghost" onClick={() => { setError(''); void load(); }}>Retry</Button></div>}
     {notice && <p role="status" className="text-sm text-wire">{notice}</p>}
     {data ? <>

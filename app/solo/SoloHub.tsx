@@ -1,3 +1,4 @@
+import { ArrowUpRight } from "lucide-react";
 import { Panel } from "@/components/atoms/Panel";
 import { replay, summary } from "@/lib/games/roguelike/engine";
 import type { RunSave } from "@/lib/solo/library";
@@ -31,7 +32,7 @@ export default function SoloHub({
           </p>
         </div>
         <button className={styles.primary} onClick={onNew}>
-          New run ↗
+          New run <ArrowUpRight size={16} aria-hidden="true" />
         </button>
       </div>
       {(["Continue playing", "Past runs"] as const).map((label, index) => {

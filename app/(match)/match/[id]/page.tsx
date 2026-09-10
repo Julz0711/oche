@@ -571,6 +571,9 @@ export default function MatchPage({ params }: MatchPageProps) {
   const otherPlayers = youPlayerId ? players.filter(p => p !== youPlayerId) : [];
   const useCompactOpponentsLayout = youPlayerId !== null && players.length > 2;
 
+  const turnToastName = displayNames.get(currentPlayerId) ?? currentPlayerId.replace(/^player(\d+)$/, 'Player $1');
+  const turnToastEnabled = mode === 'local' || currentPlayerId === you;
+
   return (
     <div
       className={`match-page min-h-screen bg-oche text-chalk p-4 flex flex-col gap-4 ${!isComplete ? 'match-live' : ''}`}
@@ -617,8 +620,6 @@ export default function MatchPage({ params }: MatchPageProps) {
       </header>
 
       {mode === 'remote' && <MatchPresence players={lobbyPlayers as MatchPlayerDoc[]} {...sync} />}
-
-      {!isComplete && <TurnToast key={id} game={gameModule} state={gameState} settings={settings} name={displayNames.get(currentPlayerId) ?? currentPlayerId.replace(/^player(\d+)$/, 'Player $1')} enabled={mode === 'local' || currentPlayerId === you} />}
 
       {!isComplete && <MobileMatch gameModule={gameModule} state={gameState} settings={settings}
         displayNames={displayNames} disabled={mode === 'remote' && currentPlayerId !== you}
@@ -690,7 +691,8 @@ export default function MatchPage({ params }: MatchPageProps) {
                 />
               )}
 
-              <div className="flex flex-col items-center justify-center gap-4 w-full">
+              <div className="relative flex flex-col items-center justify-center gap-4 w-full">
+                <TurnToast key={id} game={gameModule} state={gameState} settings={settings} name={turnToastName} enabled={turnToastEnabled} />
                 {throwError && (
                   <div className="text-sm text-treble bg-treble/10 border border-treble/40 rounded-none px-3 py-2 flex items-center gap-2">
                     {throwError}
@@ -863,7 +865,8 @@ export default function MatchPage({ params }: MatchPageProps) {
                   />
                 ))}
 
-              <div className="flex flex-col items-center justify-center gap-4 w-full">
+              <div className="relative flex flex-col items-center justify-center gap-4 w-full">
+                <TurnToast key={id} game={gameModule} state={gameState} settings={settings} name={turnToastName} enabled={turnToastEnabled} />
                 {throwError && (
                   <div className="text-sm text-treble bg-treble/10 border border-treble/40 rounded-none px-3 py-2 flex items-center gap-2">
                     {throwError}

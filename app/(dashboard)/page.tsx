@@ -212,6 +212,14 @@ export default function Dashboard() {
     }
   };
 
+  const handleLeaveMatch = async (id: string) => {
+    if (!window.confirm('Leave this game? It stays active for the other player(s).')) return;
+    const res = await fetch(`/api/matches/${id}/leave`, { method: 'POST' });
+    if (res.ok) {
+      setActiveMatches((prev) => prev.filter((m) => m.id !== id));
+    }
+  };
+
   const handleCreateMatch = async (gameId: GameId, mode: 'local' | 'remote') => {
     setCreateError(null);
     setCreating(mode);
@@ -278,7 +286,6 @@ export default function Dashboard() {
                   <span className="block text-[10px] font-bold tracking-[0.2em] text-wire uppercase">Solo roguelike · 1 player</span>
                   <strong className="block font-display font-bold uppercase text-[30px] leading-none text-chalk mt-5 mb-2">House Rules</strong>
                   <span className="block text-xs text-sisal/60">Build your darts. Beat the bosses. Challenge your friends.</span>
-                  <span className="absolute top-0 right-0 text-wire" aria-hidden="true">↗</span>
                 </span>
               </Panel>
             </Link>
@@ -309,11 +316,20 @@ export default function Dashboard() {
                       </div>
                       <span className="text-xs font-bold uppercase tracking-widest text-wire shrink-0">Resume</span>
                     </button>
-                    {m.isHost && (
+                    {m.isHost ? (
                       <button
                         type="button"
                         onClick={() => handleDeleteMatch(m.id)}
                         aria-label="Delete match"
+                        className="shrink-0 min-w-11 min-h-11 flex items-center justify-center text-sisal hover:text-treble transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleLeaveMatch(m.id)}
+                        aria-label="Leave match"
                         className="shrink-0 min-w-11 min-h-11 flex items-center justify-center text-sisal hover:text-treble transition-colors"
                       >
                         <X className="w-4 h-4" />

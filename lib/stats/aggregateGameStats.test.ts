@@ -1,0 +1,113 @@
+import { describe, it, expect } from 'vitest';
+import { aggregateX01Stats, aggregateCricketStats, aggregateCopycatStats } from './aggregateGameStats';
+import { createPlayerId } from '@/lib/types';
+
+const you = createPlayerId('player1');
+const t = (sector: number, ring: 'S' | 'D' | 'T' | 'OB' | 'IB' | 'M', order: 0 | 1 | 2 = 0) => ({ sector: sector as any, ring, points: 0, order });
+
+describe('aggregateX01Stats', () => {
+  it('returns zeroed stats for no entries', () => {
+    expect(aggregateX01Stats([])).toEqual({
+      avg3Dart: 0, checkoutRate: 0, visits100: 0, visits140: 0, visits180: 0, busts: 0,
+      bestVisit: 0, highestCheckout: null, doublesRate: 0, treblesRate: 0,
+    });
+  });
+
+  it('computes a 3-dart average weighted by total darts across multiple matches, not averaged per match', () => {
+    // Match A: one visit of 3 darts at 20 each (60 total). Match B: one visit of 3 darts at 10 each (30 total).
+    // Weighted avg3Dart = (60+30)/6*3 = 45, NOT the average of each match's own 60 and 30 (which would be 45 too
+    // here by coincidence of equal dart counts — use uneven dart counts below to prove real weighting).
+    const entries = [
+      { playerId: you, throws: [t(20, 'S'), t(20, 'S'), t(20, 'S')].map(x => ({ ...x, points: 20 })), scoreBefore: 501, scoreAfter: 441, busted: false, wasCheckout: false },
+      { playerId: you, throws: [{ ...t(10, 'S'), points: 10 }], scoreBefore: 441, scoreAfter: 431, busted: false, wasCheckout: false },
+    ];
+    // totalPoints = 60 + 10 = 70, totalDarts = 4 -> avg3Dart = 70/4*3 = 52.5
+    expect(aggregateX01Stats(entries).avg3Dart).toBe(52.5);
+  });
+
+  it('counts checkout attempts and hits within the 170 simplification, and tracks the highest checkout', () => {
+    const entries = [
+      { playerId: you, throws: [{ ...t(20, 'D'), points: 40 }], scoreBefore: 40, scoreAfter: 0, busted: false, wasCheckout: true },
+      { playerId: you, throws: [{ ...t(20, 'S'), points: 20 }], scoreBefore: 100, scoreAfter: 80, busted: false, wasCheckout: false },
+      { playerId: you, throws: [{ ...t(20, 'S'), points: 20 }], scoreBefore: 300, scoreAfter: 280, busted: false, wasCheckout: false },
+    ];
+    const stats = aggregateX01Stats(entries);
+    expect(stats.checkoutRate).toBe(50); // 1 hit / 2 attempts (score <= 170); the 300 visit is out of range
+    expect(stats.highestCheckout).toBe(40);
+  });
+
+  it('sums scoring bands (100s/140s/180s) and busts across matches via scoringVisitStats', () => {
+    const entries = [
+      { playerId: you, throws: [], scoreBefore: 180, scoreAfter: 0, busted: false, wasCheckout: false },
+      { playerId: you, throws: [], scoreBefore: 100, scoreAfter: 0, busted: false, wasCheckout: false },
+      { playerId: you, throws: [], scoreBefore: 50, scoreAfter: 60, busted: true, wasCheckout: false },
+    ];
+    const stats = aggregateX01Stats(entries);
+    expect(stats.visits180).toBe(1);
+    expect(stats.visits100).toBe(1);
+    expect(stats.busts).toBe(1);
+    expect(stats.bestVisit).toBe(180);
+  });
+});
+
+describe('aggregateCricketStats', () => {
+  it('returns zeroed stats for no entries', () => {
+    expect(aggregateCricketStats([])).toEqual({ mpr: 0, totalMarks: 0, pointsScored: 0 });
+  });
+
+  it('computes marks-per-round weighted by total darts across matches', () => {
+    const entries = [
+      { playerId: you, throws: [{ ...t(20, 'T'), points: 0 }], scoreBefore: 0, scoreAfter: 60 }, // 3 marks
+      { playerId: you, throws: [{ ...t(19, 'S'), points: 0 }], scoreBefore: 60, scoreAfter: 79 }, // 1 mark
+    ];
+    // totalMarks = 4, totalDarts = 2 -> mpr = 4/2*3 = 6
+    expect(aggregateCricketStats(entries).mpr).toBe(6);
+    expect(aggregateCricketStats(entries).totalMarks).toBe(4);
+    expect(aggregateCricketStats(entries).pointsScored).toBe(60 + 19);
+  });
+
+  it('ignores non-scoring numbers and misses', () => {
+    const entries = [{ playerId: you, throws: [{ ...t(1, 'S'), points: 0 }, { ...t(0, 'M'), points: 0 }], scoreBefore: 0, scoreAfter: 0 }];
+    expect(aggregateCricketStats(entries).totalMarks).toBe(0);
+  });
+});
+
+describe('aggregateCopycatStats', () => {
+  it('returns zeroed stats for no entries', () => {
+    expect(aggregateCopycatStats([])).toEqual({ avgVisit: 0, points: 0, matchRate: 0, doubleFinishes: 0 });
+  });
+
+  it('computes average visit total weighted across matches, points won, and match rate against a target', () => {
+    const matches = [
+      {
+        firstTo: 3,
+        entries: [
+          { playerId: you, throws: [{ ...t(20, 'S'), points: 20 }], scoreBefore: 0, scoreAfter: 0, targetBefore: null, total: 20, wasPointWin: false, pointsWonBefore: { [you]: 0 } },
+          { playerId: you, throws: [{ ...t(20, 'S'), points: 20 }], scoreBefore: 0, scoreAfter: 0, targetBefore: 20, total: 20, wasPointWin: true, pointsWonBefore: { [you]: 0 } },
+        ],
+      },
+    ];
+    const stats = aggregateCopycatStats(matches);
+    expect(stats.avgVisit).toBe(20); // (20+20)/2
+    expect(stats.points).toBe(1);
+    expect(stats.matchRate).toBe(100); // 1 match out of 1 attempt against a real target
+  });
+
+  it('counts a double finish only when the winning visit was also match point, using that match\'s own firstTo', () => {
+    const matches = [
+      {
+        firstTo: 1, // this visit wins the match outright -> pointsWonBefore(0) === firstTo-1(0) -> match point
+        entries: [
+          { playerId: you, throws: [{ ...t(20, 'D'), points: 40 }], scoreBefore: 0, scoreAfter: 0, targetBefore: 40, total: 40, wasPointWin: true, pointsWonBefore: { [you]: 0 } },
+        ],
+      },
+      {
+        firstTo: 5, // not match point (needs 5, only has 0) -> no double finish even though it's a double
+        entries: [
+          { playerId: you, throws: [{ ...t(20, 'D'), points: 40 }], scoreBefore: 0, scoreAfter: 0, targetBefore: 40, total: 40, wasPointWin: true, pointsWonBefore: { [you]: 0 } },
+        ],
+      },
+    ];
+    expect(aggregateCopycatStats(matches).doubleFinishes).toBe(1);
+  });
+});

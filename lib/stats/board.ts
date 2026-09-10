@@ -1,4 +1,12 @@
 import type { Db, Document } from 'mongodb';
+import { resolveYourPlayerId } from '@/lib/matchHistory';
+import { MatchPlayerDoc } from '@/lib/matchLobby';
+import { PlayerId, Throw } from '@/lib/types';
+import {
+  aggregateX01Stats, X01AggregateStats,
+  aggregateCricketStats, CricketAggregateStats,
+  aggregateCopycatStats, CopycatAggregateStats,
+} from './aggregateGameStats';
 
 export type StatsPeriod = 'day' | 'week' | 'month' | 'all';
 export interface PeriodStats {
@@ -6,8 +14,30 @@ export interface PeriodStats {
   games: { gameId: string; totalMatches: number; wins: number; winRate: number }[];
   heatmap: Record<string, number>;
   dartsThrown: number;
+  /** Cross-match, properly-weighted play-style stats per game — null when the period has no
+   *  completed matches of that game (nothing to show, not a zeroed board). */
+  x01: X01AggregateStats | null;
+  cricket: CricketAggregateStats | null;
+  copycat: CopycatAggregateStats | null;
 }
 export type StatsBoard = Record<StatsPeriod, PeriodStats>;
+
+/** A visit-history entry as every game module's engine actually shapes it — a superset of the
+ *  fields any one game reads (see lib/games/{x01,cricket,copycat}/matchStats.ts). Kept loose
+ *  (not importing each engine's internal entry type, which isn't exported) since this file only
+ *  ever reads it, never constructs or validates it. */
+interface VisitHistoryEntry {
+  playerId: string;
+  throws: Throw[];
+  scoreBefore: number;
+  scoreAfter: number;
+  busted?: boolean;
+  wasCheckout?: boolean;
+  targetBefore?: number | null;
+  total?: number;
+  wasPointWin?: boolean;
+  pointsWonBefore?: Record<string, number>;
+}
 
 /** Calendar periods in UTC; weeks start on Monday. The UI labels this explicitly. */
 export function periodStarts(now: Date) {
@@ -22,7 +52,7 @@ export async function getStatsBoard(db: Db, userId: string, now = new Date()): P
   const periods = ['day', 'week', 'month', 'all'] as const;
   const matches = await db.collection('matches').find(
     { status: 'complete', $or: [{ mode: 'local', userId }, { mode: 'remote', 'players.userId': userId }] },
-    { projection: { gameId: 1, mode: 1, winnerId: 1, completedAt: 1 } }
+    { projection: { gameId: 1, mode: 1, winnerId: 1, completedAt: 1, state: 1, settings: 1, players: 1 } }
   ).toArray();
   const localIds = matches.filter(match => match.gameId === 'x01' && match.mode === 'local').map(match => match._id.toString());
   const remoteIds = matches.filter(match => match.gameId === 'x01' && match.mode === 'remote').map(match => match._id.toString());
@@ -66,6 +96,27 @@ export async function getStatsBoard(db: Db, userId: string, now = new Date()): P
       heatmap[key] = (heatmap[key] ?? 0) + hit.count;
       dartsThrown += hit.count;
     }
+    const x01Entries: VisitHistoryEntry[] = [];
+    const cricketEntries: VisitHistoryEntry[] = [];
+    const copycatMatches: { entries: VisitHistoryEntry[]; firstTo: number }[] = [];
+    for (const match of included) {
+      const state = match.state as { visitHistory?: VisitHistoryEntry[] } | undefined;
+      if (!state?.visitHistory?.length) continue;
+      const you = resolveYourPlayerId(
+        { mode: match.mode, players: (match.players ?? []) as MatchPlayerDoc[] },
+        userId
+      );
+      if (!you) continue;
+      const entries = state.visitHistory.filter(entry => entry.playerId === you);
+      if (entries.length === 0) continue;
+      if (match.gameId === 'x01') x01Entries.push(...entries);
+      else if (match.gameId === 'cricket') cricketEntries.push(...entries);
+      else if (match.gameId === 'copycat') {
+        const firstTo = Number((match.settings as { firstTo?: unknown } | undefined)?.firstTo) || 1;
+        copycatMatches.push({ entries, firstTo });
+      }
+    }
+
     board[period] = {
       totalMatches,
       wins,
@@ -74,6 +125,14 @@ export async function getStatsBoard(db: Db, userId: string, now = new Date()): P
       games,
       heatmap,
       dartsThrown,
+      x01: x01Entries.length ? aggregateX01Stats(x01Entries as (VisitHistoryEntry & { busted: boolean; wasCheckout: boolean })[]) : null,
+      cricket: cricketEntries.length ? aggregateCricketStats(cricketEntries) : null,
+      copycat: copycatMatches.length
+        ? aggregateCopycatStats(copycatMatches.map(m => ({
+            firstTo: m.firstTo,
+            entries: m.entries as (VisitHistoryEntry & { playerId: PlayerId; targetBefore: number | null; total: number; wasPointWin: boolean; pointsWonBefore: Record<string, number> })[],
+          })))
+        : null,
     };
   }
   return board;

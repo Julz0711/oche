@@ -45,7 +45,7 @@ export function ProfileView({ friendId }: { friendId?: string }) {
   }, [friendId, userId, attempt]);
   const person = friendId ? data?.person : { name: session?.user?.name || 'Player', image: session?.user?.image };
   return <main className="account-page page-gutters">
-    <header className="page-heading"><div><p className="eyebrow">{friendId ? 'Player profile' : 'Your account'}</p><h1>{friendId ? person?.name || 'Player' : 'Profile'}</h1></div><Link className="quiet-action" href={friendId ? '/friends' : '/settings'}>{friendId ? '← Friends' : <><Settings size={16} /> Account settings</>}</Link></header>
+    <header className="page-heading"><div><p className="eyebrow">{friendId ? 'Player profile' : 'Your account'}</p><h1 className="page-title">{friendId ? person?.name || 'Player' : 'Profile'}</h1></div><Link className="quiet-action" href={friendId ? '/friends' : '/settings'}>{friendId ? '← Friends' : <><Settings size={16} /> Account settings</>}</Link></header>
     {error ? <Panel notch="panel" className="p-4"><p role="alert">{error}</p><Button variant="secondary" onClick={() => setAttempt(n => n + 1)}>Try again</Button></Panel> : !data ? <LoadingIndicator label="Loading profile…" /> : <>
       <Panel notch="card" className="profile-identity"><PlayerAvatar name={person!.name} image={person?.image} large /><div className="min-w-0"><p className="eyebrow">{friendId ? 'Your friend' : 'Currently logged in as'}</p><h2 className="break-words font-display text-[28px] leading-tight">{person!.name}</h2></div>{friendId && <Link className="quiet-action ml-auto" href={`/friends/${friendId}`}>Head-to-head <ArrowUpRight size={16} /></Link>}</Panel>
       <div className="profile-layout"><div className="flex flex-col gap-4">

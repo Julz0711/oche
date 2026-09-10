@@ -2,15 +2,19 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Crosshair, Users, BarChart3, UserRound, Volume2, VolumeX } from 'lucide-react';
+import { Crosshair, Swords, Users, BarChart3, UserRound, Volume2, VolumeX } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { PlayerAvatar } from '@/components/profile/PlayerAvatar';
 import { useSoundPreference } from '@/hooks/useSoundPreference';
 
 const destinations = [
-  { href: '/', label: 'Play', icon: Crosshair },
-  { href: '/friends', label: 'Friends', icon: Users },
-  { href: '/stats', label: 'Stats', icon: BarChart3 },
+  { href: '/', label: 'Play', icon: Crosshair, requiresAuth: false, desktopOnly: false },
+  // House Rules works for guests too (only its friends leaderboard needs sign-in), so it isn't
+  // gated like Friends/Stats. Desktop-only: the mobile bottom bar is a fixed 4-column grid
+  // (Play/Friends/Stats/Account) and House Rules already has a route in from the dashboard there.
+  { href: '/solo', label: 'House Rules', icon: Swords, requiresAuth: false, desktopOnly: true },
+  { href: '/friends', label: 'Friends', icon: Users, requiresAuth: true, desktopOnly: false },
+  { href: '/stats', label: 'Stats', icon: BarChart3, requiresAuth: true, desktopOnly: false },
 ];
 export function AppNavigation({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -22,9 +26,9 @@ export function AppNavigation({ children }: { children: ReactNode }) {
     <nav className="app-navigation" aria-label="Main navigation">
       <Link href="/" className="nav-brand" aria-label="Oche home">OCHE</Link>
       <div className="nav-destinations">
-        {destinations.map(({ href, label, icon: Icon }) => {
-          const selected = href === '/' ? pathname === '/' || pathname.startsWith('/join') || pathname.startsWith('/solo') : pathname.startsWith(href) || (href === '/friends' && pathname.startsWith('/profile/'));
-          return <Link key={href} href={!session?.user && href !== '/' ? '/signin' : href} aria-current={selected ? 'page' : undefined}><Icon size={18} aria-hidden="true" /><span>{label}</span></Link>;
+        {destinations.map(({ href, label, icon: Icon, requiresAuth, desktopOnly }) => {
+          const selected = href === '/' ? pathname === '/' || pathname.startsWith('/join') : href === '/solo' ? pathname.startsWith('/solo') : pathname.startsWith(href) || (href === '/friends' && pathname.startsWith('/profile/'));
+          return <Link key={href} href={!session?.user && requiresAuth ? '/signin' : href} aria-current={selected ? 'page' : undefined} className={desktopOnly ? 'nav-desktop-only' : undefined}><Icon size={18} aria-hidden="true" /><span>{label}</span></Link>;
         })}
         <button className="nav-sound" onClick={toggleSound} aria-label={soundEnabled ? 'Mute sound' : 'Unmute sound'} aria-pressed={!soundEnabled} title={soundEnabled ? 'Mute sound' : 'Unmute sound'}>{soundEnabled ? <Volume2 size={18} aria-hidden="true" /> : <VolumeX size={18} aria-hidden="true" />}<span>Sound</span></button>
         <Link className="nav-account" href={session?.user ? '/profile' : '/signin'} aria-current={pathname === '/profile' || pathname === '/settings' ? 'page' : undefined} aria-label="Account">

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { item } from "@/lib/games/roguelike/catalogue";
 import type { Difficulty, Owned } from "@/lib/games/roguelike/types";
 import styles from "./solo.module.css";
@@ -113,7 +114,7 @@ export default function FriendsBoard({
             accepted friends.
           </p>
           <Link className={styles.primary} href="/signin?callbackUrl=/solo">
-            Sign in →
+            Sign in <ArrowRight size={16} aria-hidden="true" />
           </Link>
         </div>
       ) : (
@@ -141,7 +142,7 @@ export default function FriendsBoard({
                   disabled={busy}
                   onClick={onStart}
                 >
-                  Start weekly challenge →
+                  Start weekly challenge <ArrowRight size={16} aria-hidden="true" />
                 </button>
               </div>
               {own && (
@@ -246,7 +247,7 @@ export default function FriendsBoard({
                   {board.friendCount
                     ? "Manage friends"
                     : "Add your first friend"}{" "}
-                  →
+                  <ArrowRight size={16} aria-hidden="true" />
                 </Link>
                 <button onClick={() => setRefresh((n) => n + 1)}>
                   Refresh leaderboard

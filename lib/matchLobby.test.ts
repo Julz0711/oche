@@ -1,6 +1,6 @@
 // lib/matchLobby.test.ts
 import { describe, it, expect } from 'vitest';
-import { seatFor, identityIdOf, isSeated, canJoinLobby, canStartMatch, canReorderLobby, MatchPlayerDoc } from './matchLobby';
+import { seatFor, identityIdOf, isSeated, canJoinLobby, canStartMatch, canReorderLobby, canLeaveMatch, allParticipantsLeft, MatchPlayerDoc } from './matchLobby';
 import { Identity } from './identity';
 
 const TWO_TO_FOUR: [number, number] = [2, 4];
@@ -141,5 +141,64 @@ describe('canReorderLobby', () => {
     const match = { status: 'lobby', players: [host, guest], hostId: 'g1' };
     const result = canReorderLobby(match, { type: 'guest', id: 'g1' }, ['g1', 'g9']);
     expect(result).toEqual({ ok: false, status: 400, error: 'New order must include every seated player exactly once' });
+  });
+});
+
+describe('canLeaveMatch', () => {
+  const host = { userId: 'u1', guestId: undefined, name: 'Host', isGuest: false };
+  const guest = { userId: 'u2', guestId: undefined, name: 'Guest', isGuest: false };
+
+  it('allows the host to leave a live match', () => {
+    const match = { status: 'live', hostId: 'u1', players: [host, guest] };
+    expect(canLeaveMatch(match, 'u1')).toEqual({ ok: true });
+  });
+
+  it('allows a seated non-host player to leave', () => {
+    const match = { status: 'live', hostId: 'u1', players: [host, guest] };
+    expect(canLeaveMatch(match, 'u2')).toEqual({ ok: true });
+  });
+
+  it('rejects a user who is neither host nor a seated player', () => {
+    const match = { status: 'live', hostId: 'u1', players: [host, guest] };
+    const result = canLeaveMatch(match, 'u3');
+    expect(result).toEqual({ ok: false, status: 403, error: 'Not a participant in this match' });
+  });
+
+  it('rejects leaving a match that already finished', () => {
+    const match = { status: 'complete', hostId: 'u1', players: [host, guest] };
+    const result = canLeaveMatch(match, 'u1');
+    expect(result).toEqual({ ok: false, status: 409, error: 'Match is not active' });
+  });
+
+  it('rejects leaving a match that was already abandoned', () => {
+    const match = { status: 'abandoned', hostId: 'u1', players: [host, guest] };
+    const result = canLeaveMatch(match, 'u1');
+    expect(result).toEqual({ ok: false, status: 409, error: 'Match is not active' });
+  });
+});
+
+describe('allParticipantsLeft', () => {
+  const host = { userId: 'u1', guestId: undefined, name: 'Host', isGuest: false };
+  const guest = { userId: 'u2', guestId: undefined, name: 'Guest', isGuest: false };
+
+  it('is false when nobody has left', () => {
+    const match = { hostId: 'u1', players: [host, guest], leftBy: [] };
+    expect(allParticipantsLeft(match)).toBe(false);
+  });
+
+  it('is false when only some participants have left', () => {
+    const match = { hostId: 'u1', players: [host, guest], leftBy: ['u1'] };
+    expect(allParticipantsLeft(match)).toBe(false);
+  });
+
+  it('is true once every participant with a userId has left', () => {
+    const match = { hostId: 'u1', players: [host, guest], leftBy: ['u1', 'u2'] };
+    expect(allParticipantsLeft(match)).toBe(true);
+  });
+
+  it('ignores guest seats, which never appear in leftBy', () => {
+    const guestSeat = { userId: undefined, guestId: 'g9', name: 'Guest', isGuest: true };
+    const match = { hostId: 'u1', players: [host, guestSeat], leftBy: ['u1'] };
+    expect(allParticipantsLeft(match)).toBe(true);
   });
 });

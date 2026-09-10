@@ -87,3 +87,28 @@ export function canReorderLobby(
   }
   return { ok: true };
 }
+
+/** Any signed-in participant — host or seated player — can leave a match on their own, unlike
+ *  the host-only DELETE. Leaving only needs to make sense while the match is still something to
+ *  come back to; a finished or already-abandoned match has nothing left to leave. */
+export function canLeaveMatch(match: { status: string; hostId?: string; players: MatchPlayerDoc[] }, userId: string): LobbyResult {
+  const isParticipant = match.hostId === userId || match.players.some((p) => p.userId === userId);
+  if (!isParticipant) {
+    return { ok: false, status: 403, error: 'Not a participant in this match' };
+  }
+  if (match.status !== 'lobby' && match.status !== 'live') {
+    return { ok: false, status: 409, error: 'Match is not active' };
+  }
+  return { ok: true };
+}
+
+/** True once every signed-in participant who could ever see this match on their dashboard (the
+ *  host, plus any seated player with a userId) has left it — nobody with a stake in it left, so
+ *  it can be marked abandoned instead of lingering forever. Guest seats never appear in leftBy
+ *  (they have no dashboard "active games" list to leave from) and are ignored here too. */
+export function allParticipantsLeft(match: { hostId?: string; players: MatchPlayerDoc[]; leftBy: string[] }): boolean {
+  const participantIds = new Set<string>();
+  if (match.hostId) participantIds.add(match.hostId);
+  for (const p of match.players) if (p.userId) participantIds.add(p.userId);
+  return participantIds.size > 0 && Array.from(participantIds).every((id) => match.leftBy.includes(id));
+}

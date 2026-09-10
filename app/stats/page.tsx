@@ -116,9 +116,7 @@ export default function StatsPage() {
     <div className="page-gutters min-h-screen bg-oche text-chalk p-3 md:p-8 flex flex-col items-center">
       <div className="w-full max-w-3xl flex flex-col gap-3 md:gap-8 pt-0 md:pt-12">
         <header className="flex flex-col gap-3">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold tracking-tight leading-none">
-            Your Stats
-          </h1>
+          <h1 className="page-title">Your Stats</h1>
           <p className="text-sisal text-sm md:text-base mt-1">Every completed match, all in one place</p>
         </header>
 

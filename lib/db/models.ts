@@ -20,6 +20,10 @@ const MatchSchema = new mongoose.Schema({
     },
   ],
   status: { type: String, enum: ['lobby', 'live', 'complete', 'abandoned'], required: true },
+  // userIds of signed-in participants who left this match from their own dashboard — see
+  // lib/matchLobby.ts's canLeaveMatch/allParticipantsLeft. Match stays visible/live for anyone
+  // who hasn't left; once every participant has, the match is marked abandoned.
+  leftBy: { type: [String], default: [] },
   state: mongoose.Schema.Types.Mixed,
   winnerId: String,
   startedAt: Date,

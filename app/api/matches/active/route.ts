@@ -22,6 +22,7 @@ export async function GET() {
     mode: 'remote',
     status: { $in: ['lobby', 'live'] },
     $or: [{ hostId: session.user.id }, { 'players.userId': session.user.id }],
+    leftBy: { $ne: session.user.id },
   }).sort({ createdAt: -1 });
 
   const matches: {
@@ -47,8 +48,9 @@ export async function GET() {
         status: doc.status as 'lobby' | 'live',
         roomCode: doc.roomCode as string,
         opponents,
-        // Only the host can delete this match (app/api/matches/[id]/route.ts's DELETE) — surfaced
-        // here so the dashboard can hide the delete control for matches you only joined.
+        // Only the host can delete this match outright (app/api/matches/[id]/route.ts's DELETE,
+        // which ends it for everyone); a non-host instead leaves it (POST .../leave), which only
+        // drops it from their own list — surfaced here so the dashboard can pick the right control.
         isHost: doc.hostId === session.user!.id,
       });
     } catch {

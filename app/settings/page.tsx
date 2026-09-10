@@ -69,7 +69,7 @@ export default function SettingsPage() {
 
   return (
     <main className="account-page page-gutters">
-      <header className="page-heading"><div><p className="eyebrow">Your account</p><h1>Settings</h1></div><Link href="/profile" className="quiet-action">← Profile</Link></header>
+      <header className="page-heading"><div><p className="eyebrow">Your account</p><h1 className="page-title">Settings</h1></div><Link href="/profile" className="quiet-action">← Profile</Link></header>
       <div className="settings-layout">
         <Panel notch="card" className="account-section">
           <div className="section-heading"><h2>Profile details</h2></div>

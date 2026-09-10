@@ -26,7 +26,7 @@ export default function JoinRoomPage() {
   }
   return <main className="social-page page-gutters">
     <BackLink />
-    <header><h1>Join a room</h1><p>Ask the host for their room code. You can join as a guest.</p></header>
+    <header><h1 className="page-title">Join a room</h1><p>Ask the host for their room code. You can join as a guest.</p></header>
     <Panel notch="panel" className="p-4">
       <form onSubmit={submit} className="flex flex-col gap-3">
         <label htmlFor="room-code" className="text-xs font-bold uppercase text-sisal">Room code</label>

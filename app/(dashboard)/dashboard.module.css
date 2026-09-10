@@ -16,11 +16,16 @@
   background: transparent;
   color: #a4ada6;
   text-align: left;
+  transition: background-color 160ms ease, color 160ms ease;
 }
 .tabs button strong {
   font: 600 28px/1.1 var(--font-display), sans-serif;
 }
 .tabs button span { font-size: 12px; }
+.tabs button:hover:not(:disabled):not([aria-selected="true"]) {
+  background: color-mix(in srgb, #1e2724 60%, transparent);
+  color: #e4d8bc;
+}
 .tabs button[aria-selected="true"] {
   background: #1e2724;
   border-bottom-color: #c0a15c;

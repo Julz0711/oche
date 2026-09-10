@@ -23,6 +23,10 @@
   padding: 10px 15px;
   min-height: 44px;
 }
+.shell button:not(:where([data-native], [data-native] *)) svg,
+.shell a svg {
+  vertical-align: -3px;
+}
 .shell button:not(:where([data-native], [data-native] *)) {
   cursor: pointer;
 }
@@ -70,10 +74,6 @@
   gap: 25px;
   padding: 5px 0 22px;
   border-bottom: 1px solid #354139;
-}
-.back {
-  color: #a4ada6;
-  font-size: 12px;
 }
 .eyebrow {
   font: 10px/1.5 monospace;
@@ -179,6 +179,11 @@
 }
 .actions > button {
   text-transform: capitalize;
+}
+.actions > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 .starters {
   display: flex;

@@ -45,10 +45,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   );
 }
 
-/** Lets the host remove a not-yet-finished match from their own "active games" list — a soft
- *  delete via the 'abandoned' status (already reserved on the schema, never previously set
- *  anywhere) rather than an actual document delete, so a still-connected opponent's client
- *  doesn't hit a 404 mid-match; it just stops showing up as resumable for the host. */
+/** Lets the host end a not-yet-finished match outright — a soft delete via the 'abandoned'
+ *  status rather than an actual document delete, so a still-connected opponent's client doesn't
+ *  hit a 404 mid-match. Unlike leave (POST .../leave), this ends the match for every participant,
+ *  not just the host — a non-host who wants out without ending it for others should leave instead. */
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 

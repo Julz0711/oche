@@ -14,7 +14,7 @@ export default function PrivacyPage() {
           ← Back to Oche
         </Link>
 
-        <h1 className="text-2xl md:text-4xl font-display font-bold mb-4 md:mb-8" style={{ color: tokens.wire }}>
+        <h1 className="page-title mb-4 md:mb-8" style={{ color: tokens.wire }}>
           Privacy Policy
         </h1>
 

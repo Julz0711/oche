@@ -308,16 +308,25 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 }
 .app-content > .min-h-screen { min-height: calc(100dvh - 62px); }
 .app-navigation { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px max(16px, calc((100vw - 960px) / 2)); background: var(--oche); border-bottom: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); }
-.nav-brand { font: 700 24px var(--font-display); color: var(--wire); }
+.nav-brand { font: 700 24px var(--font-display); color: var(--wire); transition: opacity 160ms ease; }
+.nav-brand:hover { opacity: 0.8; }
 .nav-destinations { display: flex; gap: 8px; }
-.nav-destinations a { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 12px; color: var(--sisal); font-size: 13px; border-bottom: 2px solid transparent; }
+.nav-destinations a { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 12px; color: var(--sisal); font-size: 13px; border-bottom: 2px solid transparent; transition: color 160ms ease, border-color 160ms ease; }
+.nav-destinations a:hover:not([aria-current="page"]) { color: var(--chalk); border-color: color-mix(in srgb, var(--sisal) 40%, transparent); }
 .nav-destinations a[aria-current="page"] { color: var(--wire); border-color: var(--wire); }
-.join-room-link { min-height: 44px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 8px; border: 1px solid color-mix(in srgb, var(--sisal) 25%, transparent); color: var(--sisal); padding: 8px 12px; font-size: 13px; }
+.join-room-link { min-height: 44px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 8px; border: 1px solid color-mix(in srgb, var(--sisal) 25%, transparent); color: var(--sisal); padding: 8px 12px; font-size: 13px; transition: border-color 160ms ease; }
 .join-room-link span { color: var(--wire); font-weight: 700; }
+.join-room-link:hover { border-color: var(--wire); }
 .social-page { width: 100%; max-width: 680px; margin: 0 auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
-.social-page header h1 { font: 700 28px/1.2 var(--font-display); overflow-wrap: anywhere; }
+/* Canonical page-title style — every standalone page's <h1> (Friends, Join, Settings, Stats,
+   Terms, Privacy, Sign out...) uses this one class instead of a bespoke Tailwind size, so page
+   headers read as one consistent typographic scale across the app. Chrome-bar titles that sit
+   next to a BackLink (the match screen) and House Rules' own display-scale headings are
+   deliberately different contexts and don't use this class. */
+.page-title { font: 700 36px/1.15 var(--font-display), sans-serif; color: var(--chalk); overflow-wrap: anywhere; margin-top: 4px; }
 .social-page header p { color: var(--sisal); font-size: 14px; margin-top: 6px; }
-.social-link { display: flex; align-items: center; min-height: 44px; color: var(--wire); font-size: 14px; font-weight: 600; }
+.social-link { display: flex; align-items: center; min-height: 44px; color: var(--wire); font-size: 14px; font-weight: 600; transition: opacity 160ms ease; }
+.social-link:hover { opacity: 0.75; }
 .social-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--sisal); margin-bottom: 8px; }
 .social-list { display: flex; flex-direction: column; gap: 8px; }
 .social-person { display: flex !important; align-items: center; justify-content: space-between; gap: 8px; padding: 10px; min-height: 56px; font-size: 14px; }
@@ -335,7 +344,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   .nav-destinations { width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
   .nav-destinations a { flex-direction: column; gap: 4px; min-height: 60px; padding: 6px 0; font-size: 11px; border-bottom: 0; border-top: 2px solid transparent; }
   .social-page { gap: 12px; }
-  .social-page header h1 { font-size: 24px; }
+  .page-title { font-size: 28px; }
   .social-person { flex-wrap: wrap; }
 }
 
@@ -346,7 +355,6 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 .app-content .social-page { max-width: 1200px; }
 .account-page { display: flex; flex-direction: column; gap: 24px; color: var(--chalk); }
 .page-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-.page-heading h1 { font: 700 36px/1.15 var(--font-display); margin-top: 4px; }
 .eyebrow { font-size: 11px; line-height: 16px; font-weight: 600; color: var(--sisal); text-transform: uppercase; letter-spacing: .08em; }
 .quiet-action { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--wire); font-size: 13px; }
 .player-avatar { width: 36px; height: 36px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--wire); background: var(--slate); color: var(--wire); font: 600 16px var(--font-display); overflow: hidden; }
@@ -357,8 +365,9 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 .nav-account-desktop strong, .dashboard-identity strong { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; color: var(--chalk); }
 .nav-account-icon, .nav-account-mobile { display: none; }
 .nav-destinations .nav-account { border: 1px solid color-mix(in srgb, var(--sisal) 25%, transparent); padding: 5px 10px; }
-.nav-sound { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; color: var(--sisal); }
+.nav-sound { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; color: var(--sisal); transition: color 160ms ease; }
 .nav-sound span { display: none; }
+.nav-sound:hover { color: var(--chalk); }
 .nav-sound[aria-pressed="true"] { color: var(--wire); }
 .dashboard-identity { display: none; }
 .play-action { min-height: 56px; padding: 12px 20px; display: flex; align-items: center; justify-content: center; font: 600 22px/1.1 var(--font-display); color: var(--chalk); }
@@ -380,14 +389,19 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 .profile-totals > div:first-child { padding-left: 0; border: 0; }
 .profile-totals dt { color: var(--sisal); font-size: 11px; }
 .profile-totals dd { color: var(--chalk); font: 600 28px/1.3 var(--font-display); font-variant-numeric: tabular-nums; }
-.stats-board-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.stats-board-table th, .stats-board-table td { padding: 10px 6px; text-align: right; border-bottom: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); }
-.stats-board-table th:first-child { text-align: left; text-transform: uppercase; }
-.stats-board-table thead { color: var(--sisal); font-size: 11px; }
-.stats-heatmap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 320px); align-items: start; gap: 24px; padding-top: 16px; border-top: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); }
-.stats-heatmap h3 { font: 600 20px/1.2 var(--font-display); }
+.stats-game-cards { display: flex; flex-direction: column; gap: 16px; }
+.stats-game-card { border-left: 3px solid var(--wire); background: color-mix(in srgb, var(--slate) 60%, transparent); padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+.stats-game-card-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px; }
+.stats-game-card-heading h3 { font: 700 20px/1.2 var(--font-display); }
+.stats-game-card-heading span { color: var(--sisal); font-size: 12px; }
+.stats-game-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.stats-heatmap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 320px); align-items: start; gap: 24px; padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); }
+.stats-heatmap h4 { font: 600 16px/1.2 var(--font-display); color: var(--chalk); }
 .stats-heatmap p { margin-top: 4px; color: var(--sisal); font-size: 12px; }
 .stats-heatmap-board { width: 100%; max-width: 320px; justify-self: end; }
+@media (min-width: 640px) {
+  .stats-game-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
 .history-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid color-mix(in srgb, var(--sisal) 25%, transparent); }
 .history-summary > div { padding: 10px 12px; border-left: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); }
 .history-summary > div:first-child { border-left: 0; }
@@ -427,7 +441,6 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   .app-content .page-gutters { padding-top: 12px; }
   .app-content > .page-gutters, .account-page { padding-inline: 12px; gap: 12px; }
   .dashboard-identity { display: flex; align-items: center; gap: 10px; width: fit-content; max-width: 100%; border: 1px solid color-mix(in srgb, var(--sisal) 25%, transparent); padding: 8px 10px; margin-bottom: 4px; }
-  .page-heading h1 { font-size: 28px; }
   .profile-identity { padding: 12px; gap: 12px; flex-wrap: wrap; }
   .player-avatar-large { width: 52px; height: 52px; }
   .account-section { padding: 12px; gap: 12px; }
@@ -441,7 +454,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   .play-action { min-height: 48px; padding: 12px; font-size: 20px; }
 }
 
-@media (max-width: 1023px) { .nav-sound { display: none; } }
+@media (max-width: 1023px) { .nav-sound, .nav-desktop-only { display: none; } }
 @media (min-width: 1024px) {
   .dashboard-header h1 { font-size: 64px; }
   .dashboard-settings { display: grid; grid-template-columns: repeat(3, max-content); justify-content: start; gap: 24px; }
@@ -463,7 +476,10 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 .achievement-tile[data-rarity="legendary"]:not(.achievement-locked) small { color: var(--oche); }
 .achievement-tile:focus-visible { outline: 2px solid var(--wire); outline-offset: 3px; }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) { .achievement-tile:hover { transform: translateY(-2px); } }
-.turn-toast-region { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 72px); left: 50%; transform: translateX(-50%); width: min(340px, calc(100vw - 32px)); z-index: 45; pointer-events: none; }
+/* Anchored to its own relatively-positioned parent — the wrapper directly around the dartboard
+   input, in both the desktop and mobile layouts — so it always sits just above the board itself,
+   centered, rather than pinned to the top of the viewport regardless of where the board is. */
+.turn-toast-region { position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); width: min(340px, calc(100vw - 32px)); z-index: 45; pointer-events: none; }
 .turn-toast { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--slate); border: 1px solid var(--wire); border-left: 4px solid var(--wire); color: var(--wire); box-shadow: 0 6px 24px #0005; animation: turn-cue 3.5s ease both; }
 .turn-toast strong { display: block; font-size: 16px; overflow-wrap: anywhere; }
 .turn-toast span { display: block; color: var(--sisal); font-size: 12px; }

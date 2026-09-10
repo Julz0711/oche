@@ -4,6 +4,7 @@ import { CricketMarksStrip } from '@/lib/games/cricket/components';
 import { useEffect, useRef } from 'react';
 import type { GameModule, PlayerId, Throw } from '@/lib/types';
 import { DartboardInput } from './DartboardInput';
+import { TurnToast } from './TurnToast';
 import { Panel } from '@/components/atoms';
 import { DartBadge } from '@/components/atoms/DartBadge';
 
@@ -80,7 +81,8 @@ export function MobileMatch({ gameModule: game, state, settings, displayNames, d
           );
         })}
       </div>
-      <div className="mobile-input-dock">
+      <div className="relative mobile-input-dock">
+        <TurnToast game={game} state={state} settings={settings} name={name(active)} enabled={!disabled} />
         {error && <div role="alert" className="flex items-center justify-between gap-2 text-sm text-chalk bg-treble/30 p-2">{error}<button onClick={onDismissError} className="underline min-h-11">Dismiss</button></div>}
         <div className="mobile-turn" role="status"><span className="truncate">{disabled ? `Waiting for ${name(active)}` : `${name(active)} to throw`}</span><span className="shrink-0 text-sisal/60">{visit.darts} / {visit.max} darts</span></div>
         <DartboardInput key={active} compact onThrow={onThrow} onUndo={onUndo} disabled={disabled} visitDartCount={visit.darts} />

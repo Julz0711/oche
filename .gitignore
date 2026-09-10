@@ -43,9 +43,7 @@ next-env.d.ts
 # superpowers scratch (brainstorm mockups, SDD workspaces)
 .superpowers/
 
-docs/*
 # Local browser verification artifacts
 .playwright-cli/
 output/*
-docs/*
 .superpowers/*

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LocalPlayerNamesSchema, localSeats } from './localPlayers';
 import { getGameModule, type GameId } from './games/registry';
-import { createPlayerId } from './types';
+import { createPlayerId, type Throw } from './types';
 import { loadLocalMatch } from './localMatchStorage';
 import { useMatchStore } from '@/store/match';
 import { vi } from 'vitest';
@@ -29,10 +29,17 @@ describe.each<GameId>(['x01', 'cricket', 'copycat'])('%s local multiplayer', gam
       const ids = Array.from({ length: 8 }, (_, i) => createPlayerId(`player${i + 1}`));
       const players = localSeats(ids.map((_, i) => `Name ${i + 1}`));
       const store = useMatchStore;
+      // Distinct, non-multiple sector values per seat: copycat ends a visit early (and keeps the
+      // same player on throw) the moment a running total exactly matches the prior visit's total,
+      // so a plain 1..8 sequence coincidentally self-matches (e.g. two darts of 3 equal the
+      // preceding visit's total of 6). This sequence keeps every partial/final total for seat i
+      // clear of seat i-1's final total (3 * sector), so turns rotate through all eight seats.
+      const sectors: Throw['sector'][] = [1, 2, 5, 7, 11, 14, 17, 19];
       store.getState().setMatch({ matchId: 'test-local', gameModule: game, gameState: game.init(ids, game.defaultSettings), settings: game.defaultSettings, players });
       for (const id of ids) {
         expect(game.currentPlayer(store.getState().gameState)).toBe(id);
-        for (let dart = 0; dart < 3; dart++) await store.getState().applyThrow({ ring: 'S', sector: ids.indexOf(id) + 1, points: ids.indexOf(id) + 1 });
+        const sector = sectors[ids.indexOf(id)];
+        for (let dart = 0; dart < 3; dart++) await store.getState().applyThrow({ ring: 'S', sector, points: sector, order: dart as Throw['order'] });
       }
       expect(game.currentPlayer(store.getState().gameState)).toBe(ids[0]);
       await store.getState().undo();

@@ -6,6 +6,17 @@ import { HeatmapBoard } from '@/components/organisms/HeatmapBoard';
 
 interface Tile { label: string; value: string }
 
+/** Heatmap keys are `${ring}${sector}` (ring one of S/D/T/OB/IB) or the fixed `M0` for a miss —
+ *  see lib/stats/board.ts. A double/inner-bull or treble/outer-bull is unambiguous from the key's
+ *  leading letter(s), so this needs no extra data beyond the same heatmap already fetched. */
+function finishingHeatmap(heatmap: Record<string, number>): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [key, count] of Object.entries(heatmap)) {
+    if (key.startsWith('D') || key.startsWith('T') || key.startsWith('OB') || key.startsWith('IB')) out[key] = count;
+  }
+  return out;
+}
+
 /** Display name and accent token per game — mirrors the dashboard's GAME_IDENTITY mapping
  *  (app/(dashboard)/page.tsx) so a game reads as the same "thing" everywhere in the app. */
 const GAME_META: Record<string, { name: string; accent: 'wire' | 'double' | 'treble' }> = {
@@ -61,9 +72,17 @@ function GameStatsCard({ gameId, played, wins, winRate, tiles, heatmap, dartsThr
         {tiles.map(tile => <div key={tile.label}><dt>{tile.label}</dt><dd>{tile.value}</dd></div>)}
       </dl>
       {heatmap && (
-        <div className="stats-heatmap">
-          <div><h4>Throw heatmap</h4><p>{dartsThrown ? `${dartsThrown} recorded darts` : 'No recorded darts in this period'}</p></div>
-          <div className="stats-heatmap-board"><HeatmapBoard heatmap={heatmap} /></div>
+        <div className="stats-heatmaps">
+          <div className="stats-heatmap-item">
+            <h4>All throws</h4>
+            <p>{dartsThrown ? `${dartsThrown} recorded darts` : 'No recorded darts in this period'}</p>
+            <HeatmapBoard heatmap={heatmap} />
+          </div>
+          <div className="stats-heatmap-item">
+            <h4>Finishing throws</h4>
+            <p>Doubles, trebles &amp; bulls</p>
+            <HeatmapBoard heatmap={finishingHeatmap(heatmap)} />
+          </div>
         </div>
       )}
     </section>

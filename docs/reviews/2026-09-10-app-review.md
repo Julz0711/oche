@@ -69,6 +69,8 @@ Verified for all of 2–9: `tsc --noEmit` clean, full `vitest` suite green (no r
 
 `tsc --noEmit` clean, full `vitest` suite green (298 passed, up from 288 — 10 new), `npm run build` succeeds.
 
+**Follow-up fix (2026-09-10, from a real screenshot of live data):** two issues in the first cut. (1) The top Played/Win rate/Wins/Losses row used thin left-border dividers between plain left-aligned text, which read as misaligned/uneven next to the new bordered game cards below it — now four bordered, centered boxes (`.profile-totals` in `app/globals.css`), 2-up under 480px and 4-up above, matching the visual language of the cards beneath. (2) The X01 heatmap sat in a lopsided text-left/graphic-right split (`justify-self: end`), which looked arbitrary once the card was full-width. Replaced with a symmetric two-up grid (`.stats-heatmaps`/`.stats-heatmap-item`) holding two centered heatmaps side by side: the existing "All throws" board, plus a new "Finishing throws" board filtered to just doubles, trebles, and bulls (`finishingHeatmap` in `components/profile/StatsBoard.tsx` — a pure client-side filter of the same heatmap data already fetched, keyed off the existing `${ring}${sector}` key format, no backend change needed). Both stack to one column on narrow screens. `tsc --noEmit` and the full test suite stay clean; `npm run build` succeeds. Not re-verified against live authenticated data in-browser (same dev-login/`auth()` limitation noted above) — worth a quick visual check next time you're signed in.
+
 ## Topic tracker
 
 | Topic                           | Status | Work                                                                                   |

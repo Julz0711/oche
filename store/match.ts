@@ -4,7 +4,7 @@ import { GameModule, PlayerId, Throw, Visit } from '@/lib/types';
 import { saveLocalMatch, loadLocalMatch } from '@/lib/localMatchStorage';
 
 type MatchMode = 'local' | 'remote';
-type MatchStatus = 'lobby' | 'live' | 'complete';
+type MatchStatus = 'lobby' | 'live' | 'complete' | 'abandoned';
 
 interface MatchStore {
   matchId: string | null;
@@ -75,6 +75,7 @@ export const useMatchStore = create<MatchStore>((set, get) => ({
     if (mode === 'local') {
       const previous = loadLocalMatch(matchId);
       saveLocalMatch(matchId, {
+        players,
         gameId: gameModule.id,
         settings,
         gameState,
@@ -95,6 +96,7 @@ export const useMatchStore = create<MatchStore>((set, get) => ({
       const newGameState = state.gameModule.applyThrow(state.gameState, throw_, state.settings);
       set({ gameState: newGameState });
       saveLocalMatch(state.matchId, {
+        players: state.players,
         gameId: state.gameModule.id,
         settings: state.settings,
         gameState: newGameState,
@@ -112,7 +114,7 @@ export const useMatchStore = create<MatchStore>((set, get) => ({
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      set({ throwError: body.error ?? "Couldn't send that throw — try again" });
+      set({ throwError: body.error ?? "Could not send that throw. Try again." });
     } else {
       window.dispatchEvent(new CustomEvent('oche-match-refresh', { detail: state.matchId }));
     }
@@ -129,6 +131,7 @@ export const useMatchStore = create<MatchStore>((set, get) => ({
       const newGameState = state.gameModule.undo(state.gameState);
       set({ gameState: newGameState });
       saveLocalMatch(state.matchId, {
+        players: state.players,
         gameId: state.gameModule.id,
         settings: state.settings,
         gameState: newGameState,

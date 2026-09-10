@@ -55,6 +55,6 @@ export const statTiles: StatTileDef<CricketStats>[] = [
   {
     label: 'Numbers Closed',
     key: 'numbersClosed',
-    value: (s) => (s.numbersClosed === null ? '—' : `${s.numbersClosed}/7`),
+    value: (s) => (s.numbersClosed === null ? 'None' : `${s.numbersClosed}/7`),
   },
 ];

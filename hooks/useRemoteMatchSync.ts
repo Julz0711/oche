@@ -54,7 +54,15 @@ export function useRemoteMatchSync(matchId: string | null) {
     window.addEventListener('oche-match-refresh', mutation);
     window.addEventListener('online', foreground);
     document.addEventListener('visibilitychange', foreground);
-    const poll = setInterval(foreground, 3000);
+    let lastPoll = Date.now();
+    const poll = setInterval(() => {
+      const healthy = client.connection.state === 'connected' && channel.state === 'attached';
+      const interval = healthy ? 30_000 : 5_000;
+      if (!document.hidden && Date.now() - lastPoll >= interval) {
+        lastPoll = Date.now();
+        void refresh();
+      }
+    }, 1000);
     void refresh();
     return () => {
       disposed = true; controller.abort(); clearInterval(poll);

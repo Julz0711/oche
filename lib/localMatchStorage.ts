@@ -2,6 +2,7 @@
 const KEY_PREFIX = 'oche:local-match:';
 
 export interface StoredLocalMatch {
+  players?: unknown[];
   gameId: string;
   settings: unknown;
   gameState: unknown;

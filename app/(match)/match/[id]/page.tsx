@@ -5,6 +5,8 @@ import { useMatchStore } from '@/store/match';
 import { useAchievementStore } from '@/lib/stores/achievementStore';
 import type { Achievement } from '@/lib/achievements/types';
 import { getGameModule, GameId } from '@/lib/games/registry';
+import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
+import { TurnToast } from '@/components/organisms/TurnToast';
 import { MobileMatch } from '@/components/organisms/MobileMatch';
 import { DartboardInput } from '@/components/organisms/DartboardInput';
 import { DartBadge } from '@/components/atoms/DartBadge';
@@ -191,7 +193,7 @@ function HistoryPanel({
       )}
 
       {visits.length === 0 && inProgress.length === 0 && (
-        <div className="flex-1 flex items-center justify-center text-sisal/50 text-sm">—</div>
+        <div className="flex-1 flex items-center justify-center text-sisal/50 text-sm">No visits yet</div>
       )}
 
       <div className="flex flex-col gap-2">
@@ -246,7 +248,7 @@ export default function MatchPage({ params }: MatchPageProps) {
   const { id } = use(params);
 
   const { mode, status, players: lobbyPlayers, you, hostId, throwError, roomCode } = useMatchStore();
-  const sync = useRemoteMatchSync(mode === 'remote' && !loading && you ? id : null);
+  const sync = useRemoteMatchSync(mode === 'remote' && !loading && status !== 'complete' && status !== 'abandoned' && you ? id : null);
   const [starting, setStarting] = useState(false);
   // Which opponent's compact row is expanded to show their fuller recent-throw history —
   // remote mode's opponents panel only, at most one open at a time.
@@ -263,8 +265,15 @@ export default function MatchPage({ params }: MatchPageProps) {
 
   const handleStart = async () => {
     setStarting(true);
-    await fetch(`/api/matches/${id}/start`, { method: 'POST' });
-    setStarting(false);
+    try {
+      const response = await fetch(`/api/matches/${id}/start`, { method: 'POST' });
+      if (!response.ok) throw new Error();
+      window.dispatchEvent(new CustomEvent('oche-match-refresh', { detail: id }));
+    } catch {
+      useMatchStore.setState({ throwError: 'Could not start the match. Check your connection and try again.' });
+    } finally {
+      setStarting(false);
+    }
   };
 
   useEffect(() => {
@@ -286,6 +295,7 @@ export default function MatchPage({ params }: MatchPageProps) {
             gameModule: module,
             gameState: stored.gameState,
             settings: stored.settings,
+            players: stored.players ?? [],
             mode: 'local',
             status: 'live',
           });
@@ -323,14 +333,15 @@ export default function MatchPage({ params }: MatchPageProps) {
           });
         } else {
           const settings = snapshot.settings ?? module.defaultSettings;
-          const initialState = module.init([createPlayerId('player1'), createPlayerId('player2')], settings);
+          const initialState = snapshot.state ?? module.init(snapshot.players.map((_: unknown, index: number) => createPlayerId(`player${index + 1}`)), settings);
           useMatchStore.getState().setMatch({
             matchId: id,
             gameModule: module,
             gameState: initialState,
+            players: snapshot.players,
             settings,
             mode: 'local',
-            status: 'live',
+            status: snapshot.status,
           });
         }
         setLoading(false);
@@ -510,7 +521,7 @@ export default function MatchPage({ params }: MatchPageProps) {
   }
 
   if (loading || !gameModule) {
-    return <div className="min-h-screen bg-oche text-chalk flex items-center justify-center">Loading...</div>;
+    return <LoadingIndicator fullPage label="Getting the board ready…" />;
   }
 
   if (mode === 'remote' && status === 'lobby') {
@@ -521,6 +532,7 @@ export default function MatchPage({ params }: MatchPageProps) {
     return (
       <div className="min-h-screen bg-oche text-chalk p-4 flex flex-col gap-3 items-center justify-center">
         <MatchPresence players={lobbyPlayers as MatchPlayerDoc[]} {...sync} />
+        {throwError && <p role="alert" className="text-sm text-sisal">{throwError}</p>}
         <MatchLobby
           matchId={id}
           roomCode={roomCode ?? ''}
@@ -535,7 +547,7 @@ export default function MatchPage({ params }: MatchPageProps) {
   }
 
   if (!gameState) {
-    return <div className="min-h-screen bg-oche text-chalk flex items-center justify-center">Loading...</div>;
+    return <LoadingIndicator fullPage label="Getting the board ready…" />;
   }
 
   const isComplete = gameModule.isComplete(gameState);
@@ -550,22 +562,14 @@ export default function MatchPage({ params }: MatchPageProps) {
   const raceProgress = gameModule.raceProgressInScoreboard ? [] : gameModule.raceProgress(gameState, settings);
   const currentPlayerHeatmap = gameModule.id === 'x01' ? gameModule.heatmap(gameState, currentPlayerId) : undefined;
 
-  // PlayerId -> display name lookup, built from the lobby snapshot's `players` field. Empty in
-  // local mode (where `players` is []), so lookups simply miss and callers fall back to the raw
-  // playerId — byte-identical to today's local-mode rendering.
+  // Local seat ids stay stable across reloads; online ids come from authenticated seats.
   const displayNames = new Map<string, string>(
-    (lobbyPlayers as MatchPlayerDoc[]).map((p) => [identityIdOf(p), p.name])
+    (lobbyPlayers as MatchPlayerDoc[]).map((p, index) => [mode === 'local' ? `player${index + 1}` : identityIdOf(p), p.name])
   );
 
-  // In remote mode, `you` (this client's identity id) is always one of `players` once the match
-  // is live — remote matches support up to 8 players, so the live screen focuses on your own
-  // scoreboard/history/dartboard and shows everyone else as a compact list, rather than the
-  // fixed 2-up layout local mode uses (which only ever has exactly 2 players).
-  const youPlayerId = mode === 'remote' ? (players.find((p) => p === you) ?? null) : null;
-  const otherPlayers = youPlayerId ? players.filter((p) => p !== youPlayerId) : [];
-  // The compact "you + opponents" layout only earns its keep once a fixed 2-up view can't fit
-  // everyone — a 2-player remote match looks and behaves exactly like local mode's layout.
-  const useCompactOpponentsLayout = mode === 'remote' && youPlayerId !== null && players.length > 2;
+  const youPlayerId = mode === 'remote' ? (players.find(p => p === you) ?? null) : currentPlayerId;
+  const otherPlayers = youPlayerId ? players.filter(p => p !== youPlayerId) : [];
+  const useCompactOpponentsLayout = youPlayerId !== null && players.length > 2;
 
   return (
     <div
@@ -613,6 +617,8 @@ export default function MatchPage({ params }: MatchPageProps) {
       </header>
 
       {mode === 'remote' && <MatchPresence players={lobbyPlayers as MatchPlayerDoc[]} {...sync} />}
+
+      {!isComplete && <TurnToast key={id} game={gameModule} state={gameState} settings={settings} name={displayNames.get(currentPlayerId) ?? currentPlayerId.replace(/^player(\d+)$/, 'Player $1')} enabled={mode === 'local' || currentPlayerId === you} />}
 
       {!isComplete && <MobileMatch gameModule={gameModule} state={gameState} settings={settings}
         displayNames={displayNames} disabled={mode === 'remote' && currentPlayerId !== you}
@@ -695,7 +701,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                 )}
                 <DartboardInput
                   onThrow={handleThrow}
-                  disabled={isComplete || currentPlayerId !== you}
+                  disabled={isComplete || (mode === 'remote' && currentPlayerId !== you)}
                   visitDartCount={visitProgress.darts}
                   heatmap={currentPlayerHeatmap}
                 />
@@ -811,7 +817,7 @@ export default function MatchPage({ params }: MatchPageProps) {
       ) : (
         <>
           {/* Top row: score / match info / score — the original fixed 2-up layout, used for
-              local mode (always 2 players) and 2-player remote matches alike */}
+              two-player matches on one device or online */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
             {leftPlayer && (
               <gameModule.ScoreboardSlot

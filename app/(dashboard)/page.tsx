@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { Panel, BoardMotif } from '@/components/atoms';
 import type { AccentToken, MotifName } from '@/components/atoms';
 import { gameRegistry, GameId, getGameModule } from '@/lib/games/registry';
+import { Input } from '@/components/atoms/Input';
+import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
 import { PlayerAvatar } from '@/components/profile/PlayerAvatar';
 import styles from './dashboard.module.css';
 import type { LucideIcon } from 'lucide-react';
@@ -85,7 +87,7 @@ function GameCard({
           {game.name}
         </span>
         <span className="block text-xs sm:text-[10px] leading-[1.4] text-sisal/60">
-          {game.playerRange[0]}–{game.playerRange[1]} players · {game.description}
+          {game.playerRange[0]} to {game.playerRange[1]} players · {game.description}
         </span>
       </span>
     </Panel>
@@ -137,6 +139,8 @@ export default function Dashboard() {
   const router = useRouter();
   const [games, setGames] = useState<GameOption[] | null>(null);
   const [selectedGameId, setSelectedGameId] = useState<GameId>('x01');
+  const [playerNames, setPlayerNames] = useState(['Player 1', 'Player 2']);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [creating, setCreating] = useState<'local' | 'remote' | null>(null);
   const [playTab, setPlayTab] = useState<'multiplayer' | 'singleplayer'>('multiplayer');
 
@@ -209,15 +213,19 @@ export default function Dashboard() {
   };
 
   const handleCreateMatch = async (gameId: GameId, mode: 'local' | 'remote') => {
+    setCreateError(null);
     setCreating(mode);
     try {
       const res = await fetch('/api/matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gameId, mode, settings: buildSettings(gameId) }),
+        body: JSON.stringify({ gameId, mode, settings: buildSettings(gameId), ...(mode === 'local' ? { playerNames } : {}) }),
       });
-      const { id } = await res.json();
-      router.push(`/match/${id}`);
+      const body = await res.json();
+      if (!res.ok || !body.id) throw new Error(body.error || 'Could not start the match. Try again.');
+      router.push(`/match/${body.id}`);
+    } catch (error) {
+      setCreateError(error instanceof Error ? error.message : 'Could not start the match. Check your connection.');
     } finally {
       setCreating(null);
     }
@@ -235,8 +243,8 @@ export default function Dashboard() {
 
         <div className={styles.tabs} role="tablist" aria-label="Play mode">
           {([
-            { id: 'multiplayer', label: 'Multiplayer', detail: 'Online games & rooms' },
-            { id: 'singleplayer', label: 'Single player', detail: 'Solo adventures & local games' },
+            { id: 'multiplayer', label: 'Online', detail: 'Games with a room code' },
+            { id: 'singleplayer', label: 'Local & solo', detail: 'Same device or solo runs' },
           ] as const).map((tab) => (
             <button
               key={tab.id}
@@ -385,6 +393,23 @@ export default function Dashboard() {
                 )}
               </Panel>
 
+              {playTab === 'singleplayer' && <Panel notch="panel" className="p-4 flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-3">
+                  <SettingLabel>Players · {playerNames.length} / 8</SettingLabel>
+                  <button type="button" className="min-h-11 px-3 border border-wire text-sm text-wire disabled:opacity-40" disabled={playerNames.length >= 8 || creating !== null}
+                    onClick={() => setPlayerNames(names => [...names, `Player ${names.length + 1}`])}>Add player</button>
+                </div>
+                <p className="text-xs text-sisal">Throw in this order. Pass the device when your turn ends.</p>
+                <div className="grid gap-3 sm:grid-cols-2">{playerNames.map((name, index) => <div key={index} className="flex items-end gap-2">
+                  <Input label={`Player ${index + 1}`} maxLength={32} value={index === 0 && session?.user?.name ? session.user.name : name}
+                    readOnly={index === 0 && !!session?.user?.name} disabled={creating !== null} containerClassName="flex-1 min-w-0" className="min-h-11"
+                    onChange={event => setPlayerNames(names => names.map((value, i) => i === index ? event.target.value : value))} />
+                  {index > 1 && <button type="button" aria-label={`Remove player ${index + 1}`} className="min-h-11 px-2 text-sm text-sisal" disabled={creating !== null}
+                    onClick={() => setPlayerNames(names => names.filter((_, i) => i !== index))}>Remove</button>}
+                </div>)}</div>
+              </Panel>}
+              {createError && <p role="alert" className="text-sm text-chalk border border-treble p-3">{createError}</p>}
+              {creating && <LoadingIndicator label="Opening your match…" />}
               <div className="flex flex-col gap-2">
                 <Panel
                   as="button"

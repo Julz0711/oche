@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { getIdentity, applyIdentityCookie } from '@/lib/identity';
 import { isSeated } from '@/lib/matchLobby';
+import { canAccessMatch } from '@/lib/matchAccess';
 import { auth } from '@/lib/auth';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -22,6 +23,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   const { identity, newGuestCookie } = await getIdentity(req);
+
+  if (!canAccessMatch(match, identity)) {
+    return NextResponse.json({ error: 'Not a participant in this match' }, { status: 403 });
+  }
 
   return applyIdentityCookie(
     NextResponse.json({

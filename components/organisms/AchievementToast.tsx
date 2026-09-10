@@ -1,21 +1,10 @@
 'use client';
 
 import { X } from 'lucide-react';
-import { tokens } from '@/lib/theme';
+import { tokens, rarityColors } from '@/lib/theme';
 import type { AchievementRarity } from '@/lib/achievements/types';
 import { getIconForAchievement } from '@/lib/achievements/icons';
 import { useAchievementStore, type AchievementToast } from '@/lib/stores/achievementStore';
-
-/**
- * Rarity palette for the toast. Legendary gets the wire (brand gold) surface plus a brighter
- * gold rule so it reads as distinct from the three tiers below it, which all sit on slate.
- */
-const rarityColors: Record<AchievementRarity, { bg: string; border: string }> = {
-  legendary: { bg: tokens.wire, border: '#FFD700' },
-  epic: { bg: tokens.slate, border: '#A855F7' },
-  rare: { bg: tokens.slate, border: '#3B82F6' },
-  common: { bg: tokens.slate, border: tokens.double },
-};
 
 /**
  * Legendary sits on the gold `wire` surface, where chalk/sisal text has too little contrast —

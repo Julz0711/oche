@@ -148,7 +148,7 @@ export default function FriendsBoard({
                 <p className={styles.rankMessage}>
                   Your best: rank #{own.rank} · {own.cleared} rounds cleared.
                   {above
-                    ? ` Next friend: ${above.name} — ${
+                    ? ` Next friend: ${above.name}, ${
                         above.cleared > own.cleared
                           ? `${above.cleared - own.cleared} more rounds cleared`
                           : above.progress > own.progress

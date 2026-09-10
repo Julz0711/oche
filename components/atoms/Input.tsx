@@ -8,10 +8,13 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, containerClassName = "", className = "", ...props }, ref) => {
+    const generatedId = React.useId();
+    const id = props.id ?? generatedId;
+    const errorId = `${id}-error`;
     return (
       <div className={containerClassName}>
         {label && (
-          <label className="block text-sm font-medium text-chalk mb-1">
+          <label htmlFor={id} className="block text-sm font-medium text-chalk mb-1">
             {label}
           </label>
         )}
@@ -29,8 +32,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ${className}
           `}
           {...props}
+          id={id}
+          aria-invalid={error ? true : props["aria-invalid"]}
+          aria-describedby={[props["aria-describedby"], error ? errorId : undefined].filter(Boolean).join(" ") || undefined}
         />
-        {error && <p className="text-treble text-sm mt-1">{error}</p>}
+        {error && <p id={errorId} className="text-treble text-sm mt-1">{error}</p>}
       </div>
     );
   }

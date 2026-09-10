@@ -519,7 +519,7 @@ export default function SoloGame() {
                   </h1>
                   <p className={styles.intro}>
                     Beat nine rising targets. Buy enchanted darts and charms.
-                    Outsmart three bosses — and then your friends.
+                    Beat three bosses. Compare your run with friends.
                   </p>
                 </>
               )}
@@ -867,7 +867,7 @@ export default function SoloGame() {
                                   }}
                                 />
                               ) : run.phase === "playing" && i < visitSize ? (
-                                "—"
+                                "·"
                               ) : (
                                 "·"
                               )}

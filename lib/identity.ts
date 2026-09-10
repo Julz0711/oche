@@ -1,6 +1,7 @@
 // lib/identity.ts
 import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
+import { signGuestId, verifyGuestToken } from './guestToken';
 import { auth } from '@/lib/auth';
 
 export interface Identity {
@@ -34,14 +35,16 @@ export function resolveIdentity(
 export async function getIdentity(req: NextRequest): Promise<{ identity: Identity; newGuestCookie?: string }> {
   const session = await auth();
   const existingGuestCookie = req.cookies.get(GUEST_COOKIE_NAME)?.value;
-  return resolveIdentity(session?.user?.id, existingGuestCookie);
+  return resolveIdentity(session?.user?.id, verifyGuestToken(existingGuestCookie));
 }
 
 /** Sets the guest cookie on `response` if `getIdentity` issued a new one. Every route that calls
  *  `getIdentity` must pass its result's `newGuestCookie` through this before returning. */
 export function applyIdentityCookie(response: NextResponse, newGuestCookie: string | undefined): NextResponse {
   if (newGuestCookie) {
-    response.cookies.set(GUEST_COOKIE_NAME, newGuestCookie, {
+    response.cookies.set(GUEST_COOKIE_NAME, signGuestId(newGuestCookie), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
       maxAge: GUEST_COOKIE_MAX_AGE,
       sameSite: 'lax',
       path: '/',

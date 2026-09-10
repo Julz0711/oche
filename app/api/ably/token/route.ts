@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     console.error('Ably token request failed:', err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Ably token request failed' },
+      { error: 'Live updates are unavailable. Please try again.' },
       { status: 500 }
     );
   }

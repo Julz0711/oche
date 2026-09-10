@@ -58,7 +58,7 @@ export function MobileMatch({ gameModule: game, state, settings, displayNames, d
               </div>
               <div className="mobile-visit">
                 <div className="mobile-darts">
-                  {Array.from({ length: visit.max }, (_, i) => <span className="mobile-dart" key={i}>{darts[i] ? <DartBadge t={darts[i]} /> : '—'}</span>)}
+                  {Array.from({ length: visit.max }, (_, i) => <span className="mobile-dart" key={i}>{darts[i] ? <DartBadge t={darts[i]} /> : '·'}</span>)}
                 </div>
                 <span className="text-xs text-sisal/70">{isActive ? 'This visit' : last?.busted ? 'Bust' : 'Last visit'} <strong className="text-chalk tabular-nums">{!isActive && last?.busted ? 0 : darts.reduce((sum, dart) => sum + dart.points, 0)}</strong></span>
               </div>

@@ -1,4 +1,5 @@
 'use client';
+import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
 import { PlayerAvatar } from '@/components/profile/PlayerAvatar';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { useSession } from 'next-auth/react';
@@ -55,7 +56,7 @@ export default function FriendsPage() {
     try { await navigator.clipboard.writeText(data.code); setNotice('Friend code copied.'); }
     catch { setError('Could not copy. You can select and copy the code below.'); }
   }
-  if (status === 'loading') return <main className="social-page page-gutters">Loading friends…</main>;
+  if (status === 'loading') return <LoadingIndicator fullPage label="Loading friends…" />;
   if (status === 'unauthenticated') return <main className="social-page page-gutters"><header><h1>Friends</h1><p>Sign in to add friends and keep your head-to-head records.</p></header><Link href="/signin" className="social-link">Sign in</Link></main>;
   return <main className="social-page page-gutters">
     <header><h1>Friends</h1><p>Your players, your rivalries.</p></header>
@@ -72,6 +73,6 @@ export default function FriendsPage() {
       {data.incoming.length > 0 && <section><h2 className="social-section-title">Requests · {data.incoming.length}</h2><div className="social-list">{data.incoming.map(person => <Panel key={person.id} notch="panel" className="social-person"><span>{person.name}</span><div className="flex gap-1"><Button size="sm" disabled={busy} onClick={() => act(person, 'accept')}>Accept</Button><Button size="sm" variant="ghost" disabled={busy} onClick={() => act(person, 'decline')}>Decline</Button></div></Panel>)}</div></section>}
       <section><h2 className="social-section-title">Friends · {data.friends.length}</h2>{data.friends.length ? <div className="social-list">{data.friends.map(person => <Link key={person.id} href={`/profile/${person.id}`} className="block"><Panel notch="panel" className="social-person"><span className="flex items-center gap-3 min-w-0"><PlayerAvatar name={person.name} image={person.image} /><span className="truncate">{person.name}</span></span><span className="text-xs text-wire shrink-0">View profile →</span></Panel></Link>)}</div> : <p className="text-sm text-sisal">Share your code or enter a friend’s code to get started.</p>}</section>
       {data.outgoing.length > 0 && <section><h2 className="social-section-title">Sent requests · {data.outgoing.length}</h2><div className="social-list">{data.outgoing.map(person => <Panel key={person.id} notch="panel" className="social-person"><span>{person.name}</span><Button size="sm" variant="ghost" disabled={busy} onClick={() => act(person, 'cancel')}>Cancel</Button></Panel>)}</div></section>}
-    </> : !error && <p className="text-sm text-sisal">Loading friends…</p>}
+    </> : !error && <LoadingIndicator label="Loading friends…" />}
   </main>;
 }

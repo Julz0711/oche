@@ -3,9 +3,8 @@ import Google from "next-auth/providers/google";
 import Discord from "next-auth/providers/discord";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "./mongodb-client";
-import { jwtDecrypt, jwtVerify } from "jose";
 
-const authSecret = process.env.NEXTAUTH_SECRET;
+const authSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: authSecret,
@@ -14,7 +13,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   debug: process.env.NODE_ENV === 'development',
   jwt: {
     async encode({ token, secret }) {
-      const secretStr = (Array.isArray(secret) ? secret[0] : secret) || authSecret || 'dev-secret';
+      const secretStr = (Array.isArray(secret) ? secret[0] : secret) || authSecret;
+      if (!secretStr) throw new Error('Authentication secret is not configured');
       const secretBytes = new TextEncoder().encode(secretStr);
       const { SignJWT } = await import('jose');
       const now = Math.floor(Date.now() / 1000);
@@ -28,8 +28,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async decode({ token, secret }) {
       if (!token) return null;
       try {
-        const secretStr = (Array.isArray(secret) ? secret[0] : secret) || authSecret || 'dev-secret';
-        const secretBytes = new TextEncoder().encode(secretStr);
+        const secretStr = (Array.isArray(secret) ? secret[0] : secret) || authSecret;
+        if (!secretStr) throw new Error('Authentication secret is not configured');
+      const secretBytes = new TextEncoder().encode(secretStr);
         const { jwtVerify } = await import('jose');
         const verified = await jwtVerify(token, secretBytes);
         return verified.payload as any;

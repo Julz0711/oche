@@ -1,5 +1,6 @@
 // app/stats/page.tsx
 'use client';
+import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -108,7 +109,7 @@ export default function StatsPage() {
   }, [sessionStatus, gameFilter]);
 
   if (sessionStatus !== 'authenticated' || !session?.user) {
-    return <div className="min-h-screen bg-oche text-chalk flex items-center justify-center">Loading...</div>;
+    return <LoadingIndicator fullPage />;
   }
 
   return (
@@ -121,10 +122,10 @@ export default function StatsPage() {
           <p className="text-sisal text-sm md:text-base mt-1">Every completed match, all in one place</p>
         </header>
 
-        <Panel notch="panel" className="account-section stats-performance"><div className="section-heading"><h2>Performance</h2></div>{boardError ? <p role="alert" className="text-sm text-sisal">Could not load performance. <button className="text-wire min-h-11" onClick={() => setRetry(n => n + 1)}>Try again</button></p> : board ? <StatsBoard board={board} showHeatmap /> : <p role="status" className="text-sm text-sisal">Loading performance…</p>}</Panel>
+        <Panel notch="panel" className="account-section stats-performance"><div className="section-heading"><h2>Performance</h2></div>{boardError ? <p role="alert" className="text-sm text-sisal">Could not load performance. <button className="text-wire min-h-11" onClick={() => setRetry(n => n + 1)}>Try again</button></p> : board ? <StatsBoard board={board} showHeatmap /> : <LoadingIndicator label="Loading performance…" />}</Panel>
         <h2 className="font-display text-[24px]">Match history</h2>
         {error ? (
-          <p className="text-sisal text-center py-8">Couldn&apos;t load your stats — try refreshing the page.</p>
+          <p className="text-sisal text-center py-8">Could not load your stats. Try refreshing the page.</p>
         ) : data === null ? (
           <div className="grid grid-cols-3 gap-2 md:gap-4">
             {[0, 1, 2].map((i) => (
@@ -136,13 +137,13 @@ export default function StatsPage() {
             <dl className="history-summary">
               <div><dt>Played</dt><dd>{data.summary.played}</dd></div>
               <div><dt>Win rate</dt><dd>{Math.round(data.summary.winRate * 100)}%</dd></div>
-              <div><dt>Streak</dt><dd>{data.summary.currentStreak.type === null ? '—' : `${data.summary.currentStreak.count} ${data.summary.currentStreak.type === 'win' ? 'W' : 'L'}`}</dd></div>
+              <div><dt>Streak</dt><dd>{data.summary.currentStreak.type === null ? 'None' : `${data.summary.currentStreak.count} ${data.summary.currentStreak.type === 'win' ? 'W' : 'L'}`}</dd></div>
             </dl>
 
             <GameFilterPills value={gameFilter} onChange={setGameFilter} />
 
             {data.matches.length === 0 ? (
-              <p className="text-sisal text-center py-8">No completed matches yet — go play one.</p>
+              <p className="text-sisal text-center py-8">No completed matches yet. Play a game to see your results.</p>
             ) : (
               <div className="flex flex-col gap-3">
                 {data.matches.map((match) => (

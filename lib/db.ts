@@ -1,33 +1,24 @@
-// lib/db.ts
 import mongoose from 'mongoose';
 import { seedAchievements } from './achievements/seed';
+import { dbOptions } from './dbOptions';
 
-let cached = global.mongoose;
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
+type ConnectionCache = { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null };
+declare global { var mongoose: ConnectionCache | undefined; }
+const cached = global.mongoose ??= { conn: null, promise: null };
 
 export async function connectDB() {
   if (cached.conn) return cached.conn;
-
-  const MONGODB_URI = process.env.MONGODB_URI;
-  if (!MONGODB_URI) {
-    throw new Error('MONGODB_URI not set');
-  }
-
+  const uri = process.env.MONGODB_URI;
+  if (!uri) throw new Error('MONGODB_URI not set');
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI);
+    cached.promise = mongoose.connect(uri, dbOptions).then(async connection => {
+      await seedAchievements();
+      cached.conn = connection;
+      return connection;
+    }).catch(error => {
+      cached.promise = null;
+      throw error;
+    });
   }
-
-  cached.conn = await cached.promise;
-
-  // Seed achievements on initial connection
-  await seedAchievements();
-
-  return cached.conn;
-}
-
-declare global {
-  var mongoose: any;
+  return cached.promise;
 }

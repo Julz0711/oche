@@ -25,7 +25,7 @@ export function identityIdOf(player: MatchPlayerDoc): string {
 }
 
 export function isSeated(players: MatchPlayerDoc[], identity: Identity): boolean {
-  return players.some((p) => identityIdOf(p) === identity.id);
+  return players.some((p) => (identity.type === 'user' ? p.userId : p.guestId) === identity.id);
 }
 
 type LobbyResult = { ok: true } | { ok: false; status: number; error: string };

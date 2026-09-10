@@ -2,6 +2,8 @@
 import { connectDB } from '@/lib/db';
 import { Match } from '@/lib/db/models';
 import { NextRequest, NextResponse } from 'next/server';
+import { getIdentity } from '@/lib/identity';
+import { canAccessMatch } from '@/lib/matchAccess';
 import mongoose from 'mongoose';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -34,6 +36,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
   if (match.mode !== 'local') {
     return NextResponse.json({ error: 'This route is for local matches only' }, { status: 400 });
+  }
+
+  const { identity } = await getIdentity(req);
+  if (!canAccessMatch(match, identity)) {
+    return NextResponse.json({ error: 'Only the owner can complete this match' }, { status: 403 });
   }
 
   await Match.findOneAndUpdate(

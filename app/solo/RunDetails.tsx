@@ -48,7 +48,7 @@ export default function RunDetails({ id }: { id: string }) {
               {visit.hits
                 .map((h) => (h.ring === "M" ? "Miss" : h.ring + h.sector))
                 .join(" · ")}{" "}
-              — {visit.board} physical points, {visit.score} run points.
+              · {visit.board} physical points, {visit.score} run points.
             </p>
           ))}
         </details>

@@ -66,7 +66,7 @@ export function ShareResultButton({ matchId, gameName, matchInfo, players }: Sha
       <Button variant="secondary" onClick={handleShare} disabled={status === 'loading'}>
         {status === 'loading' ? 'Generating…' : 'Share Result'}
       </Button>
-      {status === 'error' && <p className="text-sm text-treble">Couldn't generate image — try again.</p>}
+      {status === 'error' && <p className="text-sm text-treble">Could not create the image. Try again.</p>}
     </div>
   );
 }

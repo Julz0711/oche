@@ -32,6 +32,11 @@ const MatchSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+MatchSchema.index({ roomCode: 1, status: 1, createdAt: -1 });
+MatchSchema.index({ userId: 1, status: 1, completedAt: -1 });
+MatchSchema.index({ 'players.userId': 1, status: 1, completedAt: -1 });
+MatchSchema.index({ hostId: 1, status: 1 });
+
 export const Match = mongoose.models.Match || mongoose.model('Match', MatchSchema);
 
 const VisitSchema = new mongoose.Schema({
@@ -55,6 +60,9 @@ const VisitSchema = new mongoose.Schema({
   enteredBy: String,
   createdAt: { type: Date, default: Date.now },
 });
+
+VisitSchema.index({ matchId: 1, createdAt: -1 });
+VisitSchema.index({ matchId: 1, playerId: 1, seq: 1 });
 
 export const Visit = mongoose.models.Visit || mongoose.model('Visit', VisitSchema);
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // Dev-only: intercept session endpoint for dev login
   if (process.env.NODE_ENV === 'development' && request.nextUrl.pathname === '/api/auth/session') {
     const devUserId = request.cookies.get('__dev-user-id')?.value;

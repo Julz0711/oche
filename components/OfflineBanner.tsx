@@ -27,7 +27,7 @@ export function OfflineBanner() {
       role="status"
       className="fixed top-0 inset-x-0 z-50 bg-wire text-oche text-center text-xs font-bold uppercase tracking-widest py-1.5"
     >
-      You&apos;re offline — local matches keep working
+      You are offline. Local matches keep working.
     </div>
   );
 }

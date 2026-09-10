@@ -87,7 +87,7 @@ const lastCompletedVisit = (
 const CopycatModule: GameModule<CopycatState, CopycatSettings> = {
   id: 'copycat',
   name: 'Copycat',
-  description: 'Match the total to score — win the point and lead next',
+  description: 'Match the total to win the point and throw first next time',
   icon: Repeat,
   playerRange: [2, 8],
   status: 'stable',

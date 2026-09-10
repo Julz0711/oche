@@ -6,6 +6,7 @@ import { auth } from '@/lib/auth';
 import { gameRegistry, getGameModule, GameId } from '@/lib/games/registry';
 import { getIdentity, applyIdentityCookie } from '@/lib/identity';
 import { generateRoomCode } from '@/lib/roomCode';
+import { LocalPlayerNamesSchema, localSeats } from '@/lib/localPlayers';
 import { seatFor } from '@/lib/matchLobby';
 
 export async function POST(req: NextRequest) {
@@ -38,24 +39,30 @@ export async function POST(req: NextRequest) {
   }
 
   const modeInput = (body as { mode?: unknown })?.mode;
+  if (modeInput !== undefined && modeInput !== 'local' && modeInput !== 'remote') {
+    return NextResponse.json({ error: 'Invalid match mode' }, { status: 400 });
+  }
   const mode = modeInput === 'remote' ? 'remote' : 'local';
+  const names = LocalPlayerNamesSchema.safeParse((body as { playerNames?: unknown })?.playerNames ?? ['Player 1', 'Player 2']);
+  if (mode === 'local' && (!names.success || names.data.length < gameModule.playerRange[0] || names.data.length > gameModule.playerRange[1])) {
+    return NextResponse.json({ error: 'Enter names of 1 to 32 characters for 2 to 8 players.' }, { status: 400 });
+  }
 
   await connectDB();
 
   if (mode === 'local') {
     const session = await auth();
+    const { identity, newGuestCookie } = await getIdentity(req);
     const match = await Match.create({
       gameId,
       mode: 'local',
       status: 'live',
       settings,
       userId: session?.user?.id,
-      players: [
-        { name: session?.user?.name || 'Guest 1', isGuest: !session },
-        { name: 'Guest 2', isGuest: true },
-      ],
+      hostId: identity.id,
+      players: localSeats(names.success ? names.data : [], session?.user?.name, session?.user?.id),
     });
-    return NextResponse.json({ id: match._id.toString() });
+    return applyIdentityCookie(NextResponse.json({ id: match._id.toString() }), newGuestCookie);
   }
 
   // mode === 'remote'

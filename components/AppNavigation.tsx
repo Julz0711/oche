@@ -23,7 +23,7 @@ export function AppNavigation({ children }: { children: ReactNode }) {
       <Link href="/" className="nav-brand" aria-label="Oche home">OCHE</Link>
       <div className="nav-destinations">
         {destinations.map(({ href, label, icon: Icon }) => {
-          const selected = href === '/' ? pathname === '/' || pathname.startsWith('/join') : pathname.startsWith(href) || (href === '/friends' && pathname.startsWith('/profile/'));
+          const selected = href === '/' ? pathname === '/' || pathname.startsWith('/join') || pathname.startsWith('/solo') : pathname.startsWith(href) || (href === '/friends' && pathname.startsWith('/profile/'));
           return <Link key={href} href={!session?.user && href !== '/' ? '/signin' : href} aria-current={selected ? 'page' : undefined}><Icon size={18} aria-hidden="true" /><span>{label}</span></Link>;
         })}
         <button className="nav-sound" onClick={toggleSound} aria-label={soundEnabled ? 'Mute sound' : 'Unmute sound'} aria-pressed={!soundEnabled} title={soundEnabled ? 'Mute sound' : 'Unmute sound'}>{soundEnabled ? <Volume2 size={18} aria-hidden="true" /> : <VolumeX size={18} aria-hidden="true" />}<span>Sound</span></button>
@@ -34,6 +34,6 @@ export function AppNavigation({ children }: { children: ReactNode }) {
         </Link>
       </div>
     </nav>
-    <div className="app-content">{children}</div>
+    <div key={pathname} className="app-content page-enter">{children}</div>
   </div>;
 }

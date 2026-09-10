@@ -53,11 +53,11 @@ export const statTiles: StatTileDef<CopycatStats>[] = [
   {
     label: 'Match %',
     key: 'matchRate',
-    value: (s) => (s.matchRate === null ? '—' : `${s.matchRate.toFixed(0)}%`),
+    value: (s) => (s.matchRate === null ? 'None' : `${s.matchRate.toFixed(0)}%`),
   },
   {
     label: 'Double Finishes',
     key: 'doubleFinishes',
-    value: (s) => (s.doubleFinishes === null ? '—' : `${s.doubleFinishes}`),
+    value: (s) => (s.doubleFinishes === null ? 'None' : `${s.doubleFinishes}`),
   },
 ];

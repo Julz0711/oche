@@ -57,3 +57,11 @@ export type Theme = typeof theme;
 export type ColorToken = keyof typeof tokens;
 export type FontSizeToken = keyof typeof fontSize;
 export type FontFamilyToken = keyof typeof fontFamily;
+
+// Shared achievement palette, matching the original unlock toasts.
+export const rarityColors = {
+  common: { bg: tokens.slate, border: tokens.double },
+  rare: { bg: tokens.slate, border: '#3B82F6' },
+  epic: { bg: tokens.slate, border: '#A855F7' },
+  legendary: { bg: tokens.wire, border: '#FFD700' },
+} as const;

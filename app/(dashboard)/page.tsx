@@ -8,7 +8,7 @@ import { Panel, BoardMotif } from '@/components/atoms';
 import type { AccentToken, MotifName } from '@/components/atoms';
 import { gameRegistry, GameId, getGameModule } from '@/lib/games/registry';
 import { PlayerAvatar } from '@/components/profile/PlayerAvatar';
-import { tokens } from '@/lib/theme';
+import styles from './dashboard.module.css';
 import type { LucideIcon } from 'lucide-react';
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -138,6 +138,7 @@ export default function Dashboard() {
   const [games, setGames] = useState<GameOption[] | null>(null);
   const [selectedGameId, setSelectedGameId] = useState<GameId>('x01');
   const [creating, setCreating] = useState<'local' | 'remote' | null>(null);
+  const [playTab, setPlayTab] = useState<'multiplayer' | 'singleplayer'>('multiplayer');
 
   const { data: session } = useSession();
   const [activeMatches, setActiveMatches] = useState<ActiveMatch[]>([]);
@@ -229,162 +230,181 @@ export default function Dashboard() {
       <div className="relative z-10 w-full max-w-3xl flex flex-col gap-3 md:gap-9 pt-0 md:pt-12">
         <header className="dashboard-header flex flex-col gap-2 md:gap-5">
           {session?.user && <Link href="/profile" className="dashboard-identity"><PlayerAvatar name={session.user.name || 'Player'} image={session.user.image} /><span className="min-w-0"><small>Currently logged in as</small><strong>{session.user.name || 'Player'}</strong></span></Link>}
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold tracking-tight leading-none">
-            OCHE
-          </h1>
-          <p className="text-sisal text-sm md:text-base mt-1">Pick a game, grab your darts</p>
+          <h1 className="text-sisal text-sm md:text-base font-normal">Pick a game, grab your darts</h1>
         </header>
 
-        <Link href="/solo" className="border border-wire/50 bg-slate p-4 flex items-center justify-between gap-4 text-sisal hover:border-wire">
-          <span><span className="block text-[10px] tracking-[0.18em] text-wire uppercase">New · Solo roguelike</span><strong className="block font-display text-2xl text-chalk">House Rules</strong><span className="text-xs">Build your darts. Beat the bosses. Challenge your friends.</span></span>
-          <span aria-hidden="true" className="text-wire text-2xl">↗</span>
-        </Link>
+        <div className={styles.tabs} role="tablist" aria-label="Play mode">
+          {([
+            { id: 'multiplayer', label: 'Multiplayer', detail: 'Online games & rooms' },
+            { id: 'singleplayer', label: 'Single player', detail: 'Solo adventures & local games' },
+          ] as const).map((tab) => (
+            <button
+              key={tab.id}
+              id={`play-tab-${tab.id}`}
+              type="button"
+              role="tab"
+              aria-selected={playTab === tab.id}
+              aria-controls="dashboard-play-panel"
+              tabIndex={playTab === tab.id ? 0 : -1}
+              disabled={creating !== null}
+              onClick={() => setPlayTab(tab.id)}
+              onKeyDown={(event) => {
+                if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+                event.preventDefault();
+                const next = event.key === 'Home' ? 'multiplayer' : event.key === 'End' ? 'singleplayer' : playTab === 'multiplayer' ? 'singleplayer' : 'multiplayer';
+                setPlayTab(next);
+                document.getElementById(`play-tab-${next}`)?.focus();
+              }}
+            >
+              <strong>{tab.label}</strong><span>{tab.detail}</span>
+            </button>
+          ))}
+        </div>
 
-        {activeMatches.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <SettingLabel>Active games</SettingLabel>
+        <section id="dashboard-play-panel" role="tabpanel" aria-labelledby={`play-tab-${playTab}`} className={styles.playPanel}>
+          {playTab === 'singleplayer' && (
+          <Link href="/solo" className={styles.soloLink}>
+              <Panel notch="card" accent="wire" interactive className="p-4 sm:p-5">
+                <BoardMotif name="board" className="pointer-events-none absolute -right-8 -bottom-16 w-56 h-56 text-wire" style={{ opacity: 'var(--motif-rest)' }} />
+                <span className="relative block">
+                  <span className="block text-[10px] font-bold tracking-[0.2em] text-wire uppercase">Solo roguelike · 1 player</span>
+                  <strong className="block font-display font-bold uppercase text-[30px] leading-none text-chalk mt-5 mb-2">House Rules</strong>
+                  <span className="block text-xs text-sisal/60">Build your darts. Beat the bosses. Challenge your friends.</span>
+                  <span className="absolute top-0 right-0 text-wire" aria-hidden="true">↗</span>
+                </span>
+              </Panel>
+            </Link>
+          )}
+
+          {playTab === 'multiplayer' && activeMatches.length > 0 && (
             <div className="flex flex-col gap-2">
-              {activeMatches.map((m) => (
-                <Panel key={m.id} notch="panel" className="p-3 flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/match/${m.id}`)}
-                    className="flex flex-1 items-center justify-between gap-3 min-w-0 text-left"
-                  >
-                    <div className="flex flex-col items-start gap-0.5 min-w-0">
-                      <span className="font-display font-bold uppercase text-sm text-chalk truncate max-w-full">
-                        {m.gameName}
-                      </span>
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-sisal truncate max-w-full">
-                        {m.status === 'lobby'
-                          ? 'Waiting for players'
-                          : m.opponents.length > 0
-                            ? `vs ${m.opponents.join(', ')}`
-                            : 'In progress'}
-                      </span>
-                    </div>
-                    <span className="text-xs font-bold uppercase tracking-widest text-wire shrink-0">Resume</span>
-                  </button>
-                  {m.isHost && (
+              <SettingLabel>Active games</SettingLabel>
+              <div className="flex flex-col gap-2">
+                {activeMatches.map((m) => (
+                  <Panel key={m.id} notch="panel" className="p-3 flex items-center gap-3">
                     <button
                       type="button"
-                      onClick={() => handleDeleteMatch(m.id)}
-                      aria-label="Delete match"
-                      className="shrink-0 min-w-11 min-h-11 flex items-center justify-center text-sisal hover:text-treble transition-colors"
+                      onClick={() => router.push(`/match/${m.id}`)}
+                      className="flex flex-1 items-center justify-between gap-3 min-w-0 text-left"
                     >
-                      <X className="w-4 h-4" />
+                      <div className="flex flex-col items-start gap-0.5 min-w-0">
+                        <span className="font-display font-bold uppercase text-sm text-chalk truncate max-w-full">
+                          {m.gameName}
+                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-sisal truncate max-w-full">
+                          {m.status === 'lobby'
+                            ? 'Waiting for players'
+                            : m.opponents.length > 0
+                              ? `vs ${m.opponents.join(', ')}`
+                              : 'In progress'}
+                        </span>
+                      </div>
+                      <span className="text-xs font-bold uppercase tracking-widest text-wire shrink-0">Resume</span>
                     </button>
-                  )}
-                </Panel>
+                    {m.isHost && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteMatch(m.id)}
+                        aria-label="Delete match"
+                        className="shrink-0 min-w-11 min-h-11 flex items-center justify-center text-sisal hover:text-treble transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </Panel>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {games === null ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
+              {[0, 1].map((i) => (
+                <div key={i} className="h-48 bg-slate animate-pulse" />
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <>
+              {playTab === 'singleplayer' && <SettingLabel>Classic games · same device</SettingLabel>}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3.5">
+                {games.map((game, index) => (
+                  <GameCard
+                    key={game.id}
+                    game={game}
+                    index={index}
+                    selected={game.id === selectedGameId}
+                    onSelect={() => setSelectedGameId(game.id)}
+                  />
+                ))}
+              </div>
 
-        {games === null ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
-            {[0, 1].map((i) => (
-              <div key={i} className="h-48 bg-slate animate-pulse" />
-            ))}
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3.5">
-              {games.map((game, index) => (
-                <GameCard
-                  key={game.id}
-                  game={game}
-                  index={index}
-                  selected={game.id === selectedGameId}
-                  onSelect={() => setSelectedGameId(game.id)}
-                />
-              ))}
-            </div>
+              <Panel notch="panel" className="dashboard-settings p-3 md:p-6">
+                <SettingLabel>Match settings</SettingLabel>
 
-            <Panel notch="panel" className="dashboard-settings p-3 md:p-6">
-              <SettingLabel>Match settings</SettingLabel>
+                {selectedGameId === 'x01' && (
+                  <>
+                    <div className="dashboard-setting flex flex-col gap-2">
+                      <SettingLabel>Starting score</SettingLabel>
+                      <Pills options={STARTING_SCORES} value={startingScore} onChange={setStartingScore} />
+                    </div>
+                    <div className="dashboard-setting flex flex-col gap-2">
+                      <SettingLabel>Legs (first to)</SettingLabel>
+                      <Pills options={LEG_OPTIONS} value={x01FirstTo} onChange={setX01FirstTo} />
+                    </div>
+                    <div className="dashboard-setting flex flex-col gap-2">
+                      <SettingLabel>Sets (first to)</SettingLabel>
+                      <Pills
+                        options={SET_OPTIONS}
+                        value={sets}
+                        onChange={setSets}
+                        format={(v) => (v === 0 ? 'Off' : String(v))}
+                      />
+                    </div>
+                  </>
+                )}
 
-              {selectedGameId === 'x01' && (
-                <>
-                  <div className="dashboard-setting flex flex-col gap-2">
-                    <SettingLabel>Starting score</SettingLabel>
-                    <Pills options={STARTING_SCORES} value={startingScore} onChange={setStartingScore} />
-                  </div>
+                {selectedGameId === 'cricket' && (
+                  <>
                   <div className="dashboard-setting flex flex-col gap-2">
                     <SettingLabel>Legs (first to)</SettingLabel>
-                    <Pills options={LEG_OPTIONS} value={x01FirstTo} onChange={setX01FirstTo} />
+                    <Pills options={LEG_OPTIONS} value={cricketFirstTo} onChange={setCricketFirstTo} />
                   </div>
                   <div className="dashboard-setting flex flex-col gap-2">
-                    <SettingLabel>Sets (first to)</SettingLabel>
-                    <Pills
-                      options={SET_OPTIONS}
-                      value={sets}
-                      onChange={setSets}
-                      format={(v) => (v === 0 ? 'Off' : String(v))}
-                    />
+                    <SettingLabel>Scoring</SettingLabel>
+                    <Pills options={['standard', 'no-points'] as const} value={cricketScoring} onChange={setCricketScoring} format={value => value === 'standard' ? 'Standard' : 'No points'} />
+                    <p className="text-xs text-sisal max-w-xs">{cricketScoring === 'standard' ? 'Extra hits score while an opponent has the number open. Close all numbers and lead or tie on points to win.' : 'First to close all seven numbers wins the leg. Extra hits do not score.'}</p>
                   </div>
-                </>
-              )}
+                  </>
+                )}
 
-              {selectedGameId === 'cricket' && (
-                <>
-                <div className="dashboard-setting flex flex-col gap-2">
-                  <SettingLabel>Legs (first to)</SettingLabel>
-                  <Pills options={LEG_OPTIONS} value={cricketFirstTo} onChange={setCricketFirstTo} />
-                </div>
-                <div className="dashboard-setting flex flex-col gap-2">
-                  <SettingLabel>Scoring</SettingLabel>
-                  <Pills options={['standard', 'no-points'] as const} value={cricketScoring} onChange={setCricketScoring} format={value => value === 'standard' ? 'Standard' : 'No points'} />
-                  <p className="text-xs text-sisal max-w-xs">{cricketScoring === 'standard' ? 'Extra hits score while an opponent has the number open. Close all numbers and lead or tie on points to win.' : 'First to close all seven numbers wins the leg. Extra hits do not score.'}</p>
-                </div>
-                </>
-              )}
+                {selectedGameId === 'copycat' && (
+                  <div className="dashboard-setting flex flex-col gap-2">
+                    <SettingLabel>Points (first to)</SettingLabel>
+                    <Pills options={COPYCAT_LIMIT_OPTIONS} value={copycatFirstTo} onChange={setCopycatFirstTo} />
+                  </div>
+                )}
+              </Panel>
 
-              {selectedGameId === 'copycat' && (
-                <div className="dashboard-setting flex flex-col gap-2">
-                  <SettingLabel>Points (first to)</SettingLabel>
-                  <Pills options={COPYCAT_LIMIT_OPTIONS} value={copycatFirstTo} onChange={setCopycatFirstTo} />
-                </div>
-              )}
-            </Panel>
-
-            <div className="grid grid-cols-2 gap-2 md:gap-4">
               <div className="flex flex-col gap-2">
                 <Panel
                   as="button"
                   notch="panel"
                   accent="wire"
                   fill="wire"
-                  onClick={() => handleCreateMatch(selectedGameId, 'remote')}
+                  onClick={() => handleCreateMatch(selectedGameId, playTab === 'multiplayer' ? 'remote' : 'local')}
                   disabled={creating !== null}
                   className="play-action play-action-primary"
                 >
-                  {creating === 'remote' ? 'Starting…' : 'Play Online'}
+                  {creating !== null ? 'Starting…' : playTab === 'multiplayer' ? 'Play Online' : 'Play Local'}
                 </Panel>
                 <span className="text-center text-xs text-sisal">
-                  Room code
+                  {playTab === 'multiplayer' ? 'Create a room and invite players' : 'Play on the same device'}
                 </span>
               </div>
-
-              <div className="flex flex-col gap-2">
-                <Panel
-                  as="button"
-                  notch="panel"
-                  accent="wire"
-                  onClick={() => handleCreateMatch(selectedGameId, 'local')}
-                  disabled={creating !== null}
-                  className="play-action"
-                >
-                  {creating === 'local' ? 'Starting…' : 'Play Local'}
-                </Panel>
-                <span className="text-center text-xs text-sisal">
-                  Same device
-                </span>
-              </div>
-            </div>
-            <Link href="/join" className="join-room-link">Have a room code? <span>Join a room →</span></Link>
-          </>
-        )}
+              {playTab === 'multiplayer' && <Link href="/join" className="join-room-link">Have a room code? <span>Join a room →</span></Link>}
+            </>
+          )}
+        </section>
       </div>
     </div>
   );

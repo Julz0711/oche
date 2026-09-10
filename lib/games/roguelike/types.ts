@@ -57,6 +57,8 @@ export interface Offer {
   sold: boolean;
 }
 export interface EffectLine {
+  /** Physical dart that triggered this effect; omitted for visit-wide effects. */
+  dartIndex?: number;
   id: number;
   label: string;
   points?: number;

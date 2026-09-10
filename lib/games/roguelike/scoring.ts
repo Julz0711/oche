@@ -56,6 +56,9 @@ export function resolveVisit(run: Run): VisitResult {
     score: 0,
     effects: [],
   };
+  let currentDart: number | undefined;
+  const attribution = () =>
+    currentDart === undefined ? {} : { dartIndex: currentDart };
   const add = (id: number, points = 0, mult = 0, slot = -1) => {
     if (!points && !mult) return;
     if (power === 60 && slot === r.powerSlot) {
@@ -65,7 +68,13 @@ export function resolveVisit(run: Run): VisitResult {
     if (power === 55 && id !== 54 && id !== 59) points *= 2;
     result.bonus += points;
     result.mult += mult;
-    result.effects.push({ id, label: item(id).name, points, mult });
+    result.effects.push({
+      id,
+      label: item(id).name,
+      points,
+      mult,
+      ...attribution(),
+    });
   };
   const count = (key: string, amount = 1) =>
     (r.counts[key] = (r.counts[key] || 0) + amount);
@@ -75,7 +84,12 @@ export function resolveVisit(run: Run): VisitResult {
     if (gain) {
       count("coin" + id, gain);
       r.coins += gain;
-      result.effects.push({ id, label: item(id).name, coins: gain });
+      result.effects.push({
+        id,
+        label: item(id).name,
+        coins: gain,
+        ...attribution(),
+      });
     }
   };
   const numbers = hits.flatMap((h) => (h && h.sector <= 20 ? [h.sector] : []));
@@ -86,6 +100,7 @@ export function resolveVisit(run: Run): VisitResult {
   result.base = base;
   const previousSeen = new Set(r.seen);
   hits.forEach((h, i) => {
+    currentDart = i;
     if (!h) return;
     const n = h.sector,
       prev = hits[i - 1],
@@ -170,9 +185,14 @@ export function resolveVisit(run: Run): VisitResult {
       }
     }
   });
+  currentDart = undefined;
   if (has(18) && distinct.size < numbers.length) add(18, 0, 1);
   if (has(19) && distinct.size === 3) add(19, 0, 1);
-  if (has(22) && hits[2] && boardPoints(hits[2]) >= 20) add(22, 0, 0.75);
+  if (has(22) && hits[2] && boardPoints(hits[2]) >= 20) {
+    currentDart = 2;
+    add(22, 0, 0.75);
+    currentDart = undefined;
+  }
   if (has(23) && all) {
     result.amplifier = 1.5;
     result.effects.push({ id: 23, label: "House Special ×1.5" });

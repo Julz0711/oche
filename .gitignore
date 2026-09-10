@@ -46,3 +46,6 @@ next-env.d.ts
 docs/*
 # Local browser verification artifacts
 .playwright-cli/
+output/*
+docs/*
+.superpowers/*

@@ -25,14 +25,28 @@ import {
 import { boardPoints, resolveVisit } from "@/lib/games/roguelike/scoring";
 import {
   RULES_VERSION,
+  type EffectLine,
   type Action,
   type Config,
   type Difficulty,
-  type Hit,
   type Run,
   type Owned,
 } from "@/lib/games/roguelike/types";
-import { decodeSave, SAVE_KEY, writeSave, type Save } from "@/lib/solo/storage";
+import { decodeSave, SAVE_KEY } from "@/lib/solo/storage";
+import type { Throw } from "@/lib/types";
+import { Panel } from "@/components/atoms/Panel";
+import { Numeral } from "@/components/atoms/Numeral";
+import { DartBadge } from "@/components/atoms/DartBadge";
+import { DartboardInput } from "@/components/organisms/DartboardInput";
+import EquipmentArt from "./EquipmentArt";
+import EquipmentTags from "./EquipmentTags";
+import {
+  migrateRuns,
+  readRuns,
+  writeRun,
+  type RunSave,
+} from "@/lib/solo/library";
+import SoloHub from "./SoloHub";
 import FriendsBoard from "./FriendsBoard";
 import styles from "./solo.module.css";
 const STARTERS = [16, 17, 19] as const;
@@ -64,6 +78,28 @@ async function request(url: string, body: unknown) {
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Request failed.");
   return data;
+}
+function BonusList({ effects }: { effects: EffectLine[] }) {
+  if (!effects.length) return null;
+  return (
+    <ul className={styles.dartBonuses}>
+      {effects.map((effect, index) => (
+        <li key={`${effect.id}-${index}`}>
+          <span>{effect.label}</span>
+          <strong>
+            {[
+              effect.points ? `+${effect.points} points` : "",
+              effect.mult ? `+${Number(effect.mult.toFixed(2))} mult` : "",
+              effect.coins ? `+${effect.coins} coins` : "",
+              effect.darts ? `+${effect.darts} darts` : "",
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </strong>
+        </li>
+      ))}
+    </ul>
+  );
 }
 function EquipmentIcon({ id }: { id: number }) {
   const Icon = [41, 42, 43, 44, 45, 46, 71].includes(id)
@@ -108,10 +144,10 @@ function Equipment({
 }
 export default function SoloGame() {
   const { data: session, status } = useSession();
-  const [save, setSave] = useState<Save | null>(null),
+  const [save, setSave] = useState<RunSave | null>(null),
     [loaded, setLoaded] = useState(false),
     [error, setError] = useState(""),
-    [tab, setTab] = useState<"run" | "friends" | "collection">("run");
+    [tab, setTab] = useState<"hub" | "run" | "friends" | "collection">("hub");
   const [difficulty, setDifficulty] = useState<Difficulty>("regular"),
     [starter, setStarter] = useState<16 | 17 | 19>(16),
     [busy, setBusy] = useState(false),
@@ -121,13 +157,14 @@ export default function SoloGame() {
     [dealer, setDealer] = useState<"points" | "coins">("points"),
     [wager, setWager] = useState(false),
     [dartSlot, setDartSlot] = useState(0),
-    [modifier, setModifier] = useState<"S" | "D" | "T">("S"),
     [search, setSearch] = useState("");
+  const [runs, setRuns] = useState<RunSave[]>([]);
+  const [confirmEnd, setConfirmEnd] = useState(false);
   const [corrupt, setCorrupt] = useState(false);
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(SAVE_KEY);
-      if (raw) setSave(decodeSave(raw));
+      migrateRuns(localStorage);
+      setRuns(readRuns(localStorage));
     } catch (e) {
       setError(errorText(e));
       setCorrupt(true);
@@ -144,8 +181,13 @@ export default function SoloGame() {
       config,
       actions: canonicalActions(actions),
       revision: crypto.randomUUID(),
+      updatedAt: new Date().toISOString(),
     };
-    writeSave(next, localStorage, save?.revision ?? null);
+    writeRun(
+      next,
+      localStorage,
+      save?.config.id === config.id ? save.revision : null
+    );
     setSave(next);
     setSubmitted(false);
   }
@@ -155,7 +197,6 @@ export default function SoloGame() {
       replay(save.config, [...save.actions, action]);
       persist(save.config, [...save.actions, action]);
       setError("");
-      if (action.type === "throw") setModifier("S");
       if (action.type === "next") {
         setWager(false);
         setHome(20);
@@ -166,15 +207,6 @@ export default function SoloGame() {
     }
   }
   async function start(ranked: boolean) {
-    if (
-      save &&
-      run?.phase !== "won" &&
-      run?.phase !== "lost" &&
-      !window.confirm(
-        "Start a new run? The current unfinished run will be replaced."
-      )
-    )
-      return;
     setBusy(true);
     setError("");
     try {
@@ -190,31 +222,64 @@ export default function SoloGame() {
           starter,
           version: RULES_VERSION,
         };
-      if (save && (run?.phase === "won" || run?.phase === "lost")) {
-        const archive = JSON.parse(
-          localStorage.getItem(SAVE_KEY + ".history") || "[]"
-        );
-        localStorage.setItem(
-          SAVE_KEY + ".history",
-          JSON.stringify(
-            [save, ...(Array.isArray(archive) ? archive : [])].slice(0, 20)
-          )
-        );
-      }
       persist(config, []);
       setTab("run");
       setHome(20);
       setDealer("points");
       setWager(false);
-      setModifier("S");
     } catch (e) {
       setError(errorText(e));
     } finally {
       setBusy(false);
     }
   }
+  function showHub() {
+    try {
+      setRuns(readRuns(localStorage));
+      setConfirmEnd(false);
+      setTab("hub");
+      setError("");
+    } catch (e) {
+      setError(errorText(e));
+    }
+  }
+  function endRun() {
+    if (!save) return;
+    try {
+      const ended = {
+        ...save,
+        abandonedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        revision: crypto.randomUUID(),
+      };
+      writeRun(ended, localStorage, save.revision);
+      setSave(null);
+      showHub();
+    } catch (e) {
+      setError(errorText(e));
+    }
+  }
+  function openRun(selected: RunSave) {
+    setSave(selected);
+    setSubmitted(false);
+    setConfirmEnd(false);
+    setError("");
+    setTab("run");
+    setHome(20);
+    setDealer("points");
+    setWager(false);
+    setDartSlot(0);
+  }
+  function newRun() {
+    setSave(null);
+    setConfirmEnd(false);
+    setError("");
+    setTab("run");
+  }
   function exportSave() {
-    const raw = localStorage.getItem(SAVE_KEY) || "{}",
+    const raw = save
+        ? JSON.stringify(save)
+        : localStorage.getItem(SAVE_KEY) || "{}",
       url = URL.createObjectURL(new Blob([raw], { type: "application/json" }));
     const a = document.createElement("a");
     a.href = url;
@@ -231,6 +296,8 @@ export default function SoloGame() {
         );
       const backup = decodeSave(raw);
       localStorage.setItem(SAVE_KEY, raw);
+      migrateRuns(localStorage);
+      setRuns(readRuns(localStorage));
       setSave(backup);
       setCorrupt(false);
       setError("Recovered the previous saved action.");
@@ -279,7 +346,11 @@ export default function SoloGame() {
       .includes(search.toLowerCase())
   );
   return (
-    <main className={styles.shell}>
+    <main
+      className={`${styles.shell} ${
+        tab === "run" && run?.phase === "shop" ? styles.compactShop : ""
+      }`}
+    >
       <header className={styles.header}>
         <Link href="/" className={styles.back}>
           ← Play
@@ -289,10 +360,16 @@ export default function SoloGame() {
       </header>
       <nav className={styles.tabs} aria-label="Solo mode">
         <button
+          aria-current={tab === "hub" ? "page" : undefined}
+          onClick={showHub}
+        >
+          Solo hub
+        </button>
+        <button
           aria-current={tab === "run" ? "page" : undefined}
           onClick={() => setTab("run")}
         >
-          Your run
+          {save ? "Your run" : "New run"}
         </button>
         <button
           aria-current={tab === "friends" ? "page" : undefined}
@@ -317,7 +394,7 @@ export default function SoloGame() {
       )}
       {!loaded && <p className={styles.muted}>Loading your run…</p>}
       {corrupt && (
-        <section className={styles.panel}>
+        <Panel notch="panel" className={styles.panel}>
           <h2>Your saved run needs attention.</h2>
           <p>
             Export it before clearing it. A backup may recover the previous
@@ -342,7 +419,10 @@ export default function SoloGame() {
               Clear unreadable save
             </button>
           </div>
-        </section>
+        </Panel>
+      )}
+      {tab === "hub" && loaded && !corrupt && (
+        <SoloHub runs={runs} onOpen={openRun} onNew={newRun} />
       )}
       {tab === "friends" && (
         <FriendsBoard
@@ -374,21 +454,56 @@ export default function SoloGame() {
               placeholder="Try extra darts, coins, or House Number"
             />
           </label>
-          <div className={styles.catalogue}>
-            {catalogue.map((i) => (
-              <article className={styles.itemCard} key={i.id}>
-                <div className={styles.art}>
-                  <EquipmentIcon id={i.id} />
-                  <span>{String(i.id).padStart(2, "0")}</span>
+          {(
+            [
+              { kind: "dart", label: "Virtual darts" },
+              { kind: "charm", label: "Charms" },
+              { kind: "consumable", label: "Consumables" },
+            ] as const
+          ).map(({ kind, label }) => {
+            const entries = catalogue
+              .filter((entry) => entry.kind === kind)
+              .sort((a, b) => a.name.localeCompare(b.name));
+            return entries.length > 0 ? (
+              <section
+                key={kind}
+                className={styles.collectionCategory}
+                aria-label={label}
+              >
+                <h2>
+                  {label} <span>{entries.length}</span>
+                </h2>
+                <div className={styles.catalogue}>
+                  {entries.map((i) => (
+                    <Panel
+                      notch="card"
+                      accent={
+                        i.kind === "dart"
+                          ? "double"
+                          : i.kind === "consumable"
+                          ? "treble"
+                          : "wire"
+                      }
+                      accentBar
+                      className={styles.itemCard}
+                      key={i.id}
+                    >
+                      <EquipmentArt id={i.id} />
+                      <span className={styles.eyebrow}>
+                        {i.kind} · {i.price} coins
+                      </span>
+                      <h3>{i.name}</h3>
+                      <EquipmentTags id={i.id} />
+                      <p>{i.description}</p>
+                    </Panel>
+                  ))}
                 </div>
-                <span className={styles.eyebrow}>
-                  {i.kind} · {i.price} coins
-                </span>
-                <h3>{i.name}</h3>
-                <p>{i.description}</p>
-              </article>
-            ))}
-          </div>
+              </section>
+            ) : null;
+          })}
+          {catalogue.length === 0 && (
+            <p className={styles.muted}>No equipment matches your search.</p>
+          )}
         </>
       )}
       {tab === "run" && loaded && !corrupt && (
@@ -437,7 +552,7 @@ export default function SoloGame() {
                       </div>
                     ))}
                   </div>
-                  <div className={styles.panel}>
+                  <Panel notch="panel" className={styles.panel}>
                     <h2>Your final build</h2>
                     <div className={styles.tags}>
                       {[
@@ -473,11 +588,11 @@ export default function SoloGame() {
                         </button>
                       </div>
                     )}
-                  </div>
+                  </Panel>
                 </>
               )}
               <div className={styles.setupGrid}>
-                <div className={styles.panel}>
+                <Panel notch="panel" className={styles.panel}>
                   <h2>Choose your pace</h2>
                   <div className={styles.actions}>
                     {(["social", "regular", "expert"] as const).map((d) => (
@@ -494,8 +609,8 @@ export default function SoloGame() {
                     12 darts to start each round. Reach the target before your
                     darts run out. Upgrades can add more.
                   </p>
-                </div>
-                <div className={styles.panel}>
+                </Panel>
+                <Panel notch="panel" className={styles.panel}>
                   <h2>Your first charm</h2>
                   <div className={styles.starters}>
                     {STARTERS.map((id) => (
@@ -509,7 +624,7 @@ export default function SoloGame() {
                       </button>
                     ))}
                   </div>
-                </div>
+                </Panel>
               </div>
               <div className={styles.actions}>
                 <button
@@ -548,7 +663,7 @@ export default function SoloGame() {
                   </p>
                   <h1>
                     {run.phase === "shop"
-                      ? "A little unfair advantage."
+                      ? "The back room."
                       : run.phase === "preview" && boss
                       ? "The house has a rule."
                       : "Find your rhythm."}
@@ -594,7 +709,7 @@ export default function SoloGame() {
               </div>
               {run.phase === "preview" && (
                 <div className={styles.previewGrid}>
-                  <div className={styles.poster}>
+                  <Panel notch="panel" fill="wire" className={styles.poster}>
                     <Crown />
                     <p className={styles.eyebrow}>
                       {boss ? "BOSS ENCOUNTER" : "NEXT ENCOUNTER"}
@@ -611,8 +726,8 @@ export default function SoloGame() {
                       {wager ? Math.ceil(r.standardTarget * 1.2) : r.target}
                       <small>POINTS TO CLEAR</small>
                     </div>
-                  </div>
-                  <div className={styles.panel}>
+                  </Panel>
+                  <Panel notch="panel" className={styles.panel}>
                     <h2>Before you throw</h2>
                     <p className={styles.muted}>
                       {12 + (has(run, 41) ? 2 : 0) + (has(run, 42) ? 3 : 0)}{" "}
@@ -682,13 +797,19 @@ export default function SoloGame() {
                       Choices lock when the round starts. You can correct
                       recorded darts before confirming the round result.
                     </p>
-                  </div>
+                  </Panel>
                 </div>
               )}
               {(run.phase === "playing" || run.phase === "pending") && (
                 <div className={styles.playGrid}>
                   <div>
-                    <section className={`${styles.panel} ${styles.scorePanel}`}>
+                    <Panel
+                      notch="panel"
+                      accent="wire"
+                      active
+                      activeBadge={false}
+                      className={`${styles.panel} ${styles.scorePanel}`}
+                    >
                       <div className={styles.between}>
                         <span className={styles.eyebrow}>ROUND SCORE</span>
                         <span>
@@ -696,7 +817,11 @@ export default function SoloGame() {
                         </span>
                       </div>
                       <div className={styles.score}>
-                        <strong>{r.score}</strong>
+                        <Numeral
+                          value={r.score}
+                          size="4xl"
+                          className="leading-none"
+                        />
                         <span>/ {r.target}</span>
                       </div>
                       <progress
@@ -710,8 +835,8 @@ export default function SoloGame() {
                         </span>
                         <span>◉ {r.coins} pending coins</span>
                       </div>
-                    </section>
-                    <section className={styles.panel}>
+                    </Panel>
+                    <Panel notch="panel" className={styles.panel}>
                       <div className={styles.between}>
                         <h2>
                           {run.phase === "pending"
@@ -731,18 +856,47 @@ export default function SoloGame() {
                               DART {i + 1} ·{" "}
                               {dart ? item(dart.id).name : "Standard"}
                             </small>
-                            <strong>
-                              {r.hits[i]
-                                ? r.hits[i].ring === "M"
-                                  ? "MISS"
-                                  : `${r.hits[i].ring}${r.hits[i].sector}`
-                                : run.phase === "playing" && i < visitSize
-                                ? "—"
-                                : "·"}
-                            </strong>
+                            <span className={styles.dartResult}>
+                              {r.hits[i] ? (
+                                <DartBadge
+                                  t={{
+                                    ...r.hits[i],
+                                    sector: r.hits[i].sector as Throw["sector"],
+                                    points: boardPoints(r.hits[i]),
+                                    order: i as 0 | 1 | 2,
+                                  }}
+                                />
+                              ) : run.phase === "playing" && i < visitSize ? (
+                                "—"
+                              ) : (
+                                "·"
+                              )}
+                            </span>
+                            <BonusList
+                              effects={
+                                preview?.effects.filter(
+                                  (effect) => effect.dartIndex === i
+                                ) ?? []
+                              }
+                            />
                           </div>
                         ))}
                       </div>
+                      {preview &&
+                        preview.effects.some(
+                          (effect) => effect.dartIndex === undefined
+                        ) && (
+                          <div className={styles.visitBonuses}>
+                            <span className={styles.eyebrow}>
+                              Visit bonuses
+                            </span>
+                            <BonusList
+                              effects={preview.effects.filter(
+                                (effect) => effect.dartIndex === undefined
+                              )}
+                            />
+                          </div>
+                        )}
                       <div className={styles.breakdown} aria-live="polite">
                         {preview
                           ? `${preview.base} eligible + ${
@@ -756,63 +910,23 @@ export default function SoloGame() {
                       </div>
                       {run.phase === "playing" && (
                         <>
-                          <div className={styles.keypad}>
-                            {Array.from({ length: 20 }, (_, i) => (
-                              <button
-                                key={i}
-                                className={
-                                  houseActive && r.house === i + 1
-                                    ? styles.houseKey
-                                    : ""
-                                }
-                                aria-label={`Record ${modifier}${i + 1}`}
-                                disabled={r.hits.length >= visitSize}
-                                onClick={() =>
-                                  act({
-                                    type: "throw",
-                                    hit: { sector: i + 1, ring: modifier },
-                                  })
-                                }
-                              >
-                                {i + 1}
-                                {houseActive && r.house === i + 1 ? " ★" : ""}
-                              </button>
-                            ))}
-                          </div>
-                          <div className={styles.inputActions}>
-                            <button
-                              aria-pressed={modifier === "D"}
-                              onClick={() =>
-                                setModifier(modifier === "D" ? "S" : "D")
+                          {houseActive && (
+                            <p className={styles.eyebrow}>
+                              House number · {r.house}
+                            </p>
+                          )}
+                          <div data-native className={styles.sharedInput}>
+                            <DartboardInput
+                              key={r.index}
+                              visitDartCount={r.hits.length}
+                              disabled={r.hits.length >= visitSize}
+                              onUndo={() => {
+                                if (canUndo) act({ type: "undo" });
+                              }}
+                              onThrow={({ sector, ring }) =>
+                                act({ type: "throw", hit: { sector, ring } })
                               }
-                            >
-                              Double
-                            </button>
-                            <button
-                              aria-pressed={modifier === "T"}
-                              onClick={() =>
-                                setModifier(modifier === "T" ? "S" : "T")
-                              }
-                            >
-                              Treble
-                            </button>
-                            {(
-                              [
-                                { sector: 25, ring: "OB" },
-                                { sector: 25, ring: "IB" },
-                                { sector: 0, ring: "M" },
-                              ] as Hit[]
-                            ).map((hit) => (
-                              <button
-                                key={hit.ring}
-                                disabled={r.hits.length >= visitSize}
-                                onClick={() => act({ type: "throw", hit })}
-                              >
-                                {hit.ring === "M"
-                                  ? "Miss"
-                                  : `Bull ${boardPoints(hit)}`}
-                              </button>
-                            ))}
+                            />
                           </div>
                         </>
                       )}
@@ -851,7 +965,7 @@ export default function SoloGame() {
                           Confirming locks this round’s throws and payouts.
                         </p>
                       )}
-                    </section>
+                    </Panel>
                     {r.visits.length > 0 && (
                       <details className={styles.panel}>
                         <summary>Visit history & scoring effects</summary>
@@ -889,7 +1003,7 @@ export default function SoloGame() {
                     )}
                   </div>
                   <aside>
-                    <div className={styles.panel}>
+                    <Panel notch="panel" className={styles.panel}>
                       <span className={styles.eyebrow}>DART BUDGET</span>
                       <strong className={styles.budget}>
                         {r.budget - r.spent - r.hits.length}
@@ -913,7 +1027,7 @@ export default function SoloGame() {
                           )}
                         </div>
                       )}
-                    </div>
+                    </Panel>
                     <div className={styles.between}>
                       <h2>Your charms</h2>
                       <span>{run.charms.length} / 5</span>
@@ -981,7 +1095,7 @@ export default function SoloGame() {
               )}
               {run.phase === "shop" && (
                 <>
-                  <div className={styles.shopToolbar}>
+                  <Panel notch="panel" className={styles.shopToolbar}>
                     <div
                       className={styles.shopWallet}
                       role="status"
@@ -1012,7 +1126,7 @@ export default function SoloGame() {
                         Next round <ArrowUpRight size={18} aria-hidden="true" />
                       </button>
                     </div>
-                  </div>
+                  </Panel>
                   <div className={styles.shopNotice}>
                     <Crown />
                     <div>
@@ -1037,7 +1151,6 @@ export default function SoloGame() {
                   <div className={styles.shopShelfHeading}>
                     <div>
                       <h2>Fresh on the counter</h2>
-                      <p>Find something that changes your next throw.</p>
                     </div>
                     <div className={styles.shopSlotCounts}>
                       <span>{run.charms.length}/5 charms</span>
@@ -1077,18 +1190,24 @@ export default function SoloGame() {
                               def.kind === "charm" ? "Charm" : "Powerup"
                             } slots are full`;
                       return (
-                        <article
+                        <Panel
+                          notch="card"
+                          accent={
+                            def.kind === "dart"
+                              ? "double"
+                              : def.kind === "consumable"
+                              ? "treble"
+                              : "wire"
+                          }
+                          accentBar
                           className={`${styles.itemCard} ${styles.shopItem} ${
                             o.sold ? styles.purchasedItem : ""
                           }`}
                           key={`${run.shop.generation}-${i}`}
                         >
-                          <div className={styles.art}>
-                            <EquipmentIcon id={o.id} />
-                            <span>{String(o.id).padStart(2, "0")}</span>
-                          </div>
-                          <span className={styles.eyebrow}>{def.kind}</span>
+                          <EquipmentArt id={o.id} />
                           <h2>{def.name}</h2>
+                          <EquipmentTags id={def.id} />
                           <p>{def.description}</p>
                           <div className={styles.shopPurchase}>
                             <div className={styles.shopPrice}>
@@ -1099,16 +1218,16 @@ export default function SoloGame() {
                               </span>
                               <small>
                                 {o.sold
-                                  ? "Added to your build"
+                                  ? "Offer purchased"
                                   : shortfall
                                   ? `Need ${shortfall} more coin${
                                       shortfall === 1 ? "" : "s"
                                     }`
                                   : slotBlocked
                                   ? blockedReason
-                                  : `${
-                                      run.coins - price
-                                    } coins left after buying`}
+                                  : `${run.coins - price} coin${
+                                      run.coins - price === 1 ? "" : "s"
+                                    } left`}
                               </small>
                             </div>
                             <button
@@ -1136,76 +1255,102 @@ export default function SoloGame() {
                                 : "Buy upgrade →"}
                             </button>
                           </div>
-                        </article>
+                        </Panel>
                       );
                     })}
                   </div>
-                  <details className={`${styles.panel} ${styles.shopBuild}`}>
-                    <summary>
-                      <span>
-                        Your build{" "}
-                        <small>{run.charms.length} / 5 charms equipped</small>
-                      </span>
-                      <span>Manage equipment ↓</span>
-                    </summary>
-                    <p className={styles.muted}>
-                      Sell equipment to free a slot or top up your balance. You
-                      can also rearrange your three darts here.
-                    </p>
-                    <div className={styles.setupGrid}>
-                      <div>
-                        {run.charms.map((c) => (
-                          <Equipment
-                            key={c.id}
-                            owned={c}
-                            value={salePrice(run, c)}
-                            onSell={() => act({ type: "sell", id: c.id })}
-                          />
-                        ))}
+                  <Panel notch="panel">
+                    <details className={`${styles.panel} ${styles.shopBuild}`}>
+                      <summary>
+                        <span>
+                          Your build{" "}
+                          <small>{run.charms.length} / 5 charms equipped</small>
+                        </span>
+                        <span>Manage equipment ↓</span>
+                      </summary>
+                      <p className={styles.muted}>
+                        Sell equipment to free a slot or top up your balance.
+                        You can also rearrange your three darts here.
+                      </p>
+                      <div className={styles.setupGrid}>
+                        <div>
+                          {run.charms.map((c) => (
+                            <Equipment
+                              key={c.id}
+                              owned={c}
+                              value={salePrice(run, c)}
+                              onSell={() => act({ type: "sell", id: c.id })}
+                            />
+                          ))}
+                        </div>
+                        <div>
+                          <h3>Virtual darts · exactly 3 slots</h3>
+                          {run.darts.map((d, i) => (
+                            <div key={i} className={styles.dartInventory}>
+                              <span>Slot {i + 1}</span>
+                              {d ? (
+                                <Equipment
+                                  owned={d}
+                                  value={salePrice(run, d)}
+                                  onSell={() => act({ type: "sell", id: d.id })}
+                                />
+                              ) : (
+                                <p className={styles.muted}>Standard Dart</p>
+                              )}
+                              <button
+                                onClick={() =>
+                                  act({
+                                    type: "swap",
+                                    from: i,
+                                    to: (i + 1) % 3,
+                                  })
+                                }
+                              >
+                                Swap with slot {((i + 1) % 3) + 1}
+                              </button>
+                            </div>
+                          ))}
+                          <h3>Consumables · {run.consumables.length} / 2</h3>
+                          {run.consumables.map((c, i) => (
+                            <Equipment
+                              key={i}
+                              owned={c}
+                              value={salePrice(run, c)}
+                              onSell={() => act({ type: "sell", id: c.id })}
+                            />
+                          ))}
+                        </div>
                       </div>
-                      <div>
-                        <h3>Virtual darts · exactly 3 slots</h3>
-                        {run.darts.map((d, i) => (
-                          <div key={i} className={styles.dartInventory}>
-                            <span>Slot {i + 1}</span>
-                            {d ? (
-                              <Equipment
-                                owned={d}
-                                value={salePrice(run, d)}
-                                onSell={() => act({ type: "sell", id: d.id })}
-                              />
-                            ) : (
-                              <p className={styles.muted}>Standard Dart</p>
-                            )}
-                            <button
-                              onClick={() =>
-                                act({ type: "swap", from: i, to: (i + 1) % 3 })
-                              }
-                            >
-                              Swap with slot {((i + 1) % 3) + 1}
-                            </button>
-                          </div>
-                        ))}
-                        <h3>Consumables · {run.consumables.length} / 2</h3>
-                        {run.consumables.map((c, i) => (
-                          <Equipment
-                            key={i}
-                            owned={c}
-                            value={salePrice(run, c)}
-                            onSell={() => act({ type: "sell", id: c.id })}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </details>
+                    </details>
+                  </Panel>
                 </>
+              )}
+              {confirmEnd && (
+                <Panel notch="panel" className={styles.panel}>
+                  <div role="alert">
+                    <h2>End this run?</h2>
+                    <p>
+                      Your progress will stay in Past runs as abandoned. You
+                      cannot resume it or submit it to the leaderboard.
+                    </p>
+                    <div className={styles.actions}>
+                      <button onClick={() => setConfirmEnd(false)}>
+                        Keep playing
+                      </button>
+                      <button className={styles.primary} onClick={endRun}>
+                        Confirm end run
+                      </button>
+                    </div>
+                  </div>
+                </Panel>
               )}
               <div className={styles.runFooter}>
                 <span>Saved on this browser after every action.</span>
-                <button onClick={exportSave}>Export run</button>
-                <button disabled={busy} onClick={() => start(false)}>
-                  Start a new practice run
-                </button>
+                <div className={styles.runFooterActions}>
+                  <button onClick={exportSave}>Export run</button>
+                  <button onClick={showHub}>Save & return to hub</button>
+                  <button onClick={() => setConfirmEnd(true)}>End run</button>
+                </div>
               </div>
             </>
           )}

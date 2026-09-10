@@ -170,3 +170,19 @@ describe("every scoring effect has a reachable physical trigger", () => {
     }
   });
 });
+
+it("attributes dart and economy effects without assigning visit bonuses to a dart", () => {
+  const run = fixture();
+  run.charms = [16, 61, 19].map((id) => ({ id, paid: 5 }));
+  run.round.hits = [S(10), D(13), S(5)];
+  const result = resolveVisit(run);
+  expect(
+    result.effects.filter((e) => e.id === 16).map((e) => e.dartIndex)
+  ).toEqual([0, 2]);
+  expect(result.effects.find((e) => e.id === 61)).toMatchObject({
+    dartIndex: 1,
+    coins: 1,
+  });
+  expect(result.effects.find((e) => e.id === 19)?.dartIndex).toBeUndefined();
+  expect(result.score).toBe(122);
+});

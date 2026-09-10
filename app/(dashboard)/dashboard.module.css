@@ -1,0 +1,40 @@
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-bottom: 1px solid #e4d8bc33;
+  gap: 12px;
+}
+.tabs button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  min-height: 76px;
+  padding: 13px 18px;
+  border: 1px solid transparent;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: #a4ada6;
+  text-align: left;
+}
+.tabs button strong {
+  font: 600 28px/1.1 var(--font-display), sans-serif;
+}
+.tabs button span { font-size: 12px; }
+.tabs button[aria-selected="true"] {
+  background: #1e2724;
+  border-bottom-color: #c0a15c;
+  color: #e4d8bc;
+}
+.tabs button:focus-visible { outline: 2px solid #c0a15c; outline-offset: 3px; }
+.tabs button:disabled { opacity: .5; }
+.playPanel { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+@media (max-width: 639px) {
+  .tabs { gap: 8px; }
+  .tabs button { padding: 12px 10px; min-height: 76px; }
+  .tabs button strong { font-size: 25px; }
+  .tabs button span { font-size: 10px; line-height: 1.5; }
+  .playPanel { gap: 16px; }
+}
+.soloLink { display: block; min-width: 0; }
+.soloLink:focus-visible { outline: 2px solid var(--wire); outline-offset: 4px; }

@@ -3,62 +3,62 @@
   width: 100%;
   margin: 0 auto;
   padding: 28px 32px 100px;
-  color: #f2f4f3;
+  color: var(--chalk);
   font-size: 14px;
   line-height: 1.6;
 }
 .shell * {
   box-sizing: border-box;
 }
-.shell button,
+.shell button:not(:where([data-native], [data-native] *)),
 .shell select,
 .shell input {
   font: inherit;
 }
-.shell button,
+.shell button:not(:where([data-native], [data-native] *)),
 .shell select {
-  background: #1e2724;
-  color: #e4d8bc;
+  background: var(--slate);
+  color: var(--sisal);
   border: 1px solid #485448;
   padding: 10px 15px;
   min-height: 44px;
 }
-.shell button {
+.shell button:not(:where([data-native], [data-native] *)) {
   cursor: pointer;
 }
-.shell button:disabled {
+.shell button:not(:where([data-native], [data-native] *)):disabled {
   opacity: 0.4;
   cursor: default;
 }
-.shell button[aria-pressed="true"] {
-  background: #c0a15c;
-  color: #101614;
-  border-color: #c0a15c;
+.shell button:not(:where([data-native], [data-native] *))[aria-pressed="true"] {
+  background: var(--wire);
+  color: var(--oche);
+  border-color: var(--wire);
 }
-.shell button:focus-visible,
+.shell button:not(:where([data-native], [data-native] *)):focus-visible,
 .shell a:focus-visible,
 .shell input:focus-visible,
 .shell select:focus-visible {
-  outline: 2px solid #e4d8bc;
+  outline: 2px solid var(--sisal);
   outline-offset: 4px;
 }
-.shell button:hover:not(:disabled) {
+.shell button:not(:where([data-native], [data-native] *)):hover:not(:disabled) {
   filter: brightness(1.15);
 }
 .shell h1 {
   font: 700 clamp(40px, 5vw, 68px) / 1.05 var(--font-display), sans-serif;
   letter-spacing: -1px;
-  color: #e4d8bc;
+  color: var(--sisal);
   margin: 12px 0 16px;
 }
 .shell h2 {
   font: 600 23px/1.2 var(--font-display), sans-serif;
-  color: #e4d8bc;
+  color: var(--sisal);
   margin: 0 0 12px;
 }
 .shell h3 {
   font-size: 17px;
-  color: #e4d8bc;
+  color: var(--sisal);
   margin: 8px 0;
 }
 .shell p {
@@ -78,7 +78,7 @@
 .eyebrow {
   font: 10px/1.5 monospace;
   letter-spacing: 2px;
-  color: #c0a15c;
+  color: var(--wire);
   text-transform: uppercase;
 }
 .badge {
@@ -86,7 +86,7 @@
   font: 10px monospace;
   letter-spacing: 1px;
   padding: 6px 10px;
-  color: #e4d8bc;
+  color: var(--sisal);
   border: 1px solid #655b41;
 }
 .tabs {
@@ -105,8 +105,8 @@
   font-size: 13px;
 }
 .shell .tabs button[aria-current="page"] {
-  border-color: #c0a15c;
-  color: #e4d8bc;
+  border-color: var(--wire);
+  color: var(--sisal);
 }
 .heading {
   display: flex;
@@ -144,7 +144,7 @@
 }
 .panel {
   padding: 25px;
-  background: #1e2724;
+  background: var(--slate);
   border: 1px solid #354139;
   margin-bottom: 20px;
 }
@@ -169,9 +169,9 @@
   justify-content: center;
   align-items: center;
   gap: 16px;
-  background: #c0a15c;
-  border: 1px solid #c0a15c;
-  color: #101614;
+  background: var(--wire);
+  border: 1px solid var(--wire);
+  color: var(--oche);
   font-weight: 700;
   min-height: 48px;
   padding: 12px 20px;
@@ -210,15 +210,15 @@
   height: 32px;
   display: grid;
   place-items: center;
-  background: #1e2724;
+  background: var(--slate);
   border: 1px solid #354139;
   font: 12px monospace;
   color: #a4ada6;
 }
 .track .current {
-  background: #c0a15c;
-  color: #101614;
-  border-color: #c0a15c;
+  background: var(--wire);
+  color: var(--oche);
+  border-color: var(--wire);
 }
 .track .done {
   color: #8dc69b;
@@ -229,8 +229,8 @@
   gap: 24px;
 }
 .poster {
-  background: #c0a15c;
-  color: #101614;
+  background: var(--wire);
+  color: var(--oche);
   padding: 35px;
   display: flex;
   flex-direction: column;
@@ -248,7 +248,7 @@
 }
 .poster h2 {
   font: 700 55px/1 var(--font-display), sans-serif;
-  color: #101614;
+  color: var(--oche);
 }
 .poster p {
   max-width: 330px;
@@ -272,12 +272,12 @@
 .house > span {
   font: 9px monospace;
   letter-spacing: 2px;
-  color: #c0a15c;
+  color: var(--wire);
   display: block;
 }
 .house > strong {
   font: 65px/1.2 var(--font-display), sans-serif;
-  color: #e4d8bc;
+  color: var(--sisal);
 }
 .house > p {
   font-size: 12px;
@@ -288,14 +288,14 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  color: #e4d8bc;
+  color: var(--sisal);
   font-size: 12px;
   margin: 16px 0;
 }
 .field input[type="checkbox"] {
   width: 22px;
   height: 22px;
-  accent-color: #c0a15c;
+  accent-color: var(--wire);
 }
 .playGrid {
   display: grid;
@@ -315,7 +315,7 @@
 }
 .scorePanel {
   background: radial-gradient(ellipse at 80% 0%, #34473166, transparent 70%),
-    #1e2724;
+    var(--slate);
 }
 .score {
   display: flex;
@@ -325,7 +325,7 @@
 }
 .score > strong {
   font: 700 108px/1.15 var(--font-display), sans-serif;
-  color: #e4d8bc;
+  color: var(--sisal);
 }
 .score > span {
   font-size: 30px;
@@ -336,15 +336,15 @@
   height: 7px;
   display: block;
   border: none;
-  background: #101614;
-  accent-color: #c0a15c;
+  background: var(--oche);
+  accent-color: var(--wire);
   margin: 16px 0 20px;
 }
 .scorePanel progress::-webkit-progress-bar {
-  background: #101614;
+  background: var(--oche);
 }
 .scorePanel progress::-webkit-progress-value {
-  background: #c0a15c;
+  background: var(--wire);
 }
 .dartSlots {
   display: grid;
@@ -364,12 +364,12 @@
 }
 .dartSlots strong {
   font: 35px var(--font-display), sans-serif;
-  color: #e4d8bc;
+  color: var(--sisal);
 }
 .breakdown {
   min-height: 56px;
   font-size: 12px;
-  color: #e4d8bc;
+  color: var(--sisal);
   padding: 14px 0;
 }
 .keypad {
@@ -382,7 +382,7 @@
   font-size: 17px;
 }
 .shell .houseKey {
-  border-color: #c0a15c;
+  border-color: var(--wire);
   background: #3e3928;
 }
 .inputActions {
@@ -397,7 +397,7 @@
 }
 .budget {
   font: 75px/1.2 var(--font-display), sans-serif;
-  color: #e4d8bc;
+  color: var(--sisal);
   display: block;
 }
 .budget small {
@@ -418,7 +418,7 @@
 }
 .equipment strong {
   font-size: 13px;
-  color: #e4d8bc;
+  color: var(--sisal);
 }
 .equipment p {
   font-size: 11px;
@@ -431,7 +431,7 @@
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  color: #c0a15c;
+  color: var(--wire);
   background: #383324;
 }
 .smallArt svg {
@@ -454,7 +454,7 @@
   color: #a4ada6;
 }
 .visitHistory strong {
-  color: #e4d8bc;
+  color: var(--sisal);
 }
 .visitHistory p {
   margin: 4px 0;
@@ -468,13 +468,13 @@
   gap: 18px;
   background: #302823;
   border: 1px solid #655040;
-  color: #e4d8bc;
+  color: var(--sisal);
   padding: 20px;
   margin: 20px 0;
 }
 .shopNotice > svg {
   flex-shrink: 0;
-  color: #c0a15c;
+  color: var(--wire);
 }
 .shopNotice p {
   font-size: 12px;
@@ -489,7 +489,7 @@
   gap: 18px;
 }
 .itemCard {
-  background: #1e2724;
+  background: var(--slate);
   border: 1px solid #48513d;
   padding: 0 18px 18px;
   display: flex;
@@ -558,7 +558,7 @@
 }
 .dartInventory > span {
   font: 10px monospace;
-  color: #c0a15c;
+  color: var(--wire);
 }
 .dartInventory .equipment {
   border: none;
@@ -586,7 +586,7 @@
 .victory > svg {
   width: 80px;
   height: 80px;
-  color: #c0a15c;
+  color: var(--wire);
   display: block;
   margin: 0 auto 25px;
   stroke-width: 1.3;
@@ -595,7 +595,7 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   border: 1px solid #354139;
-  background: #1e2724;
+  background: var(--slate);
   margin: 30px 0;
   padding: 25px 0;
 }
@@ -615,7 +615,7 @@
 }
 .statGrid strong {
   font: 48px var(--font-display), sans-serif;
-  color: #e4d8bc;
+  color: var(--sisal);
   display: block;
 }
 .tags {
@@ -628,7 +628,7 @@
   padding: 7px 11px;
   background: #2b382c;
   border: 1px solid #4e5940;
-  color: #e4d8bc;
+  color: var(--sisal);
   font-size: 12px;
 }
 .search {
@@ -644,8 +644,8 @@
   min-height: 48px;
   padding: 12px;
   border: 1px solid #485448;
-  background: #1e2724;
-  color: #e4d8bc;
+  background: var(--slate);
+  color: var(--sisal);
 }
 .catalogue {
   display: grid;
@@ -677,7 +677,7 @@
   border-collapse: collapse;
   text-align: left;
   font-size: 13px;
-  background: #1e2724;
+  background: var(--slate);
 }
 .table caption {
   text-align: left;
@@ -706,9 +706,9 @@
 }
 .rankMessage {
   padding: 20px;
-  border-left: 3px solid #c0a15c;
+  border-left: 3px solid var(--wire);
   background: #292c20;
-  color: #e4d8bc;
+  color: var(--sisal);
 }
 @media (max-width: 1000px) {
   .playGrid {
@@ -936,10 +936,10 @@
   display: flex;
   gap: 12px;
   align-items: baseline;
-  color: #e4d8bc;
+  color: var(--sisal);
 }
 .shopWallet > div > svg {
-  color: #c0a15c;
+  color: var(--wire);
   width: 28px;
   height: 28px;
   align-self: center;
@@ -967,7 +967,7 @@
   justify-content: center;
 }
 .shopToolbarActions button > span {
-  color: #c0a15c;
+  color: var(--wire);
 }
 .shopShelfHeading {
   display: flex;
@@ -1021,13 +1021,13 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  color: #e4d8bc;
+  color: var(--sisal);
 }
 .shopPrice strong {
   font: 600 34px/1.2 var(--font-display), sans-serif;
 }
 .shopPrice svg {
-  color: #c0a15c;
+  color: var(--wire);
 }
 .shopPrice del {
   font-size: 14px;
@@ -1057,7 +1057,7 @@
   cursor: pointer;
   list-style: none;
   min-height: 44px;
-  color: #e4d8bc;
+  color: var(--sisal);
 }
 .shopBuild > summary::-webkit-details-marker {
   display: none;
@@ -1073,7 +1073,7 @@
 }
 .shopBuild > summary > span:last-child {
   font-size: 12px;
-  color: #c0a15c;
+  color: var(--wire);
 }
 .shopBuild[open] > summary {
   border-bottom: 1px solid #485448;
@@ -1148,5 +1148,642 @@
     font-size: 11px;
     max-width: 100px;
     text-align: right;
+  }
+}
+
+/* Compact counter: preserve full effect text and large touch targets. */
+.compactShop .heading {
+  margin: 18px 0;
+}
+.compactShop .heading h1 {
+  font-size: 42px;
+  margin: 6px 0;
+}
+.compactShop .tabs {
+  margin-bottom: 18px;
+}
+.compactShop .track {
+  display: none;
+}
+.compactShop .shopToolbar {
+  padding: 12px 20px;
+  margin-bottom: 14px;
+}
+.compactShop .shopWallet strong {
+  font-size: 48px;
+}
+.compactShop .shopWallet > div > svg {
+  width: 22px;
+  height: 22px;
+}
+.compactShop .shopWallet > small {
+  font-size: 11px;
+}
+.compactShop .shopNotice {
+  margin: 12px 0;
+  padding: 12px 16px;
+}
+.compactShop .shopNotice p {
+  margin: 3px 0 0;
+}
+.compactShop .shopShelfHeading {
+  margin: 18px 0 10px;
+}
+.compactShop .shopShelfHeading h2 {
+  font-size: 22px;
+}
+.compactShop .shopDartSelect {
+  margin: 10px 0 14px;
+  padding: 6px 12px;
+}
+.compactShop .shopDartSelect select {
+  padding: 6px 10px;
+}
+.compactShop .shopGrid {
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 12px;
+}
+.compactShop .shopItem {
+  padding: 14px;
+}
+.shopCardTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--wire);
+  margin-bottom: 8px;
+}
+.shopCardTop > svg {
+  width: 25px;
+  height: 25px;
+  flex-shrink: 0;
+  stroke-width: 1.5;
+}
+.shopItem:nth-child(3n + 2) .shopCardTop {
+  color: #b8d1b7;
+}
+.shopItem:nth-child(3n + 3) .shopCardTop {
+  color: #d7ada0;
+}
+.compactShop .shopItem h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+.compactShop .shopItem > p {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.compactShop .shopPurchase {
+  padding-top: 10px;
+}
+.compactShop .shopPrice {
+  margin-bottom: 8px;
+}
+.compactShop .shopPrice strong {
+  font-size: 28px;
+}
+.compactShop .shopPrice small {
+  margin-top: 2px;
+}
+.compactShop .shopItem button {
+  padding: 10px 6px;
+  gap: 4px;
+  font-size: 12px;
+  min-height: 44px;
+}
+.compactShop .shopBuild {
+  margin: 16px 0;
+  padding: 14px 18px;
+}
+.compactShop .shopBuild > summary > span:first-child {
+  font-size: 22px;
+}
+.compactShop .runFooter {
+  margin-top: 14px;
+}
+@media (max-width: 767px) {
+  .compactShop {
+    padding-top: 12px;
+  }
+  .compactShop .header {
+    padding-bottom: 12px;
+  }
+  .compactShop .tabs {
+    margin-bottom: 12px;
+  }
+  .compactShop .heading {
+    margin: 12px 0;
+  }
+  .compactShop .heading h1 {
+    font-size: 32px;
+  }
+  .compactShop .heading .muted {
+    font-size: 11px;
+    margin: 4px 0;
+  }
+  .compactShop .shopToolbar {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .compactShop .shopWallet strong {
+    font-size: 42px;
+  }
+  .compactShop .shopWallet > small {
+    font-size: 9px;
+  }
+  .compactShop .shopToolbarActions {
+    gap: 5px;
+  }
+  .compactShop .shopToolbarActions button {
+    min-height: 38px;
+    padding: 8px 10px;
+  }
+  .compactShop .shopNotice {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  .compactShop .shopNotice b {
+    font-size: 12px;
+  }
+  .compactShop .shopNotice p {
+    font-size: 11px;
+  }
+  .compactShop .shopShelfHeading {
+    gap: 6px;
+    margin-top: 14px;
+  }
+  .compactShop .shopSlotCounts {
+    gap: 5px;
+  }
+  .compactShop .shopSlotCounts span {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+  .compactShop .shopDartSelect {
+    flex-wrap: nowrap;
+    gap: 8px;
+    font-size: 10px;
+  }
+  .compactShop .shopDartSelect select {
+    width: auto;
+    min-width: 0;
+    max-width: 58%;
+    font-size: 11px;
+  }
+  .compactShop .shopGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .compactShop .shopItem {
+    padding: 12px;
+  }
+  .compactShop .shopItem h2 {
+    font-size: 22px;
+  }
+  .shopCardTop .eyebrow {
+    font-size: 8px;
+    letter-spacing: 0.5px;
+  }
+  .shopCardTop > svg {
+    width: 21px;
+    height: 21px;
+  }
+  .compactShop .shopPrice small {
+    min-height: 30px;
+  }
+  .compactShop .shopBuild > summary small {
+    font-size: 11px;
+  }
+}
+
+/* Shared OCHE surfaces own the corner geometry, trace and shadow. */
+.shell :global(.group) > span > .panel,
+.shell :global(.group) > span > .poster,
+.shell :global(.group) > span > .shopToolbar,
+.shell :global(.group) > span > .itemCard {
+  border: 0;
+  margin-bottom: 0;
+}
+.shell :global(.group):has(> span > .panel),
+.shell :global(.group):has(> span > .poster) {
+  margin-bottom: 20px;
+}
+.shell :global(.group):has(> span > .shopToolbar) {
+  position: sticky;
+  top: 72px;
+  z-index: 10;
+  margin-bottom: 14px;
+}
+.compactShop .shopToolbar {
+  position: static;
+  box-shadow: none;
+}
+.shell .scorePanel {
+  background: #202b28;
+}
+.score > span:first-child {
+  color: var(--chalk);
+  font-size: clamp(72px, 8vw, 128px);
+}
+.score > span:last-child {
+  font: 500 30px var(--font-display), sans-serif;
+  color: var(--sisal);
+}
+.dartResult {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  font: 700 30px var(--font-display), sans-serif;
+}
+.sharedInput {
+  margin: 18px 0;
+}
+.sharedInput > div {
+  max-width: none;
+}
+.sharedInput > div:not(:global(.scoring-pad)) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+.sharedInput > div:not(:global(.scoring-pad)) > div:first-child {
+  grid-row: span 2;
+}
+.sharedInput > div:not(:global(.scoring-pad)) button {
+  min-width: 0;
+  min-height: 44px;
+  font-size: 13px;
+}
+.sharedInput > div:not(:global(.scoring-pad)) > div {
+  gap: 6px;
+}
+.compactShop .shopItem {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--slate);
+}
+.compactShop .shopItem > h2 {
+  padding: 0 12px;
+  margin: 12px 0 8px;
+  text-transform: uppercase;
+  color: var(--chalk);
+}
+.compactShop .shopItem > p {
+  padding: 0 12px;
+}
+.compactShop .shopPurchase {
+  margin: auto 12px 14px;
+}
+.equipmentArt {
+  --ink: var(--wire);
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 130px;
+  margin: 10px 10px 0;
+  overflow: hidden;
+  background: var(--oche);
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--ink) 55%, transparent);
+}
+.equipmentArt[data-kind="dart"] {
+  --ink: var(--double);
+}
+.equipmentArt[data-kind="consumable"] {
+  --ink: var(--treble);
+}
+/* Four print treatments: sunburst, woven foil, concentric ripples and harlequin. */
+.equipmentArt::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(
+    from -15deg at 50% 55%,
+    color-mix(in srgb, var(--ink) 48%, var(--oche)) 0deg 12deg,
+    color-mix(in srgb, var(--ink) 10%, var(--oche)) 12deg 24deg
+  );
+}
+.equipmentArt[data-print="1"]::before {
+  background: repeating-linear-gradient(
+      45deg,
+      transparent 0 13px,
+      color-mix(in srgb, var(--ink) 35%, transparent) 13px 26px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, var(--ink) 8%, var(--oche)) 0 13px,
+      color-mix(in srgb, var(--ink) 30%, var(--oche)) 13px 26px
+    );
+}
+.equipmentArt[data-print="2"]::before {
+  background: repeating-radial-gradient(
+    ellipse at 20% 85%,
+    color-mix(in srgb, var(--ink) 45%, var(--oche)) 0 3px,
+    color-mix(in srgb, var(--ink) 12%, var(--oche)) 4px 13px
+  );
+}
+.equipmentArt[data-print="3"]::before {
+  background: conic-gradient(
+        from 45deg,
+        color-mix(in srgb, var(--ink) 42%, var(--oche)) 25%,
+        transparent 0 50%,
+        color-mix(in srgb, var(--ink) 42%, var(--oche)) 0 75%,
+        transparent 0
+      )
+      0 0 / 42px 42px,
+    color-mix(in srgb, var(--ink) 10%, var(--oche));
+}
+.equipmentArt::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(0deg, #101614e6, transparent 28% 75%, #101614bb);
+}
+.artSerial,
+.artCategory,
+.artPips {
+  z-index: 1;
+}
+.artEmblem {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border: 1px solid var(--ink);
+  background: var(--slate);
+  transform: rotate(-8deg);
+  box-shadow: 5px 5px 0 color-mix(in srgb, var(--ink) 25%, transparent);
+}
+.artEmblem > svg {
+  width: 46px;
+  height: 46px;
+  color: var(--sisal);
+}
+.artSerial,
+.artCategory,
+.artPips {
+  position: absolute;
+  font: 700 9px var(--font-sans), sans-serif;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--sisal);
+}
+.artSerial {
+  top: 8px;
+  left: 8px;
+}
+.artCategory {
+  left: 8px;
+  bottom: 8px;
+}
+.artPips {
+  top: 8px;
+  right: 8px;
+  color: var(--ink);
+}
+@media (max-width: 767px) {
+  .shell :global(.group):has(> span > .shopToolbar) {
+    top: 8px;
+  }
+  .sharedInput > div:not(:global(.scoring-pad)) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sharedInput > div:not(:global(.scoring-pad)) > div:first-child {
+    grid-row: auto;
+    max-width: 300px;
+    margin: auto;
+  }
+  .equipmentArt {
+    height: 110px;
+    margin: 8px 8px 0;
+  }
+  .artEmblem {
+    width: 56px;
+    height: 56px;
+  }
+  .artEmblem > svg {
+    width: 36px;
+    height: 36px;
+  }
+  .artCategory {
+    font-size: 8px;
+    letter-spacing: 0.8px;
+  }
+}
+
+.catalogue .equipmentArt {
+  margin: 12px 0;
+  width: 100%;
+}
+.compactShop .shopBuild {
+  border: 0;
+  margin: 0;
+}
+.compactShop :global(.group):has(.shopBuild) {
+  margin: 16px 0;
+}
+
+.sharedInput button {
+  border: 1px solid color-mix(in srgb, var(--sisal) 35%, transparent);
+}
+.sharedInput button:focus-visible {
+  outline: 2px solid var(--wire);
+  outline-offset: 2px;
+}
+.collectionCategory {
+  margin: 28px 0;
+}
+.collectionCategory > h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-transform: uppercase;
+}
+.collectionCategory > h2 > span {
+  color: var(--wire);
+  font-size: 15px;
+}
+
+.equipmentArt[data-print="4"]::before {
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--ink) 45%, var(--oche)) 0 10px,
+    color-mix(in srgb, var(--ink) 8%, var(--oche)) 10px 22px
+  );
+}
+.equipmentArt[data-print="5"]::before {
+  background: radial-gradient(
+        circle,
+        color-mix(in srgb, var(--ink) 60%, var(--oche)) 2px,
+        transparent 3px
+      )
+      0 0 / 14px 14px,
+    color-mix(in srgb, var(--ink) 10%, var(--oche));
+}
+.equipmentArt[data-print="6"]::before {
+  background: repeating-conic-gradient(
+      from 45deg,
+      color-mix(in srgb, var(--ink) 40%, var(--oche)) 0% 25%,
+      color-mix(in srgb, var(--ink) 8%, var(--oche)) 0% 50%
+    )
+    0 0 / 32px 32px;
+}
+.dartBonuses {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: grid;
+  gap: 6px;
+}
+.dartBonuses li {
+  border-top: 1px solid color-mix(in srgb, var(--wire) 25%, transparent);
+  padding-top: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.dartBonuses li > span {
+  display: block;
+  color: var(--sisal);
+}
+.dartBonuses li > strong {
+  display: block;
+  color: var(--wire);
+  font-size: 12px;
+}
+.visitBonuses {
+  margin-top: 12px;
+}
+.visitBonuses .dartBonuses {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.effectTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0 0 10px;
+}
+.effectTags > span {
+  --tag-ink: var(--sisal);
+  color: var(--tag-ink);
+  background: color-mix(in srgb, var(--tag-ink) 12%, var(--oche));
+  border: 1px solid color-mix(in srgb, var(--tag-ink) 45%, transparent);
+  padding: 3px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.effectTags > span[data-tone="points"] {
+  --tag-ink: #8dc69b;
+}
+.effectTags > span[data-tone="mult"] {
+  --tag-ink: #f097a6;
+}
+.effectTags > span[data-tone="coins"] {
+  --tag-ink: var(--wire);
+}
+.effectTags > span[data-tone="darts"] {
+  --tag-ink: var(--chalk);
+}
+.compactShop .shopItem > .effectTags {
+  padding: 0 12px;
+}
+.hubSection {
+  margin: 28px 0;
+}
+.hubGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
+}
+.hubGrid h3 {
+  font: 700 30px var(--font-display), sans-serif;
+}
+.hubGrid .panel {
+  height: 100%;
+}
+@media (max-width: 767px) {
+  .shell .tabs {
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .heading {
+    flex-wrap: wrap;
+  }
+}
+
+.effectTags > span {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+/* Compact run summaries and one grouped set of footer actions. */
+.hubGrid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 10px;
+}
+.hubRun {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 12px 14px;
+}
+.hubRunInfo {
+  min-width: 0;
+}
+.hubRun .eyebrow {
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.hubGrid .hubRun h3 {
+  font-size: 24px;
+  margin: 3px 0;
+}
+.hubRun p {
+  margin: 3px 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.hubRun > p {
+  grid-column: 1 / -1;
+}
+.shell .hubRun > button {
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.runFooter {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+}
+.runFooterActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+@media (max-width: 480px) {
+  .hubRun {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .shell .hubRun > button {
+    padding: 8px;
+    font-size: 11px;
+  }
+  .runFooterActions {
+    gap: 6px;
+  }
+  .shell .runFooterActions button {
+    padding: 8px 10px;
   }
 }

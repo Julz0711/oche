@@ -1,5 +1,5 @@
 // lib/games/x01/matchStats.ts
-import { scoringVisitStats } from './visitStats';
+import { scoringVisitStats, doublesAndTreblesStats } from './visitStats';
 import { PlayerId } from '@/lib/types';
 import { X01State } from './engine';
 import { X01Settings } from './schema';
@@ -24,10 +24,6 @@ export function matchStats(state: X01State, playerId: PlayerId, settings: X01Set
   let totalDarts = 0;
   let checkoutAttempts = 0;
   let checkoutHits = 0;
-  let doublesAttempts = 0;
-  let doublesHit = 0;
-  let treblesHit = 0;
-  let trebleAttempts = 0;
   let highestCheckout = 0;
   let legsCompleted = 0;
   let totalDartsInLegs = 0;
@@ -41,14 +37,6 @@ export function matchStats(state: X01State, playerId: PlayerId, settings: X01Set
     entry.throws.forEach((t) => {
       totalPoints += t.points;
       totalDarts++;
-
-      if (t.ring === 'T') {
-        treblesHit++;
-        trebleAttempts++;
-      } else if (t.ring === 'D' || t.ring === 'IB') {
-        doublesHit++;
-        doublesAttempts++;
-      }
     });
 
     const dartsThisLeg = (dartsInLeg.get(legKey) ?? 0) + entry.throws.length;
@@ -76,8 +64,9 @@ export function matchStats(state: X01State, playerId: PlayerId, settings: X01Set
     firstNine.length > 0 ? (firstNine.reduce((sum, t) => sum + t.points, 0) / firstNine.length) * 3 : 0;
   const checkoutRate = checkoutAttempts > 0 ? checkoutHits / checkoutAttempts : 0;
   const dartsPerLeg = legsCompleted > 0 ? totalDartsInLegs / legsCompleted : 0;
+  const { doublesHit, doublesAttempts, treblesHit, treblesAttempts } = doublesAndTreblesStats(entries, settings.checkOut);
   const doublesRate = doublesAttempts > 0 ? doublesHit / doublesAttempts : 0;
-  const treblesRate = trebleAttempts > 0 ? treblesHit / trebleAttempts : 0;
+  const treblesRate = treblesAttempts > 0 ? treblesHit / treblesAttempts : 0;
 
   return {
     ...scoringVisitStats(entries),

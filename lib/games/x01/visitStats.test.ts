@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { scoringVisitStats } from './visitStats';
+import { scoringVisitStats, doublesAndTreblesStats } from './visitStats';
 import X01 from './index';
 import { createPlayerId } from '@/lib/types';
 
@@ -27,5 +27,31 @@ describe('scoring visit statistics', () => {
     expect(X01.matchStats(state, p1, settings).bestVisit).toBe(100);
     expect(X01.matchStats(state, p1, settings).visits100).toBe(1);
     expect(X01.matchStats(X01.undo(state), p1, settings).bestVisit).toBe(0);
+  });
+});
+
+describe('doublesAndTreblesStats', () => {
+  const dart = (ring: 'S' | 'D' | 'T' | 'IB' | 'M', points: number, order: 0 | 1 | 2) => ({ ring, points, order });
+
+  it('counts a miss as an attempt, so the rate is not stuck at 100%', () => {
+    // Scoring visit (scoreBefore 501, well above checkout range): treble hit, then two misses at treble.
+    const visits = [{ scoreBefore: 501, throws: [dart('T', 60, 0), dart('S', 20, 1), dart('M', 0, 2)] }];
+    const result = doublesAndTreblesStats(visits, 'double');
+    expect(result).toEqual({ doublesHit: 0, doublesAttempts: 0, treblesHit: 1, treblesAttempts: 3 });
+  });
+
+  it('classifies darts as double attempts once the remaining score drops into checkout range', () => {
+    // scoreBefore 60: first dart (S20, remaining 60) is a treble attempt; after it remaining is
+    // 40, so the second dart (D20) is a double attempt and hits.
+    const visits = [{ scoreBefore: 60, throws: [dart('S', 20, 0), dart('D', 40, 1)] }];
+    const result = doublesAndTreblesStats(visits, 'double');
+    expect(result).toEqual({ doublesHit: 1, doublesAttempts: 1, treblesHit: 0, treblesAttempts: 1 });
+  });
+
+  it('never counts double attempts under straight out', () => {
+    const visits = [{ scoreBefore: 40, throws: [dart('D', 40, 0)] }];
+    const result = doublesAndTreblesStats(visits, 'straight');
+    expect(result.doublesAttempts).toBe(0);
+    expect(result.treblesAttempts).toBe(1);
   });
 });

@@ -1,8 +1,8 @@
 .shell {
-  max-width: 1280px;
+  max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  padding: 28px 32px 100px;
+  padding: 24px 24px 100px;
   color: var(--chalk);
   font-size: 14px;
   line-height: 1.6;
@@ -18,8 +18,8 @@
 .shell button:not(:where([data-native], [data-native] *)),
 .shell select {
   background: var(--slate);
-  color: var(--sisal);
-  border: 1px solid #485448;
+  color: var(--chalk);
+  border: 1px solid var(--wire);
   padding: 10px 15px;
   min-height: 44px;
 }

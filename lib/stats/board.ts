@@ -37,6 +37,7 @@ interface VisitHistoryEntry {
   total?: number;
   wasPointWin?: boolean;
   pointsWonBefore?: Record<string, number>;
+  checkOut?: 'double' | 'straight' | 'master';
 }
 
 /** Calendar periods in UTC; weeks start on Monday. The UI labels this explicitly. */
@@ -97,6 +98,7 @@ export async function getStatsBoard(db: Db, userId: string, now = new Date()): P
       dartsThrown += hit.count;
     }
     const x01Entries: VisitHistoryEntry[] = [];
+    let x01MatchCount = 0;
     const cricketEntries: VisitHistoryEntry[] = [];
     const copycatMatches: { entries: VisitHistoryEntry[]; firstTo: number }[] = [];
     for (const match of included) {
@@ -109,7 +111,13 @@ export async function getStatsBoard(db: Db, userId: string, now = new Date()): P
       if (!you) continue;
       const entries = state.visitHistory.filter(entry => entry.playerId === you);
       if (entries.length === 0) continue;
-      if (match.gameId === 'x01') x01Entries.push(...entries);
+      if (match.gameId === 'x01') {
+        const checkOut = (match.settings as { checkOut?: unknown } | undefined)?.checkOut;
+        const resolvedCheckOut: 'double' | 'straight' | 'master' =
+          checkOut === 'straight' ? 'straight' : checkOut === 'master' ? 'master' : 'double';
+        x01Entries.push(...entries.map(entry => ({ ...entry, checkOut: resolvedCheckOut })));
+        x01MatchCount++;
+      }
       else if (match.gameId === 'cricket') cricketEntries.push(...entries);
       else if (match.gameId === 'copycat') {
         const firstTo = Number((match.settings as { firstTo?: unknown } | undefined)?.firstTo) || 1;
@@ -125,7 +133,9 @@ export async function getStatsBoard(db: Db, userId: string, now = new Date()): P
       games,
       heatmap,
       dartsThrown,
-      x01: x01Entries.length ? aggregateX01Stats(x01Entries as (VisitHistoryEntry & { busted: boolean; wasCheckout: boolean })[]) : null,
+      x01: x01Entries.length
+        ? aggregateX01Stats(x01Entries as (VisitHistoryEntry & { busted: boolean; wasCheckout: boolean; checkOut: 'double' | 'straight' | 'master' })[], x01MatchCount)
+        : null,
       cricket: cricketEntries.length ? aggregateCricketStats(cricketEntries) : null,
       copycat: copycatMatches.length
         ? aggregateCopycatStats(copycatMatches.map(m => ({

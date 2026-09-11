@@ -8,8 +8,8 @@ const t = (sector: number, ring: 'S' | 'D' | 'T' | 'OB' | 'IB' | 'M', order: 0 |
 describe('aggregateX01Stats', () => {
   it('returns zeroed stats for no entries', () => {
     expect(aggregateX01Stats([])).toEqual({
-      avg3Dart: 0, checkoutRate: 0, visits100: 0, visits140: 0, visits180: 0, busts: 0,
-      bestVisit: 0, highestCheckout: null, doublesRate: 0, treblesRate: 0,
+      avg3Dart: 0, checkoutRate: 0, visits100: 0, visits140: 0, visits180: 0, busts: 0, bustsPerMatch: 0,
+      bestVisit: 0, highestCheckout: null, doublesRate: 0, treblesRate: 0, commonDoubleOut: null,
     });
   });
 
@@ -42,11 +42,36 @@ describe('aggregateX01Stats', () => {
       { playerId: you, throws: [], scoreBefore: 100, scoreAfter: 0, busted: false, wasCheckout: false },
       { playerId: you, throws: [], scoreBefore: 50, scoreAfter: 60, busted: true, wasCheckout: false },
     ];
-    const stats = aggregateX01Stats(entries);
+    const stats = aggregateX01Stats(entries, 2);
     expect(stats.visits180).toBe(1);
     expect(stats.visits100).toBe(1);
     expect(stats.busts).toBe(1);
     expect(stats.bestVisit).toBe(180);
+    expect(stats.bustsPerMatch).toBe(0.5); // 1 bust / 2 matches
+  });
+
+  it('counts a double/treble as an attempt whether it hits or misses, so the rate is not always 100%', () => {
+    const entries = [
+      // Scoring visit (well outside checkout range): one treble hit, two misses at the treble.
+      { playerId: you, throws: [{ ...t(20, 'T'), points: 60 }, { ...t(20, 'S'), points: 20 }, { ...t(20, 'M'), points: 0 }], scoreBefore: 501, scoreAfter: 421, busted: false, wasCheckout: false, checkOut: 'double' as const },
+      // Checkout-range visit (scoreBefore <= 50): one double hit, one double miss.
+      { playerId: you, throws: [{ ...t(20, 'S'), points: 20 }, { ...t(10, 'D'), points: 20 }], scoreBefore: 40, scoreAfter: 0, busted: false, wasCheckout: true, checkOut: 'double' as const },
+    ];
+    const stats = aggregateX01Stats(entries, 1);
+    // Trebles: 3 darts thrown while scoreBefore(501) > 50 -> 3 attempts, 1 hit -> 33.3%
+    expect(stats.treblesRate).toBeCloseTo(33.3, 1);
+    // Doubles: 2 darts thrown while remaining <= 50 (40, then 20 after the single) -> 2 attempts, 1 hit -> 50%
+    expect(stats.doublesRate).toBe(50);
+    expect(stats.commonDoubleOut).toBe('D10');
+  });
+
+  it('groups entries by their own checkout rule, and skips double-attempt tracking under straight out', () => {
+    const entries = [
+      { playerId: you, throws: [{ ...t(20, 'S'), points: 20 }], scoreBefore: 20, scoreAfter: 0, busted: false, wasCheckout: true, checkOut: 'straight' as const },
+    ];
+    const stats = aggregateX01Stats(entries, 1);
+    expect(stats.doublesRate).toBe(0);
+    expect(stats.treblesRate).toBe(0); // ring 'S' is neither hit
   });
 });
 

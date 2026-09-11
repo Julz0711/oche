@@ -35,8 +35,10 @@ function x01Tiles(s: X01AggregateStats): Tile[] {
     { label: '140–179', value: String(s.visits140) },
     { label: '100–139', value: String(s.visits100) },
     { label: 'Busts', value: String(s.busts) },
+    { label: 'Busts/game', value: s.bustsPerMatch.toFixed(1) },
     { label: 'Doubles hit %', value: `${s.doublesRate.toFixed(0)}%` },
     { label: 'Trebles hit %', value: `${s.treblesRate.toFixed(0)}%` },
+    { label: 'Most common double out', value: s.commonDoubleOut ?? '—' },
   ];
 }
 

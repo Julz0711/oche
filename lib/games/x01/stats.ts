@@ -1,6 +1,6 @@
 // lib/games/x01/stats.ts
 import { Visit, StatTileDef, GameStats } from '@/lib/types';
-import { scoringVisitStats } from './visitStats';
+import { scoringVisitStats, doublesAndTreblesStats } from './visitStats';
 import { X01Settings } from './schema';
 
 export interface X01Stats extends GameStats {
@@ -50,10 +50,6 @@ export function computeStats(visits: Visit[], settings: X01Settings): X01Stats {
   let totalDarts = 0;
   let checkoutAttempts = 0;
   let checkoutHits = 0;
-  let doublesAttempts = 0;
-  let doublesHit = 0;
-  let treblesHit = 0;
-  let trebleAttempts = 0;
   let highestCheckout = 0;
   let legsCompleted = 0;
   let totalDartsInLegs = 0;
@@ -67,14 +63,6 @@ export function computeStats(visits: Visit[], settings: X01Settings): X01Stats {
     visit.throws.forEach((t) => {
       totalPoints += t.points;
       totalDarts++;
-
-      if (t.ring === 'T') {
-        treblesHit++;
-        trebleAttempts++;
-      } else if (t.ring === 'D' || t.ring === 'IB') {
-        doublesHit++;
-        doublesAttempts++;
-      }
     });
 
     const dartsThisLeg = (dartsInLeg.get(legKey) ?? 0) + visit.throws.length;
@@ -102,8 +90,9 @@ export function computeStats(visits: Visit[], settings: X01Settings): X01Stats {
     : 0;
   const checkoutRate = checkoutAttempts > 0 ? checkoutHits / checkoutAttempts : 0;
   const dartsPerLeg = legsCompleted > 0 ? totalDartsInLegs / legsCompleted : 0;
+  const { doublesHit, doublesAttempts, treblesHit, treblesAttempts } = doublesAndTreblesStats(visits, settings.checkOut);
   const doublesRate = doublesAttempts > 0 ? doublesHit / doublesAttempts : 0;
-  const treblesRate = trebleAttempts > 0 ? treblesHit / trebleAttempts : 0;
+  const treblesRate = treblesAttempts > 0 ? treblesHit / treblesAttempts : 0;
 
   return {
     ...scoringVisitStats(visits),
@@ -126,6 +115,11 @@ export const statTiles: StatTileDef<X01Stats>[] = [
     label: '3-dart avg',
     key: 'avg3Dart',
     value: (stats) => stats.avg3Dart.toFixed(1),
+  },
+  {
+    label: 'First 9 avg',
+    key: 'firstNineAvg',
+    value: (stats) => stats.firstNineAvg.toFixed(1),
   },
   {
     label: 'Checkout %',

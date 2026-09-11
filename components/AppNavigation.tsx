@@ -22,7 +22,7 @@ export function AppNavigation({ children }: { children: ReactNode }) {
   const { enabled: soundEnabled, toggle: toggleSound } = useSoundPreference();
   const hidden = pathname.startsWith('/match/') || pathname === '/signin' || pathname === '/signout';
   if (hidden) return children;
-  return <div className={`app-shell${pathname === '/' ? ' app-shell-menu' : ''}`}>
+  return <div className="app-shell app-shell-pattern">
     <nav className="app-navigation" aria-label="Main navigation">
       <Link href="/" className="nav-brand" aria-label="Oche home">OCHE</Link>
       <div className="nav-destinations">
@@ -34,7 +34,7 @@ export function AppNavigation({ children }: { children: ReactNode }) {
         <Link className="nav-account" href={session?.user ? '/profile' : '/signin'} aria-current={pathname === '/profile' || pathname === '/settings' ? 'page' : undefined} aria-label="Account">
           <UserRound size={18} className="nav-account-icon" aria-hidden="true" />
           <span className="nav-account-mobile">Account</span>
-          <span className="nav-account-desktop"><PlayerAvatar name={session?.user?.name || 'Guest'} image={session?.user?.image} /><span className="min-w-0"><small>{session?.user ? 'Currently logged in as' : 'Welcome to Oche'}</small><strong>{session?.user?.name || 'Sign in'}</strong></span></span>
+          <span className="nav-account-desktop"><PlayerAvatar name={session?.user?.name || 'Guest'} image={session?.user?.image} /><span className="nav-account-name">{session?.user?.name || 'Sign in'}</span></span>
         </Link>
       </div>
     </nav>

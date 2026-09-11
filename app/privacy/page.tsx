@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { tokens } from '@/lib/theme';
+import { BackLink } from '@/components/atoms/BackLink';
 
 export const metadata = {
   title: 'Privacy Policy - Oche',
@@ -10,9 +10,7 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: tokens.oche }}>
       <div className="page-gutters max-w-2xl mx-auto px-3 py-3 md:px-4 md:py-12" style={{ color: tokens.chalk }}>
-        <Link href="/" className="text-sm font-bold uppercase tracking-widest min-h-11 flex items-center mb-4 md:mb-8" style={{ color: tokens.wire }}>
-          ← Back to Oche
-        </Link>
+        <div className="mb-4 md:mb-8"><BackLink href="/" label="Back to Oche" /></div>
 
         <h1 className="page-title mb-4 md:mb-8" style={{ color: tokens.wire }}>
           Privacy Policy

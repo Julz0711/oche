@@ -355,7 +355,7 @@ export default function SoloGame() {
       }`}
     >
       <header className={styles.header}>
-        <BackLink href="/" label="Back to dashboard" />
+        <BackLink href="/" label="Back to dashboard" className="lg:hidden" />
         <span className={styles.eyebrow}>OCHE / HOUSE RULES</span>
         <span className={styles.badge}>BETA · SOLO</span>
       </header>

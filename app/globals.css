@@ -301,7 +301,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 
 /* A consistent destination bar; live matches keep their focused scoring shell. */
 .app-shell { min-height: 100dvh; }
-.app-shell-menu {
+.app-shell-pattern {
   background-image:
     repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.009) 0 2px, transparent 2px 9px),
     radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--wire) 10%, transparent), transparent 60%);
@@ -357,19 +357,17 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 .page-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 .eyebrow { font-size: 11px; line-height: 16px; font-weight: 600; color: var(--sisal); text-transform: uppercase; letter-spacing: .08em; }
 .quiet-action { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--wire); font-size: 13px; }
-.player-avatar { width: 36px; height: 36px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--wire); background: var(--slate); color: var(--wire); font: 600 16px var(--font-display); overflow: hidden; }
+.player-avatar { width: 36px; height: 36px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--slate); color: var(--wire); font: 600 16px var(--font-display); overflow: hidden; }
 .player-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .player-avatar-large { width: 64px; height: 64px; font-size: 24px; }
-.nav-account-desktop { display: flex; align-items: center; gap: 10px; max-width: 240px; }
-.nav-account-desktop small, .dashboard-identity small { display: block; color: var(--sisal); font-size: 10px; font-weight: 400; }
-.nav-account-desktop strong, .dashboard-identity strong { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; color: var(--chalk); }
+.nav-account-desktop { display: flex; align-items: center; gap: 10px; max-width: 200px; }
+.nav-account-name { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; font-weight: 600; color: var(--chalk); }
 .nav-account-icon, .nav-account-mobile { display: none; }
 .nav-destinations .nav-account { border: 1px solid color-mix(in srgb, var(--sisal) 25%, transparent); padding: 5px 10px; }
 .nav-sound { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; color: var(--sisal); transition: color 160ms ease; }
 .nav-sound span { display: none; }
 .nav-sound:hover { color: var(--chalk); }
 .nav-sound[aria-pressed="true"] { color: var(--wire); }
-.dashboard-identity { display: none; }
 .play-action { min-height: 56px; padding: 12px 20px; display: flex; align-items: center; justify-content: center; font: 600 22px/1.1 var(--font-display); color: var(--chalk); }
 .play-action-primary { color: var(--oche); }
 .profile-identity { display: flex; align-items: center; gap: 16px; padding: 20px; }
@@ -446,7 +444,6 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   .app-content { padding-top: calc(env(safe-area-inset-top, 0px) + 8px); }
   .app-content .page-gutters { padding-top: 12px; }
   .app-content > .page-gutters, .account-page { padding-inline: 12px; gap: 12px; }
-  .dashboard-identity { display: flex; align-items: center; gap: 10px; width: fit-content; max-width: 100%; border: 1px solid color-mix(in srgb, var(--sisal) 25%, transparent); padding: 8px 10px; margin-bottom: 4px; }
   .profile-identity { padding: 12px; gap: 12px; flex-wrap: wrap; }
   .player-avatar-large { width: 52px; height: 52px; }
   .account-section { padding: 12px; gap: 12px; }

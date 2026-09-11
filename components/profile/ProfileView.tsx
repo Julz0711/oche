@@ -8,6 +8,7 @@ import { Settings, ArrowUpRight } from 'lucide-react';
 import { Panel } from '@/components/atoms';
 import { PlayerAvatar } from '@/components/profile/PlayerAvatar';
 import { Button } from '@/components/atoms/Button';
+import { BackLink } from '@/components/atoms/BackLink';
 import { StatsBoard } from './StatsBoard';
 import { Achievements, type AchievementsData } from './Achievements';
 import type { StatsBoard as Board } from '@/lib/stats/board';
@@ -20,6 +21,9 @@ export function ProfileView({ friendId }: { friendId?: string }) {
   const [data, setData] = useState<ProfileData | null>(null);
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [removeError, setRemoveError] = useState('');
   useEffect(() => { if (status === 'unauthenticated') router.replace('/signin'); }, [status, router]);
   const userId = session?.user?.id;
   useEffect(() => {
@@ -43,14 +47,35 @@ export function ProfileView({ friendId }: { friendId?: string }) {
     }
     void load(); return () => controller.abort();
   }, [friendId, userId, attempt]);
+  async function removeFriend() {
+    if (!friendId) return;
+    setRemoving(true); setRemoveError('');
+    try {
+      const res = await fetch(`/api/friends/${friendId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'remove' }) });
+      if (!res.ok) { const body = await res.json(); setRemoveError(body.error ?? 'Could not remove friend.'); return; }
+      router.replace('/friends');
+    } catch { setRemoveError('Could not connect. Please try again.'); }
+    finally { setRemoving(false); }
+  }
   const person = friendId ? data?.person : { name: session?.user?.name || 'Player', image: session?.user?.image };
   return <main className="account-page page-gutters">
-    <header className="page-heading"><div><p className="eyebrow">{friendId ? 'Player profile' : 'Your account'}</p><h1 className="page-title">{friendId ? person?.name || 'Player' : 'Profile'}</h1></div><Link className="quiet-action" href={friendId ? '/friends' : '/settings'}>{friendId ? '← Friends' : <><Settings size={16} /> Account settings</>}</Link></header>
+    {friendId && <BackLink href="/friends" label="Back to friends" />}
+    <header className="page-heading"><div><p className="eyebrow">{friendId ? 'Player profile' : 'Your account'}</p><h1 className="page-title">{friendId ? person?.name || 'Player' : 'Profile'}</h1></div>{!friendId && <Link className="quiet-action" href="/settings"><Settings size={16} /> Account settings</Link>}</header>
     {error ? <Panel notch="panel" className="p-4"><p role="alert">{error}</p><Button variant="secondary" onClick={() => setAttempt(n => n + 1)}>Try again</Button></Panel> : !data ? <LoadingIndicator label="Loading profile…" /> : <>
       <Panel notch="card" className="profile-identity"><PlayerAvatar name={person!.name} image={person?.image} large /><div className="min-w-0"><p className="eyebrow">{friendId ? 'Your friend' : 'Currently logged in as'}</p><h2 className="break-words font-display text-[28px] leading-tight">{person!.name}</h2></div>{friendId && <Link className="quiet-action ml-auto" href={`/friends/${friendId}`}>Head-to-head <ArrowUpRight size={16} /></Link>}</Panel>
       <div className="profile-layout"><div className="flex flex-col gap-4">
         <Panel notch="panel" className="account-section"><div className="section-heading"><h2>Match summary</h2>{!friendId && <Link href="/stats">Full statistics →</Link>}</div><StatsBoard board={data.periods} compact={!friendId} showHeatmap={Boolean(friendId)} /></Panel>
         <Panel notch="panel" className="account-section"><div className="section-heading"><h2>Achievements</h2></div><Achievements {...data.achievements} /></Panel>
+        {friendId && <Panel notch="panel" className="account-section">
+          <div className="section-heading"><h2>Friendship</h2></div>
+          <p className="text-sm text-sisal">You and {person!.name} are friends. Removing them keeps every match you played together in your history.</p>
+          {removeError && <p role="alert" className="text-sm text-treble">{removeError}</p>}
+          <div className="border-t border-sisal/20 pt-3">
+            {confirmRemove
+              ? <div className="flex flex-wrap items-center gap-2"><p className="text-sm mr-1">Remove {person!.name} from your friends?</p><Button size="sm" disabled={removing} onClick={removeFriend}>{removing ? 'Removing…' : 'Yes, remove'}</Button><Button size="sm" variant="ghost" disabled={removing} onClick={() => setConfirmRemove(false)}>Cancel</Button></div>
+              : <Button variant="secondary" onClick={() => setConfirmRemove(true)}>Remove friend</Button>}
+          </div>
+        </Panel>}
       </div>{!friendId && <aside><Panel notch="panel" className="account-section"><div className="section-heading"><h2>Friends <span className="text-sisal">{data.friends?.length ?? 0}</span></h2><Link href="/friends">Manage →</Link></div>{data.friends?.length ? <div className="profile-friends">{data.friends.map(friend => <Link href={`/profile/${friend.id}`} className="profile-friend" key={friend.id}><PlayerAvatar name={friend.name} image={friend.image} /><span className="truncate">{friend.name}</span><ArrowUpRight size={15} className="ml-auto shrink-0 text-sisal" /></Link>)}</div> : <p className="text-sm text-sisal">Add a friend to see their profile and compare your matches. <Link className="text-wire" href="/friends">Find friends →</Link></p>}</Panel></aside>}</div>
     </>}
   </main>;

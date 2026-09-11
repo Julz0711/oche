@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
-import Link from 'next/link';
 import { tokens } from '@/lib/theme';
 import { Panel } from '@/components/atoms';
 import { PlayerAvatar } from '@/components/profile/PlayerAvatar';
 import { Button } from '@/components/atoms/Button';
+import { BackLink } from '@/components/atoms/BackLink';
 import { useSoundPreference } from '@/hooks/useSoundPreference';
 import { Volume2, VolumeX } from 'lucide-react';
 
@@ -69,7 +69,8 @@ export default function SettingsPage() {
 
   return (
     <main className="account-page page-gutters">
-      <header className="page-heading"><div><p className="eyebrow">Your account</p><h1 className="page-title">Settings</h1></div><Link href="/profile" className="quiet-action">← Profile</Link></header>
+      <BackLink href="/profile" label="Back to profile" />
+      <header className="page-heading"><div><p className="eyebrow">Your account</p><h1 className="page-title">Settings</h1></div></header>
       <div className="settings-layout">
         <Panel notch="card" className="account-section">
           <div className="section-heading"><h2>Profile details</h2></div>

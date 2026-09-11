@@ -9,7 +9,6 @@ import type { AccentToken, MotifName } from '@/components/atoms';
 import { gameRegistry, GameId, getGameModule } from '@/lib/games/registry';
 import { Input } from '@/components/atoms/Input';
 import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
-import { PlayerAvatar } from '@/components/profile/PlayerAvatar';
 import styles from './dashboard.module.css';
 import type { LucideIcon } from 'lucide-react';
 import { X } from 'lucide-react';
@@ -245,7 +244,6 @@ export default function Dashboard() {
     >
       <div className="relative z-10 w-full max-w-3xl flex flex-col gap-3 md:gap-9 pt-0 md:pt-12">
         <header className="dashboard-header flex flex-col gap-2 md:gap-5">
-          {session?.user && <Link href="/profile" className="dashboard-identity"><PlayerAvatar name={session.user.name || 'Player'} image={session.user.image} /><span className="min-w-0"><small>Currently logged in as</small><strong>{session.user.name || 'Player'}</strong></span></Link>}
           <h1 className="text-sisal text-sm md:text-base font-normal">Pick a game, grab your darts</h1>
         </header>
 

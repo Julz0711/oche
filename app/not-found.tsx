@@ -1,7 +1,5 @@
-import Link from 'next/link';
 import { Compass } from 'lucide-react';
 import { BackLink } from '@/components/atoms/BackLink';
-import { Button } from '@/components/atoms/Button';
 import { Panel } from '@/components/atoms/Panel';
 
 export default function NotFound() {
@@ -14,7 +12,6 @@ export default function NotFound() {
         <p className="text-sisal text-sm max-w-sm">
           This page doesn&apos;t exist, or the link is out of date. Check the address, or head back to the dashboard.
         </p>
-        <Link href="/"><Button>Back to dashboard</Button></Link>
       </Panel>
     </main>
   );

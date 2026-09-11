@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Button } from '@/components/atoms/Button';
 
 interface JoinPageProps {
   params: Promise<{ code: string }>;
@@ -39,9 +40,7 @@ export default function JoinPage({ params }: JoinPageProps) {
     return (
       <div className="page-gutters min-h-screen bg-oche text-chalk p-4 text-center flex flex-col items-center justify-center gap-4">
         <span>{error}</span>
-        <Link href="/join" className="min-h-11 flex items-center text-xs font-bold uppercase tracking-widest text-wire hover:text-chalk transition-colors">
-          Try another room code
-        </Link>
+        <Link href="/join"><Button variant="secondary">Try another room code</Button></Link>
       </div>
     );
   }

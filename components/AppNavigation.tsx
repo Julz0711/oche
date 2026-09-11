@@ -32,7 +32,9 @@ export function AppNavigation({ children }: { children: ReactNode }) {
         })}
         <button className="nav-sound" onClick={toggleSound} aria-label={soundEnabled ? 'Mute sound' : 'Unmute sound'} aria-pressed={!soundEnabled} title={soundEnabled ? 'Mute sound' : 'Unmute sound'}>{soundEnabled ? <Volume2 size={18} aria-hidden="true" /> : <VolumeX size={18} aria-hidden="true" />}<span>Sound</span></button>
         <Link className="nav-account" href={session?.user ? '/profile' : '/signin'} aria-current={pathname === '/profile' || pathname === '/settings' ? 'page' : undefined} aria-label="Account">
-          <UserRound size={18} className="nav-account-icon" aria-hidden="true" />
+          {session?.user?.image
+            ? <PlayerAvatar name={session.user.name || 'Player'} image={session.user.image} className="nav-account-icon" />
+            : <UserRound size={18} className="nav-account-icon" aria-hidden="true" />}
           <span className="nav-account-mobile">Account</span>
           <span className="nav-account-desktop"><PlayerAvatar name={session?.user?.name || 'Guest'} image={session?.user?.image} /><span className="nav-account-name">{session?.user?.name || 'Sign in'}</span></span>
         </Link>

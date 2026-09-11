@@ -356,13 +356,10 @@ export async function evaluateVisitAchievements(
 
   // --- Score-based round achievements --------------------------------------
   if (!busted) {
-    const oneEightyPoints = conditionNumber(byId.get('triple_20'), 'points', 180);
+    const oneEighty = byId.get('one_eighty');
+    const oneEightyPoints = conditionNumber(oneEighty, 'points', 180);
 
     if (roundScore >= oneEightyPoints) {
-      const triple20 = byId.get('triple_20');
-      if (triple20) await award(userId, triple20, newAchievements);
-
-      const oneEighty = byId.get('one_eighty');
       if (oneEighty) await award(userId, oneEighty, newAchievements);
 
       const first180 = byId.get('first_180');

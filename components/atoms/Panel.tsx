@@ -12,6 +12,10 @@ interface PanelOwnProps {
   accent?: AccentToken;
   /** Draw the accent bar across the top of the surface. */
   accentBar?: boolean;
+  /** Trace the whole outline in the accent colour. For surfaces whose identity *is* their colour
+   *  — a game card is always "the green one" — as opposed to `active`, which means "this is the
+   *  one you picked". Muted against `active` so a chosen panel still reads as the louder state. */
+  accentTrace?: boolean;
   /** Raised background plus a bold accent ring and a checkmark badge — "this is the one
    *  selected/chosen". */
   active?: boolean;
@@ -75,6 +79,7 @@ export function Panel({
   notch = 'panel',
   accent = 'wire',
   accentBar = false,
+  accentTrace = false,
   active = false,
   activeBadge = true,
   fill,
@@ -88,8 +93,12 @@ export function Panel({
   const notchExpr = notchSize[notch];
 
   // Selection upgrades the trace to a bold, unmistakable full-strength accent border.
-  const borderWidth = active ? 2.5 : 1.5;
-  const borderColor = active ? accentVar[accent] : 'rgba(228,216,188,0.28)';
+  const borderWidth = active ? 2.5 : accentTrace ? 2 : 1.5;
+  const borderColor = active
+    ? accentVar[accent]
+    : accentTrace
+      ? `color-mix(in srgb, ${accentVar[accent]} 60%, transparent)`
+      : 'rgba(228,216,188,0.28)';
 
   // The notch cut is a 45° diagonal, but `padding: borderWidth` insets the inner layer the same
   // few px on every side regardless of edge angle. On a straight edge that px inset IS the

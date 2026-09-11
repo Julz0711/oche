@@ -238,15 +238,15 @@ describe('evaluateVisitAchievements', () => {
     };
     const first = await evaluateVisitAchievements(visit, USER);
     expect(ids(first)).toEqual(
-      expect.arrayContaining(['triple_20', 'one_eighty', 'first_180', 'hundred_point_round'])
+      expect.arrayContaining(['one_eighty', 'first_180', 'hundred_point_round'])
     );
 
     const second = await evaluateVisitAchievements(visit, USER);
-    expect(ids(second)).toContain('triple_20');
+    expect(ids(second)).toContain('one_eighty');
     expect(ids(second)).not.toContain('first_180'); // one-time
 
-    const triple20 = store.userAchievements.find((ua) => ua.achievement_id === 'triple_20');
-    expect(triple20?.count).toBe(2);
+    const oneEighty = store.userAchievements.find((ua) => ua.achievement_id === 'one_eighty');
+    expect(oneEighty?.count).toBe(2);
   });
 
   it('keeps the first award date and records the latest recurring award date', async () => {
@@ -266,7 +266,7 @@ describe('evaluateVisitAchievements', () => {
   it('awards the 100-point round without a 180', async () => {
     const unlocked = await evaluateVisitAchievements({ score: 100, throws: [] }, USER);
     expect(ids(unlocked)).toContain('hundred_point_round');
-    expect(ids(unlocked)).not.toContain('triple_20');
+    expect(ids(unlocked)).not.toContain('one_eighty');
   });
 
   it('prefers an explicit score over the summed throws', async () => {
@@ -289,7 +289,7 @@ describe('evaluateVisitAchievements', () => {
       },
       USER
     );
-    expect(ids(unlocked)).not.toContain('triple_20');
+    expect(ids(unlocked)).not.toContain('one_eighty');
     expect(ids(unlocked)).toContain('first_triple');
   });
 

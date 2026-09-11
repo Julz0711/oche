@@ -113,7 +113,7 @@ export default function StatsPage() {
   }
 
   return (
-    <div className="page-gutters min-h-screen bg-oche text-chalk p-3 md:p-8 flex flex-col items-center">
+    <div className="page-gutters min-h-screen text-chalk p-3 md:p-8 flex flex-col items-center">
       <div className="w-full max-w-3xl flex flex-col gap-3 md:gap-8 pt-0 md:pt-12">
         <header className="flex flex-col gap-3">
           <h1 className="page-title">Your Stats</h1>

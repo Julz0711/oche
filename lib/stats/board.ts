@@ -38,6 +38,10 @@ interface VisitHistoryEntry {
   wasPointWin?: boolean;
   pointsWonBefore?: Record<string, number>;
   checkOut?: 'double' | 'straight' | 'master';
+  legNumberBefore?: number;
+  /** Match-scoped leg identity, stamped on when flattening so the aggregate can tell one match's
+   *  leg 1 from another's. */
+  legKey?: string;
 }
 
 /** Calendar periods in UTC; weeks start on Monday. The UI labels this explicitly. */
@@ -115,7 +119,12 @@ export async function getStatsBoard(db: Db, userId: string, now = new Date()): P
         const checkOut = (match.settings as { checkOut?: unknown } | undefined)?.checkOut;
         const resolvedCheckOut: 'double' | 'straight' | 'master' =
           checkOut === 'straight' ? 'straight' : checkOut === 'master' ? 'master' : 'double';
-        x01Entries.push(...entries.map(entry => ({ ...entry, checkOut: resolvedCheckOut })));
+        const matchId = match._id.toString();
+        x01Entries.push(...entries.map(entry => ({
+          ...entry,
+          checkOut: resolvedCheckOut,
+          legKey: `${matchId}:${entry.legNumberBefore ?? 0}`,
+        })));
         x01MatchCount++;
       }
       else if (match.gameId === 'cricket') cricketEntries.push(...entries);

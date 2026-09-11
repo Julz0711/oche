@@ -1792,3 +1792,47 @@
     padding: 8px 10px;
   }
 }
+
+/* Stats tab: tile groups that reflow to any number of stats, with hairline grid lines drawn by
+   the gap showing the container colour through. */
+.statBlock {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 1px;
+  margin: 12px 0 26px;
+}
+/* Each tile draws its own hairline, so the lines meet in the 1px gaps and a part-filled last row
+   leaves empty space rather than a lighter block of the line colour showing through. */
+.statBlock > div {
+  background: var(--slate);
+  box-shadow: 0 0 0 1px #354139;
+  padding: 16px 12px;
+  text-align: center;
+}
+.statBlock span {
+  display: block;
+  font: 9px monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #a4ada6;
+}
+.statBlock strong {
+  display: block;
+  margin-top: 6px;
+  font: 34px var(--font-display), sans-serif;
+  color: var(--sisal);
+}
+.heatmapWrap {
+  display: grid;
+  place-items: center;
+  margin-top: 14px;
+}
+.heatmapWrap > svg {
+  max-width: 320px;
+}
+@media (max-width: 720px) {
+  .statBlock { grid-template-columns: repeat(auto-fit, minmax(116px, 1fr)); margin-bottom: 20px; }
+  .statBlock > div { padding: 12px 8px; }
+  .statBlock strong { font-size: 27px; }
+  .heatmapWrap > svg { max-width: 260px; }
+}

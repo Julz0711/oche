@@ -8,7 +8,7 @@ const t = (sector: number, ring: 'S' | 'D' | 'T' | 'OB' | 'IB' | 'M', order: 0 |
 describe('aggregateX01Stats', () => {
   it('returns zeroed stats for no entries', () => {
     expect(aggregateX01Stats([])).toEqual({
-      avg3Dart: 0, checkoutRate: 0, visits100: 0, visits140: 0, visits180: 0, busts: 0, bustsPerMatch: 0,
+      avg3Dart: 0, firstNineAvg: 0, checkoutRate: 0, visits100: 0, visits140: 0, visits180: 0, busts: 0, bustsPerMatch: 0,
       bestVisit: 0, highestCheckout: null, doublesRate: 0, treblesRate: 0, commonDoubleOut: null,
     });
   });
@@ -48,6 +48,24 @@ describe('aggregateX01Stats', () => {
     expect(stats.busts).toBe(1);
     expect(stats.bestVisit).toBe(180);
     expect(stats.bustsPerMatch).toBe(0.5); // 1 bust / 2 matches
+  });
+
+  it('takes the first nine darts of each leg separately, weighted by darts, not per-match averages', () => {
+    const dart = (points: number, order: 0 | 1 | 2) => ({ ...t(20, 'S', order), points });
+    // Leg A (match 1): 3 visits of 3 darts — 60 per visit, so all 9 opening darts score 20 each.
+    // Leg B (match 2): a single 3-dart visit of 5s, then the leg ends — only 3 opening darts.
+    const visit = (legKey: string, points: number) => ({
+      playerId: you, throws: [dart(points, 0), dart(points, 1), dart(points, 2)],
+      scoreBefore: 501, scoreAfter: 501 - points * 3, busted: false, wasCheckout: false, legKey,
+    });
+    const entries = [
+      visit('m1:1', 20), visit('m1:1', 20), visit('m1:1', 20),
+      visit('m1:1', 60), // 10th-12th darts of leg A: excluded from the first nine
+      visit('m2:1', 5),
+    ];
+    // First nine: leg A contributes 9 darts × 20 = 180, leg B contributes 3 darts × 5 = 15.
+    // (180 + 15) / 12 darts × 3 = 48.75 -> 48.8. A naive per-match average would be (60+15)/2 = 37.5.
+    expect(aggregateX01Stats(entries, 2).firstNineAvg).toBe(48.8);
   });
 
   it('counts a double/treble as an attempt whether it hits or misses, so the rate is not always 100%', () => {

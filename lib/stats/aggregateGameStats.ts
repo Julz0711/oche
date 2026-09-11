@@ -5,10 +5,10 @@
 // the aggregate-stats spec called out), these accumulate raw totals (points, darts, marks, hits,
 // attempts) across every visit from every included match and only divide once, at the end.
 //
-// Deliberately excluded: any leg-scoped stat (X01's dartsPerLeg/bestLeg, "first nine" darts).
-// Those are only meaningful within a single match/leg — concatenating visits from separate
-// matches would silently merge unrelated legs. They stay per-match-only (PostMatchStats/
-// LiveStatsDrawer, via the existing matchStats), never aggregated here.
+// Leg-scoped stats need a leg identity to aggregate safely, or concatenated visits from separate
+// matches silently merge into one another. "First nine" therefore keys off each entry's `legKey`
+// (stamped in lib/stats/board.ts) and only then weights by darts. X01's dartsPerLeg/bestLeg stay
+// per-match-only (PostMatchStats/LiveStatsDrawer, via the existing matchStats).
 import type { PlayerId, Throw } from '@/lib/types';
 import { scoringVisitStats, doublesAndTreblesStats } from '@/lib/games/x01/visitStats';
 import type { X01Settings } from '@/lib/games/x01/schema';
@@ -25,10 +25,14 @@ interface X01Entry {
    * matches in the same period can use different checkout rules. Defaults to 'double' (the most
    * common rule) when not provided. */
   checkOut?: X01Settings['checkOut'];
+  /** Match-scoped leg identity (see lib/stats/board.ts), so the first-nine average can find the
+   *  opening darts of each leg without mistaking one match's leg 1 for another's. */
+  legKey?: string;
 }
 
 export interface X01AggregateStats {
   avg3Dart: number;
+  firstNineAvg: number;
   checkoutRate: number;
   visits100: number;
   visits140: number;
@@ -45,9 +49,29 @@ export interface X01AggregateStats {
 }
 
 export const EMPTY_X01_AGGREGATE: X01AggregateStats = {
-  avg3Dart: 0, checkoutRate: 0, visits100: 0, visits140: 0, visits180: 0, busts: 0, bustsPerMatch: 0,
+  avg3Dart: 0, firstNineAvg: 0, checkoutRate: 0, visits100: 0, visits140: 0, visits180: 0, busts: 0, bustsPerMatch: 0,
   bestVisit: 0, highestCheckout: null, doublesRate: 0, treblesRate: 0, commonDoubleOut: null,
 };
+
+/** First-nine average across every leg in the period. "First nine" is a per-leg idea, so this
+ * takes each leg's own opening darts (up to 9) and weights by darts thrown — one division at the
+ * end — rather than averaging each match's already-averaged figure, which would let a single
+ * short match count as much as a long one. Entries must arrive in throw order within a leg. */
+function firstNineAverage(entries: X01Entry[]): number {
+  const legs = new Map<string, { points: number; darts: number }>();
+  for (const entry of entries) {
+    const leg = legs.get(entry.legKey ?? '') ?? { points: 0, darts: 0 };
+    for (const dart of entry.throws) {
+      if (leg.darts >= 9) break;
+      leg.points += dart.points;
+      leg.darts++;
+    }
+    legs.set(entry.legKey ?? '', leg);
+  }
+  let points = 0, darts = 0;
+  for (const leg of legs.values()) { points += leg.points; darts += leg.darts; }
+  return darts > 0 ? Math.round((points / darts) * 3 * 10) / 10 : 0;
+}
 
 export function aggregateX01Stats(entries: X01Entry[], matchCount: number = 0): X01AggregateStats {
   if (entries.length === 0) return EMPTY_X01_AGGREGATE;
@@ -107,6 +131,7 @@ export function aggregateX01Stats(entries: X01Entry[], matchCount: number = 0): 
 
   return {
     avg3Dart: totalDarts > 0 ? Math.round((totalPoints / totalDarts) * 3 * 10) / 10 : 0,
+    firstNineAvg: firstNineAverage(entries),
     checkoutRate: checkoutAttempts > 0 ? Math.round((checkoutHits / checkoutAttempts) * 1000) / 10 : 0,
     visits100, visits140, visits180, busts,
     bustsPerMatch: matchCount > 0 ? Math.round((busts / matchCount) * 10) / 10 : 0,

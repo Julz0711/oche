@@ -1,5 +1,5 @@
 // lib/achievements/seed.ts
-import { Achievement } from '../db/models';
+import { Achievement, UserAchievement } from '../db/models';
 
 interface AchievementDefinition {
   achievement_id: string;
@@ -60,18 +60,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     trigger_condition: { event: 'cricket_leg_win', only_required_numbers: true },
   },
 
-  // Epic (5) - display_order 5-9
-  {
-    achievement_id: 'triple_20',
-    name: 'Triple 20',
-    description: 'Score 180 points in a single round',
-    rarity: 'epic',
-    icon: 'Flame',
-    is_repeatable: true,
-    category: 'scoring',
-    display_order: 5,
-    trigger_condition: { event: 'round_score', points: 180 },
-  },
+  // Epic (4) - display_order 5-8
   {
     achievement_id: 'five_win_streak',
     name: '5-Win Streak',
@@ -80,7 +69,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Zap',
     is_repeatable: true,
     category: 'streaks',
-    display_order: 6,
+    display_order: 5,
     trigger_condition: { event: 'win_streak', count: 5 },
   },
   {
@@ -91,7 +80,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Target',
     is_repeatable: true,
     category: 'x01',
-    display_order: 7,
+    display_order: 6,
     trigger_condition: { event: 'match_win', game_type: 'x01', darts_thrown_max: 10 },
   },
   {
@@ -102,22 +91,22 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Crown',
     is_repeatable: false,
     category: 'milestones',
-    display_order: 8,
+    display_order: 7,
     trigger_condition: { event: 'first_win_all_modes', modes: ['x01', 'cricket', 'around_the_board'] },
   },
   {
     achievement_id: 'one_eighty',
     name: '180!',
-    description: 'Score a 180',
+    description: 'Score 180 points in a single round (three treble 20s)',
     rarity: 'epic',
     icon: 'Star',
     is_repeatable: true,
     category: 'scoring',
-    display_order: 9,
+    display_order: 8,
     trigger_condition: { event: 'score_180', is_first: false },
   },
 
-  // Rare (8) - display_order 10-17
+  // Rare (8) - display_order 9-16
   {
     achievement_id: 'twenty_five_plus_wins',
     name: '25+ Wins',
@@ -126,7 +115,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Trophy',
     is_repeatable: false,
     category: 'milestones',
-    display_order: 10,
+    display_order: 9,
     trigger_condition: { event: 'total_wins', count: 25 },
   },
   {
@@ -137,7 +126,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Rocket',
     is_repeatable: true,
     category: 'comebacks',
-    display_order: 11,
+    display_order: 10,
     trigger_condition: { event: 'match_win', points_behind_min: 100 },
   },
   {
@@ -148,7 +137,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Flame',
     is_repeatable: true,
     category: 'scoring',
-    display_order: 12,
+    display_order: 11,
     trigger_condition: { event: 'round_score', points_min: 100 },
   },
   {
@@ -159,7 +148,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Star',
     is_repeatable: true,
     category: 'technique',
-    display_order: 13,
+    display_order: 12,
     trigger_condition: { event: 'round_score', only_triples: true },
   },
   {
@@ -170,7 +159,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Gem',
     is_repeatable: true,
     category: 'technique',
-    display_order: 14,
+    display_order: 13,
     trigger_condition: { event: 'round_score', only_doubles: true },
   },
   {
@@ -181,7 +170,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Medal',
     is_repeatable: true,
     category: 'averages',
-    display_order: 15,
+    display_order: 14,
     trigger_condition: { event: 'leg_average', average_min: 50 },
   },
   {
@@ -192,7 +181,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Zap',
     is_repeatable: false,
     category: 'milestones',
-    display_order: 16,
+    display_order: 15,
     trigger_condition: { event: 'score_180', is_first: true },
   },
   {
@@ -203,11 +192,11 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Shield',
     is_repeatable: true,
     category: 'comebacks',
-    display_order: 17,
+    display_order: 16,
     trigger_condition: { event: 'match_win', lost_first_leg: true },
   },
 
-  // Common (4) - display_order 18-21
+  // Common (4) - display_order 17-20
   {
     achievement_id: 'first_win',
     name: 'First Win',
@@ -216,7 +205,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Trophy',
     is_repeatable: false,
     category: 'milestones',
-    display_order: 18,
+    display_order: 17,
     trigger_condition: { event: 'match_win', count: 1 },
   },
   {
@@ -227,7 +216,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Target',
     is_repeatable: false,
     category: 'milestones',
-    display_order: 19,
+    display_order: 18,
     trigger_condition: { event: 'segment_hit', segment: 20 },
   },
   {
@@ -238,7 +227,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Star',
     is_repeatable: false,
     category: 'milestones',
-    display_order: 20,
+    display_order: 19,
     trigger_condition: { event: 'triple_hit' },
   },
   {
@@ -249,11 +238,11 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Flame',
     is_repeatable: true,
     category: 'streaks',
-    display_order: 21,
+    display_order: 20,
     trigger_condition: { event: 'win_streak', count: 3 },
   },
 
-  // Common (4 more) - display_order 22-25
+  // Common (4 more) - display_order 21-24
   {
     achievement_id: 'first_double_bullseye',
     name: 'First Double Bulls-Eye',
@@ -262,7 +251,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Target',
     is_repeatable: false,
     category: 'milestones',
-    display_order: 22,
+    display_order: 21,
     trigger_condition: { event: 'bullseye_hit', is_double: true },
   },
   {
@@ -273,7 +262,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Repeat',
     is_repeatable: false,
     category: 'milestones',
-    display_order: 23,
+    display_order: 22,
     trigger_condition: { event: 'total_matches_played', count: 10 },
   },
   {
@@ -284,7 +273,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Circle',
     is_repeatable: false,
     category: 'technique',
-    display_order: 24,
+    display_order: 23,
     trigger_condition: { event: 'different_segments_hit', count: 10, per_leg: true },
   },
   {
@@ -295,7 +284,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     icon: 'Crosshair',
     is_repeatable: false,
     category: 'technique',
-    display_order: 25,
+    display_order: 24,
     trigger_condition: { event: 'bullseye_hit_count', count: 10 },
   },
 ];
@@ -309,6 +298,12 @@ export async function seedAchievements(): Promise<void> {
         { upsert: true },
       );
     }
+    // Retire definitions that no longer exist here, along with the unlocks pointing at them —
+    // otherwise a removed achievement lingers in the collection forever and still counts towards
+    // every player's "x of y unlocked" total.
+    const live = ACHIEVEMENT_DEFINITIONS.map(definition => definition.achievement_id);
+    await Achievement.deleteMany({ achievement_id: { $nin: live } });
+    await UserAchievement.deleteMany({ achievement_id: { $nin: live } });
   } catch (error) {
     console.error('Failed to seed achievements:', error);
     throw error;

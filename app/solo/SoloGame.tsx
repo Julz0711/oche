@@ -14,6 +14,9 @@ import {
   Undo2,
 } from "lucide-react";
 import { BackLink } from "@/components/atoms/BackLink";
+import SoloStats from "./SoloStats";
+import { HeatmapBoard } from "@/components/organisms/HeatmapBoard";
+import { runHeatmap } from "@/lib/solo/runStats";
 import { CATALOGUE, item } from "@/lib/games/roguelike/catalogue";
 import {
   canonicalActions,
@@ -150,7 +153,7 @@ export default function SoloGame() {
   const [save, setSave] = useState<RunSave | null>(null),
     [loaded, setLoaded] = useState(false),
     [error, setError] = useState(""),
-    [tab, setTab] = useState<"hub" | "run" | "friends" | "collection">("hub");
+    [tab, setTab] = useState<"hub" | "run" | "friends" | "stats" | "collection">("hub");
   const [difficulty, setDifficulty] = useState<Difficulty>("regular"),
     [starter, setStarter] = useState<16 | 17 | 19>(16),
     [busy, setBusy] = useState(false),
@@ -241,6 +244,17 @@ export default function SoloGame() {
       setRuns(readRuns(localStorage));
       setConfirmEnd(false);
       setTab("hub");
+      setError("");
+    } catch (e) {
+      setError(errorText(e));
+    }
+  }
+  /** The library is the source of these numbers and it changes as you play, so re-read it on the
+   *  way in rather than showing whatever was on disk when the page first loaded. */
+  function showStats() {
+    try {
+      setRuns(readRuns(localStorage));
+      setTab("stats");
       setError("");
     } catch (e) {
       setError(errorText(e));
@@ -379,6 +393,12 @@ export default function SoloGame() {
           Friends leaderboard
         </button>
         <button
+          aria-current={tab === "stats" ? "page" : undefined}
+          onClick={showStats}
+        >
+          Stats
+        </button>
+        <button
           aria-current={tab === "collection" ? "page" : undefined}
           onClick={() => setTab("collection")}
         >
@@ -435,6 +455,7 @@ export default function SoloGame() {
           busy={busy}
         />
       )}
+      {tab === "stats" && loaded && !corrupt && <SoloStats runs={runs} />}
       {tab === "collection" && (
         <>
           <div className={styles.heading}>
@@ -553,6 +574,12 @@ export default function SoloGame() {
                       </div>
                     ))}
                   </div>
+                  <Panel notch="panel" className={styles.panel}>
+                    <h2>Where your darts landed</h2>
+                    <div className={styles.heatmapWrap}>
+                      <HeatmapBoard heatmap={runHeatmap(run)} />
+                    </div>
+                  </Panel>
                   <Panel notch="panel" className={styles.panel}>
                     <h2>Your final build</h2>
                     <div className={styles.tags}>

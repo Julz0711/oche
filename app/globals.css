@@ -368,6 +368,17 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 .nav-sound span { display: none; }
 .nav-sound:hover { color: var(--chalk); }
 .nav-sound[aria-pressed="true"] { color: var(--wire); }
+/* The setup wizard moves focus to each step's heading so screen readers announce the new panel.
+   It isn't a control anyone tabbed to, so it shouldn't paint the global focus ring. */
+.step-heading:focus-visible { outline: none; }
+/* Review step readout: one row per choice — label, value, and a way back to the step that owns it. */
+.dashboard-review > div { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 8px 12px; padding: 10px 0; border-top: 1px solid color-mix(in srgb, var(--sisal) 15%, transparent); }
+.dashboard-review > div:first-child { border-top: 0; }
+.dashboard-review dt { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--sisal); }
+.dashboard-review dd { margin: 0; min-width: 0; overflow-wrap: anywhere; font-family: var(--font-display), sans-serif; font-size: 17px; color: var(--chalk); text-align: right; }
+.dashboard-review button { min-height: 44px; padding: 0 8px; color: var(--wire); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.dashboard-review button:hover:not(:disabled) { color: var(--chalk); }
+.dashboard-review button:disabled { opacity: .4; }
 .play-action { min-height: 56px; padding: 12px 20px; display: flex; align-items: center; justify-content: center; font: 600 22px/1.1 var(--font-display); color: var(--chalk); }
 .play-action-primary { color: var(--oche); }
 .profile-identity { display: flex; align-items: center; gap: 16px; padding: 20px; }
@@ -440,6 +451,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   .nav-destinations .nav-account[aria-current="page"] { border-color: var(--wire); }
   .nav-account-desktop { display: none; }
   .nav-account-icon, .nav-account-mobile, .nav-sound span { display: block; }
+  .nav-account-icon.player-avatar { width: 20px; height: 20px; font-size: 9px; }
   .nav-sound { flex-direction: column; gap: 4px; font-size: 11px; min-height: 60px; border-top: 2px solid transparent; padding: 6px 0; }
   .app-content { padding-top: calc(env(safe-area-inset-top, 0px) + 8px); }
   .app-content .page-gutters { padding-top: 12px; }

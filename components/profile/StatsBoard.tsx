@@ -28,6 +28,7 @@ const GAME_META: Record<string, { name: string; accent: 'wire' | 'double' | 'tre
 function x01Tiles(s: X01AggregateStats): Tile[] {
   return [
     { label: '3-dart avg', value: s.avg3Dart.toFixed(1) },
+    { label: 'First 9 avg', value: s.firstNineAvg.toFixed(1) },
     { label: 'Checkout %', value: `${s.checkoutRate.toFixed(0)}%` },
     { label: 'Best visit', value: String(s.bestVisit) },
     { label: 'High checkout', value: s.highestCheckout ? String(s.highestCheckout) : '—' },
@@ -129,6 +130,5 @@ export function StatsBoard({ board, compact = false, showHeatmap = false }: { bo
       </div>
     )}
     {stats.totalMatches === 0 && <p className="text-sm text-sisal">No completed matches in this period.</p>}
-    <p className="text-[11px] text-sisal">Calendar periods use UTC · Weeks start Monday · Play-style stats are darts-weighted across every match in the period, not averaged match-by-match.</p>
   </div>;
 }

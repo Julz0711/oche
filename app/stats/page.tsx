@@ -5,7 +5,18 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { gameRegistry, GameId } from '@/lib/games/registry';
+import { History } from 'lucide-react';
 import { Panel } from '@/components/atoms';
+import {
+  AppBar,
+  EmptyState,
+  InlineFeedback,
+  MatchHistoryRow,
+  MetricGrid,
+  SegmentedControl,
+  TextLink,
+  groupMatchesByDay,
+} from '@/components/molecules';
 import { StatsBoard } from '@/components/profile/StatsBoard';
 import type { StatsBoard as Board } from '@/lib/stats/board';
 
@@ -30,36 +41,28 @@ interface HistoryResponse {
   };
 }
 
-function GameFilterPills({ value, onChange }: { value: GameId | null; onChange: (value: GameId | null) => void }) {
-  const gameIds = Object.keys(gameRegistry) as GameId[];
-  return (
-    <div className="stats-filter flex gap-1.5 sm:gap-2 flex-wrap">
-      <button
-        type="button"
-        onClick={() => onChange(null)}
-        aria-pressed={value === null}
-        className={`min-h-11 px-3 sm:px-4 py-2 rounded-none text-sm font-bold transition-colors ${
-          value === null ? 'bg-wire text-oche' : 'bg-oche text-sisal border border-sisal/30 hover:opacity-80'
-        }`}
-      >
-        All Games
-      </button>
-      {gameIds.map((id) => (
-        <button
-          key={id}
-          type="button"
-          onClick={() => onChange(id)}
-          aria-pressed={value === id}
-          className={`min-h-11 px-3 sm:px-4 py-2 rounded-none text-sm font-bold capitalize transition-colors ${
-            value === id ? 'bg-wire text-oche' : 'bg-oche text-sisal border border-sisal/30 hover:opacity-80'
-          }`}
-        >
-          {id}
-        </button>
-      ))}
-    </div>
-  );
+/** "All Games" plus one option per registered game. Built once at module scope — the
+ *  registry is static, and rebuilding this array per render would defeat the control's
+ *  memoisation for no benefit. */
+const GAME_FILTER_OPTIONS = [
+  { value: 'all' as const, label: 'All games' },
+  ...(Object.keys(gameRegistry) as GameId[]).map((id) => ({
+    value: id,
+    label: id.charAt(0).toUpperCase() + id.slice(1),
+  })),
+];
+
+/** "3 wins" is a fact; "3 W" is a column header abbreviation that only made sense next to
+ *  other column headers. */
+function streakLabel(streak: { type: 'win' | 'loss' | null; count: number }): string {
+  if (streak.type === null || streak.count === 0) return 'None';
+  const noun = streak.type === 'win' ? 'win' : 'loss';
+  return `${streak.count} ${streak.count === 1 ? noun : noun === 'win' ? 'wins' : 'losses'}`;
 }
+
+/** The chosen game filter survives a trip into a match and back. Session-scoped, because
+ *  "what I was looking at just now" is a property of this visit, not a lasting preference. */
+const FILTER_KEY = 'oche:stats:gameFilter';
 
 export default function StatsPage() {
   const router = useRouter();
@@ -77,6 +80,16 @@ export default function StatsPage() {
     return () => controller.abort();
   }, [sessionStatus, retry]);
   const [gameFilter, setGameFilter] = useState<GameId | null>(null);
+  // Restored after mount, never during render: sessionStorage does not exist on the server,
+  // so reading it any earlier would hydrate a different tree than the one rendered there.
+  useEffect(() => {
+    const saved = sessionStorage.getItem(FILTER_KEY);
+    if (saved && saved in gameRegistry) setGameFilter(saved as GameId);
+  }, []);
+  useEffect(() => {
+    if (gameFilter) sessionStorage.setItem(FILTER_KEY, gameFilter);
+    else sessionStorage.removeItem(FILTER_KEY);
+  }, [gameFilter]);
 
   useEffect(() => {
     if (sessionStatus === 'unauthenticated') {
@@ -112,73 +125,86 @@ export default function StatsPage() {
     return <LoadingIndicator fullPage />;
   }
 
-  return (
-    <div className="page-gutters min-h-screen text-chalk p-3 md:p-8 flex flex-col items-center">
-      <div className="w-full max-w-3xl flex flex-col gap-3 md:gap-8 pt-0 md:pt-12">
-        <header className="flex flex-col gap-3">
-          <h1 className="page-title">Your Stats</h1>
-          <p className="text-sisal text-sm md:text-base mt-1">Every completed match, all in one place</p>
-        </header>
+  const groups = groupMatchesByDay(data?.matches ?? []);
 
-        <Panel notch="panel" className="account-section stats-performance"><div className="section-heading"><h2>Performance</h2></div>{boardError ? <p role="alert" className="text-sm text-sisal">Could not load performance. <button className="text-wire min-h-11" onClick={() => setRetry(n => n + 1)}>Try again</button></p> : board ? <StatsBoard board={board} showHeatmap /> : <LoadingIndicator label="Loading performance…" />}</Panel>
-        <h2 className="font-display text-[24px]">Match history</h2>
+  return (
+    <main className="page-gutters account-page">
+      <AppBar eyebrow="Your record" title="Statistics" />
+
+      <Panel notch="card" className="account-section">
+        <div className="section-header"><h2>Performance</h2></div>
+        {boardError ? (
+          <InlineFeedback tone="error">
+            Could not load performance.{' '}
+            <button className="underline" onClick={() => setRetry((n) => n + 1)}>Try again</button>
+          </InlineFeedback>
+        ) : board ? (
+          <StatsBoard board={board} showHeatmap />
+        ) : (
+          <div className="flex flex-col gap-4" aria-busy="true">
+            <div className="skeleton h-11" />
+            <div className="skeleton h-24" />
+          </div>
+        )}
+      </Panel>
+
+      <section className="flex flex-col gap-4">
+        <div className="section-header"><h2>Match history</h2></div>
+
         {error ? (
-          <p className="text-sisal text-center py-8">Could not load your stats. Try refreshing the page.</p>
+          <InlineFeedback tone="error">Could not load your match history. Try refreshing the page.</InlineFeedback>
         ) : data === null ? (
-          <div className="grid grid-cols-3 gap-2 md:gap-4">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="h-20 bg-slate animate-pulse" style={{ clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%)' }} />
-            ))}
+          <div className="flex flex-col gap-3" aria-busy="true">
+            <div className="skeleton h-20" />
+            {[0, 1, 2].map((i) => <div key={i} className="skeleton h-16" />)}
           </div>
         ) : (
           <>
-            <dl className="history-summary">
-              <div><dt>Played</dt><dd>{data.summary.played}</dd></div>
-              <div><dt>Win rate</dt><dd>{Math.round(data.summary.winRate * 100)}%</dd></div>
-              <div><dt>Streak</dt><dd>{data.summary.currentStreak.type === null ? 'None' : `${data.summary.currentStreak.count} ${data.summary.currentStreak.type === 'win' ? 'W' : 'L'}`}</dd></div>
-            </dl>
+            {/* Three headline numbers, unboxed — the same MetricGrid the profile uses, so a
+                statistic looks identical wherever it appears. */}
+            <MetricGrid
+              cols={3}
+              size="sm"
+              metrics={[
+                { label: 'Matches', value: data.summary.played },
+                { label: 'Win rate', value: `${Math.round(data.summary.winRate * 100)}%` },
+                { label: 'Streak', value: streakLabel(data.summary.currentStreak) },
+              ]}
+            />
 
-            <GameFilterPills value={gameFilter} onChange={setGameFilter} />
+            <SegmentedControl
+              label="Filter by game"
+              value={gameFilter ?? 'all'}
+              onChange={(value) => setGameFilter(value === 'all' ? null : (value as GameId))}
+              options={GAME_FILTER_OPTIONS}
+            />
 
             {data.matches.length === 0 ? (
-              <p className="text-sisal text-center py-8">No completed matches yet. Play a game to see your results.</p>
+              <EmptyState
+                icon={History}
+                title={gameFilter ? `No ${gameFilter} matches yet` : 'No completed matches yet'}
+                body={
+                  gameFilter
+                    ? 'Switch the filter above, or play a round of this game to start a record.'
+                    : 'Finish a match and it lands here with its result and headline number.'
+                }
+                action={<TextLink href="/">Start a match</TextLink>}
+              />
             ) : (
-              <div className="flex flex-col gap-3">
-                {data.matches.map((match) => (
-                  <Panel
-                    key={match.id}
-                    notch="panel"
-                    className="p-3 md:p-4 flex items-center justify-between gap-2 md:gap-4"
-                  >
-                    <div className="min-w-0 flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`text-[10px] font-bold uppercase tracking-widest rounded-none px-2.5 py-1 ${
-                            match.won ? 'bg-double text-chalk' : 'bg-treble text-chalk'
-                          }`}
-                        >
-                          {match.won ? 'Win' : 'Loss'}
-                        </span>
-                        <span className="font-bold capitalize">{match.gameName}</span>
-                      </div>
-                      <span className="text-xs text-sisal break-words">
-                        {new Date(match.completedAt).toLocaleDateString()}
-                        {match.opponents.length > 0 ? ` · vs ${match.opponents.join(', ')}` : ''}
-                      </span>
-                    </div>
-                    <div className="shrink-0 max-w-[35%] text-right flex flex-col items-end gap-0.5">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-sisal">
-                        {match.headline.label}
-                      </span>
-                      <span className="text-lg font-display font-bold">{match.headline.value}</span>
-                    </div>
-                  </Panel>
-                ))}
-              </div>
+              /* Grouped by day, so a long history reads in chunks. Each group is its own
+                 list, which is also what a screen reader announces. */
+              groups.map((group) => (
+                <section key={group.key} className="flex flex-col gap-2" aria-label={group.label}>
+                  <h3 className="history-group"><span className="t-label">{group.label}</span></h3>
+                  <div className="flex flex-col gap-2">
+                    {group.matches.map((match) => <MatchHistoryRow key={match.id} match={match} />)}
+                  </div>
+                </section>
+              ))
             )}
           </>
         )}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

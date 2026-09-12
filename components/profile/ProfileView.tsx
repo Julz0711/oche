@@ -3,12 +3,11 @@ import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Settings, ArrowUpRight } from 'lucide-react';
+import { Settings, Users } from 'lucide-react';
 import { Panel } from '@/components/atoms';
 import { PlayerAvatar } from '@/components/profile/PlayerAvatar';
 import { Button } from '@/components/atoms/Button';
-import { BackLink } from '@/components/atoms/BackLink';
+import { AppBar, EmptyState, InlineFeedback, TextLink } from '@/components/molecules';
 import { StatsBoard } from './StatsBoard';
 import { Achievements, type AchievementsData } from './Achievements';
 import type { StatsBoard as Board } from '@/lib/stats/board';
@@ -58,25 +57,77 @@ export function ProfileView({ friendId }: { friendId?: string }) {
     finally { setRemoving(false); }
   }
   const person = friendId ? data?.person : { name: session?.user?.name || 'Player', image: session?.user?.image };
+  const name = person?.name || 'Player';
+
   return <main className="account-page page-gutters">
-    {friendId && <BackLink href="/friends" label="Back to friends" />}
-    <header className="page-heading"><div><p className="eyebrow">{friendId ? 'Player profile' : 'Your account'}</p><h1 className="page-title">{friendId ? person?.name || 'Player' : 'Profile'}</h1></div>{!friendId && <Link className="quiet-action" href="/settings"><Settings size={16} /> Account settings</Link>}</header>
-    {error ? <Panel notch="panel" className="p-4"><p role="alert">{error}</p><Button variant="secondary" onClick={() => setAttempt(n => n + 1)}>Try again</Button></Panel> : !data ? <LoadingIndicator label="Loading profile…" /> : <>
-      <Panel notch="card" className="profile-identity"><PlayerAvatar name={person!.name} image={person?.image} large /><div className="min-w-0"><p className="eyebrow">{friendId ? 'Your friend' : 'Currently logged in as'}</p><h2 className="break-words font-display text-[28px] leading-tight">{person!.name}</h2></div>{friendId && <Link className="quiet-action ml-auto" href={`/friends/${friendId}`}>Head-to-head <ArrowUpRight size={16} /></Link>}</Panel>
-      <div className="profile-layout"><div className="flex flex-col gap-4">
-        <Panel notch="panel" className="account-section"><div className="section-heading"><h2>Match summary</h2>{!friendId && <Link href="/stats">Full statistics →</Link>}</div><StatsBoard board={data.periods} compact={!friendId} showHeatmap={Boolean(friendId)} /></Panel>
-        <Panel notch="panel" className="account-section"><div className="section-heading"><h2>Achievements</h2></div><Achievements {...data.achievements} /></Panel>
-        {friendId && <Panel notch="panel" className="account-section">
-          <div className="section-heading"><h2>Friendship</h2></div>
-          <p className="text-sm text-sisal">You and {person!.name} are friends. Removing them keeps every match you played together in your history.</p>
-          {removeError && <p role="alert" className="text-sm text-treble">{removeError}</p>}
-          <div className="border-t border-sisal/20 pt-3">
-            {confirmRemove
-              ? <div className="flex flex-wrap items-center gap-2"><p className="text-sm mr-1">Remove {person!.name} from your friends?</p><Button size="sm" disabled={removing} onClick={removeFriend}>{removing ? 'Removing…' : 'Yes, remove'}</Button><Button size="sm" variant="ghost" disabled={removing} onClick={() => setConfirmRemove(false)}>Cancel</Button></div>
-              : <Button variant="secondary" onClick={() => setConfirmRemove(true)}>Remove friend</Button>}
+    {/* The player's name IS the page title on a friend's profile, and their avatar sits in the
+        bar beside it. It used to be repeated again immediately below in a full-width identity
+        card — the audit's "friend identity is repeated multiple times". */}
+    <AppBar
+      back={friendId ? { href: '/friends', label: 'Back to friends' } : undefined}
+      eyebrow={friendId ? 'Player profile' : 'Your account'}
+      title={<span className="profile-title">
+        <PlayerAvatar name={name} image={person?.image} />
+        <span className="truncate">{friendId ? name : 'Profile'}</span>
+      </span>}
+      action={friendId
+        ? <TextLink href={`/friends/${friendId}`} arrow="detail">Head-to-head</TextLink>
+        : <TextLink href="/settings" arrow="none"><Settings size={15} aria-hidden="true" /> Settings</TextLink>}
+    />
+
+    {error ? <Panel notch="panel" className="p-4 flex flex-col items-start gap-3">
+      <InlineFeedback tone="error">{error}</InlineFeedback>
+      <Button variant="secondary" onClick={() => setAttempt(n => n + 1)}>Try again</Button>
+    </Panel> : !data ? <LoadingIndicator label="Loading profile…" /> : <>
+      <div className="profile-layout"><div className="flex flex-col gap-5">
+        <Panel notch="card" className="account-section">
+          <div className="section-header">
+            <h2>Match summary</h2>
+            {!friendId && <TextLink href="/stats">View statistics</TextLink>}
           </div>
+          <StatsBoard board={data.periods} compact={!friendId} showHeatmap={Boolean(friendId)} />
+        </Panel>
+
+        <Panel notch="panel" className="account-section">
+          <div className="section-header"><h2>Achievements</h2></div>
+          <Achievements {...data.achievements} />
+        </Panel>
+
+        {friendId && <Panel notch="panel" className="account-section">
+          <div className="section-header"><h2>Friendship</h2></div>
+          <p className="t-body">You and {name} are friends. Removing them keeps every match you played together in your history.</p>
+          {removeError && <InlineFeedback tone="error">{removeError}</InlineFeedback>}
+          {/* Destructive and rarely wanted, so it is a quiet text action rather than a
+              full-width button, and it still asks before doing anything. */}
+          {confirmRemove
+            ? <div className="flex flex-wrap items-center gap-2">
+                <p className="t-body">Remove {name} from your friends?</p>
+                <Button size="sm" disabled={removing} onClick={removeFriend}>{removing ? 'Removing…' : 'Yes, remove'}</Button>
+                <Button size="sm" variant="ghost" disabled={removing} onClick={() => setConfirmRemove(false)}>Cancel</Button>
+              </div>
+            : <button type="button" className="danger-action" onClick={() => setConfirmRemove(true)}>Remove friend</button>}
         </Panel>}
-      </div>{!friendId && <aside><Panel notch="panel" className="account-section"><div className="section-heading"><h2>Friends <span className="text-sisal">{data.friends?.length ?? 0}</span></h2><Link href="/friends">Manage →</Link></div>{data.friends?.length ? <div className="profile-friends">{data.friends.map(friend => <Link href={`/profile/${friend.id}`} className="profile-friend" key={friend.id}><PlayerAvatar name={friend.name} image={friend.image} /><span className="truncate">{friend.name}</span><ArrowUpRight size={15} className="ml-auto shrink-0 text-sisal" /></Link>)}</div> : <p className="text-sm text-sisal">Add a friend to see their profile and compare your matches. <Link className="text-wire" href="/friends">Find friends →</Link></p>}</Panel></aside>}</div>
+      </div>
+
+      {!friendId && <aside><Panel notch="panel" className="account-section">
+        <div className="section-header">
+          <h2>Friends <span className="section-header-count">{data.friends?.length ?? 0}</span></h2>
+          <TextLink href="/friends">Manage friends</TextLink>
+        </div>
+        {data.friends?.length
+          ? <div className="profile-friends">{data.friends.map(friend =>
+              <TextLink key={friend.id} href={`/profile/${friend.id}`} arrow="detail" className="profile-friend">
+                <PlayerAvatar name={friend.name} image={friend.image} />
+                <span className="truncate">{friend.name}</span>
+              </TextLink>)}
+            </div>
+          : <EmptyState
+              icon={Users}
+              title="No friends yet"
+              body="Add a player to compare your matches and keep a head-to-head record."
+              action={<TextLink href="/friends">Find friends</TextLink>}
+            />}
+      </Panel></aside>}</div>
     </>}
   </main>;
 }

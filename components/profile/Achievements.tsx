@@ -4,6 +4,8 @@ import type { Achievement, UserAchievement } from '@/lib/achievements/types';
 import { getIconForAchievement } from '@/lib/achievements/icons';
 import { rarityColors } from '@/lib/theme';
 import { Button } from '@/components/atoms/Button';
+import { EmptyState, SegmentedControl, TextButton } from '@/components/molecules';
+import { Trophy } from 'lucide-react';
 export interface AchievementsData { unlocked: UserAchievement[]; definitions: Achievement[] }
 
 function AchievementDetails({ achievement, award, close }: { achievement: Achievement; award?: UserAchievement; close: () => void }) {
@@ -29,14 +31,62 @@ export function Achievements({ unlocked, definitions }: AchievementsData) {
   const [showLocked, setShowLocked] = useState(false);
   const awards = new Map(unlocked.map(award => [award.achievement_id, award]));
   const visible = definitions.filter(achievement => showLocked || awards.has(achievement.achievement_id));
-  return <div className="flex flex-col gap-3">
-    <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-sisal">{unlocked.length} of {definitions.length} unlocked</p><button type="button" aria-pressed={showLocked} onClick={() => setShowLocked(!showLocked)} className="min-h-11 text-xs text-wire">{showLocked ? 'Show unlocked only' : 'Show all achievements'}</button></div>
-    {visible.length ? <div className="achievement-grid">{visible.map(achievement => {
+  const progress = definitions.length ? Math.round((unlocked.length / definitions.length) * 100) : 0;
+
+  return <div className="flex flex-col gap-4">
+    {/* Progress first: "11 of 40" is the thing a reader wants from this section at a glance,
+        and it was previously the smallest, quietest text in it. */}
+    <div className="achievement-progress">
+      <p><strong>{unlocked.length}</strong> of {definitions.length} unlocked</p>
+      <div
+        className="achievement-progress-bar"
+        role="progressbar"
+        aria-valuenow={unlocked.length}
+        aria-valuemin={0}
+        aria-valuemax={definitions.length}
+        aria-label="Achievements unlocked"
+      >
+        <span style={{ width: `${progress}%` }} />
+      </div>
+    </div>
+
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <TextButton aria-pressed={showLocked} onClick={() => setShowLocked(!showLocked)}>
+        {showLocked ? 'View unlocked only' : 'View all achievements'}
+      </TextButton>
+    </div>
+
+    {visible.length ? <ul className="achievement-grid">{visible.map(achievement => {
       const award = awards.get(achievement.achievement_id);
-      return <button key={achievement.achievement_id} type="button" data-rarity={achievement.rarity} style={award ? { borderColor: rarityColors[achievement.rarity].border, backgroundColor: rarityColors[achievement.rarity].bg } : undefined} className={`achievement-tile ${award ? '' : 'achievement-locked'}`} onClick={() => setSelected(achievement)} aria-haspopup="dialog">
-        <span className="text-[26px]" aria-hidden="true">{getIconForAchievement(achievement.icon)}</span><span className="min-w-0"><strong>{achievement.name}</strong><small>{award ? achievement.is_repeatable ? `${achievement.rarity} · Earned ${award.count}×` : `${achievement.rarity} · Unlocked` : `${achievement.rarity} · Locked`}</small></span>
-      </button>;
-    })}</div> : <p className="text-sm text-sisal">No achievements yet. Show all to see what you can earn.</p>}
+      return <li key={achievement.achievement_id}>
+        {/* Locked tiles are stated in words ("Locked") as well as being dimmer, and unlocked
+            ones carry their rarity colour only as a left edge — a full coloured border on
+            every tile made forty of them read as one texture. */}
+        <button
+          type="button"
+          data-rarity={achievement.rarity}
+          style={award ? { borderLeftColor: rarityColors[achievement.rarity].border } : undefined}
+          className={`achievement-tile ${award ? '' : 'achievement-locked'}`}
+          onClick={() => setSelected(achievement)}
+          aria-haspopup="dialog"
+        >
+          <span className="achievement-icon" aria-hidden="true">{getIconForAchievement(achievement.icon)}</span>
+          <span className="min-w-0">
+            <strong>{achievement.name}</strong>
+            {/* Status only. Pairing it with the rarity made a two-word line that truncated on
+                every tile; rarity is what the coloured left edge and the detail dialog are
+                for, and it is not something you scan a grid of forty tiles to compare. */}
+            <small>{award
+              ? achievement.is_repeatable ? `Earned ${award.count}×` : 'Unlocked'
+              : 'Locked'}</small>
+          </span>
+        </button>
+      </li>;
+    })}</ul> : <EmptyState
+      icon={Trophy}
+      title="No achievements yet"
+      body="Play a match and the first ones start unlocking. Use “View all achievements” to see what is on offer."
+    />}
     {selected && <AchievementDetails achievement={selected} award={awards.get(selected.achievement_id)} close={() => setSelected(null)} />}
   </div>;
 }

@@ -1,10 +1,12 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { StatsBoard as Board, StatsPeriod } from '@/lib/stats/board';
 import type { X01AggregateStats, CricketAggregateStats, CopycatAggregateStats } from '@/lib/stats/aggregateGameStats';
-import { HeatmapBoard } from '@/components/organisms/HeatmapBoard';
+import { Target } from 'lucide-react';
+import { EmptyState, MetricGrid, SegmentedControl, HeatmapFigure } from '@/components/molecules';
+import type { Metric } from '@/components/molecules';
 
-interface Tile { label: string; value: string }
+type Tile = Metric;
 
 /** Heatmap keys are `${ring}${sector}` (ring one of S/D/T/OB/IB) or the fixed `M0` for a miss —
  *  see lib/stats/board.ts. A double/inner-bull or treble/outer-bull is unambiguous from the key's
@@ -60,6 +62,8 @@ function copycatTiles(s: CopycatAggregateStats): Tile[] {
   ];
 }
 
+/** One game's numbers. The card is bounded by a single accent edge and its own spacing —
+ *  no outline, and none of the per-statistic boxes the tiles used to sit in. */
 function GameStatsCard({ gameId, played, wins, winRate, tiles, heatmap, dartsThrown }: {
   gameId: string; played: number; wins: number; winRate: number; tiles: Tile[];
   heatmap?: Record<string, number>; dartsThrown?: number;
@@ -69,43 +73,66 @@ function GameStatsCard({ gameId, played, wins, winRate, tiles, heatmap, dartsThr
     <section className="stats-game-card" style={{ borderColor: `var(--${meta.accent})` }} aria-labelledby={`stats-game-${gameId}`}>
       <div className="stats-game-card-heading">
         <h3 id={`stats-game-${gameId}`} style={{ color: `var(--${meta.accent})` }}>{meta.name}</h3>
-        <span>{played} played · {wins}W · {winRate}%</span>
+        <span>{played} played · {wins} won · {winRate}%</span>
       </div>
-      <dl className="player-stat-grid stats-game-tiles">
-        {tiles.map(tile => <div key={tile.label}><dt>{tile.label}</dt><dd>{tile.value}</dd></div>)}
-      </dl>
+      <MetricGrid metrics={tiles} cols="auto" size="sm" />
       {heatmap && (
         <div className="stats-heatmaps">
-          <div className="stats-heatmap-item">
-            <h4>All throws</h4>
-            <p>{dartsThrown ? `${dartsThrown} recorded darts` : 'No recorded darts in this period'}</p>
-            <HeatmapBoard heatmap={heatmap} />
-          </div>
-          <div className="stats-heatmap-item">
-            <h4>Finishing throws</h4>
-            <p>Doubles, trebles &amp; bulls</p>
-            <HeatmapBoard heatmap={finishingHeatmap(heatmap)} />
-          </div>
+          <HeatmapFigure
+            title="All throws"
+            caption={dartsThrown ? `${dartsThrown} recorded darts` : 'No recorded darts in this period'}
+            heatmap={heatmap}
+          />
+          <HeatmapFigure
+            title="Finishing throws"
+            caption="Doubles, trebles and bulls only"
+            heatmap={finishingHeatmap(heatmap)}
+          />
         </div>
       )}
     </section>
   );
 }
 
+const PERIOD_OPTIONS = [
+  { value: 'day', label: 'Daily' },
+  { value: 'week', label: 'Weekly' },
+  { value: 'month', label: 'Monthly' },
+  { value: 'all', label: 'All time' },
+] as const satisfies readonly { value: StatsPeriod; label: string }[];
+
+/** The chosen period is remembered for the visit, so opening a match and coming back doesn't
+ *  silently reset a reader from "Weekly" to "All time" under them. */
+const PERIOD_KEY = 'oche:stats:period';
+
 export function StatsBoard({ board, compact = false, showHeatmap = false }: { board: Board; compact?: boolean; showHeatmap?: boolean }) {
   const [period, setPeriod] = useState<StatsPeriod>('all');
+  // After mount only — sessionStorage doesn't exist during the server render.
+  useEffect(() => {
+    const saved = sessionStorage.getItem(PERIOD_KEY);
+    if (saved && PERIOD_OPTIONS.some(option => option.value === saved)) setPeriod(saved as StatsPeriod);
+  }, []);
+  useEffect(() => { sessionStorage.setItem(PERIOD_KEY, period); }, [period]);
   const stats = board[period];
   const gameCards = stats.games.filter(game => GAME_META[game.gameId]);
 
-  return <div className="flex flex-col gap-3">
-    <div className="period-picker" role="group" aria-label="Statistics period">
-      {([['day', 'Daily'], ['week', 'Weekly'], ['month', 'Monthly'], ['all', 'All time']] as const).map(([key, label]) =>
-        <button key={key} type="button" aria-pressed={period === key} onClick={() => setPeriod(key)}>{label}</button>)}
-    </div>
-    <dl className="profile-totals" aria-live="polite">
-      {([['Played', stats.totalMatches], ['Win rate', `${stats.winRate}%`], ['Wins', stats.wins], ['Losses', stats.losses]] as const).map(([label, value]) =>
-        <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
-    </dl>
+  return <div className="flex flex-col gap-5">
+    <SegmentedControl
+      label="Statistics period"
+      value={period}
+      onChange={setPeriod}
+      options={PERIOD_OPTIONS}
+    />
+    <MetricGrid
+      cols={4}
+      aria-live="polite"
+      metrics={[
+        { label: 'Matches', value: stats.totalMatches },
+        { label: 'Win rate', value: `${stats.winRate}%` },
+        { label: 'Wins', value: stats.wins },
+        { label: 'Losses', value: stats.losses },
+      ]}
+    />
     {!compact && gameCards.length > 0 && (
       <div className="stats-game-cards">
         {gameCards.map(game => {
@@ -129,6 +156,12 @@ export function StatsBoard({ board, compact = false, showHeatmap = false }: { bo
         })}
       </div>
     )}
-    {stats.totalMatches === 0 && <p className="text-sm text-sisal">No completed matches in this period.</p>}
+    {stats.totalMatches === 0 && (
+      <EmptyState
+        icon={Target}
+        title="Nothing in this period yet"
+        body="Finish a match and its numbers show up here. Widen the period above to see older results."
+      />
+    )}
   </div>;
 }

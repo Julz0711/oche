@@ -166,3 +166,22 @@ export function summarize(setup: MatchSetup): SummaryRow[] {
   }
   return rows;
 }
+
+/** A single line naming every rule the match will be played under — `501 · First to 1 leg ·
+ *  No sets`. Shown next to the forward action on the settings step so the choice being
+ *  confirmed is readable at the moment of confirming it, without reading a whole table.
+ *
+ *  Deliberately built from the same `summarize` rows as the review step, so the two can never
+ *  disagree about what is about to be sent. `Mode` and `Players` are dropped: the mode is
+ *  already the selected tab, and a player list is too long for one line. */
+export function summaryLine(setup: MatchSetup): string {
+  return summarize(setup)
+    .filter(row => row.step === 'settings' && row.label !== 'Players')
+    .map(row => {
+      if (row.label === 'Legs') return `First to ${row.value.replace('First to ', '')} leg${row.value.endsWith('1') ? '' : 's'}`;
+      if (row.label === 'Sets') return row.value === 'Off' ? 'No sets' : `${row.value} sets`;
+      if (row.label === 'Points') return `${row.value} points`;
+      return row.value;
+    })
+    .join(' · ');
+}

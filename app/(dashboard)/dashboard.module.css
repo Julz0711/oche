@@ -33,13 +33,13 @@
 }
 .tabs button:focus-visible { outline: 2px solid #c0a15c; outline-offset: 3px; }
 .tabs button:disabled { opacity: .5; }
-.playPanel { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.playPanel { display: flex; flex-direction: column; flex: 1; gap: var(--space-5); min-width: 0; }
 @media (max-width: 639px) {
   .tabs { gap: 8px; }
   .tabs button { padding: 12px 10px; min-height: 76px; }
   .tabs button strong { font-size: 25px; }
   .tabs button span { font-size: 10px; line-height: 1.5; }
-  .playPanel { gap: 16px; }
+  .playPanel { gap: var(--space-4); }
 }
 .soloLink { display: block; min-width: 0; }
 .soloLink:focus-visible { outline: 2px solid var(--wire); outline-offset: 4px; }
@@ -53,65 +53,88 @@
   margin: 0;
   padding: 0;
 }
+/* Three markers on one rail. The boxes are gone — a step's state is carried by its rail
+   segment and its number badge, which is all the box was ever communicating. */
 .stepper button {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   width: 100%;
-  min-height: 44px;
-  padding: 8px 12px;
+  min-height: var(--height-button);
+  padding: var(--space-2) 0 var(--space-2);
   background: transparent;
-  border: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent);
-  border-bottom: 3px solid color-mix(in srgb, var(--sisal) 20%, transparent);
-  color: #a4ada6;
-  font: 600 12px/1.2 var(--font-sans), sans-serif;
+  border: 0;
+  border-top: 2px solid var(--border-subtle);
+  color: var(--text-disabled);
+  font: 600 11px/1.2 var(--font-sans), sans-serif;
   text-transform: uppercase;
   letter-spacing: .08em;
   text-align: left;
-  transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+  transition: color 160ms ease, border-color 160ms ease;
 }
 .stepper button > span {
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
   border: 1px solid currentColor;
   font-family: var(--font-display), sans-serif;
   font-size: 12px;
 }
-.stepper li[data-state='done'] button { color: var(--sisal); }
-.stepper li[data-state='done'] button:hover { background: color-mix(in srgb, var(--slate) 60%, transparent); color: var(--chalk); }
-.stepper li[data-state='current'] button {
-  background: var(--slate);
-  border-color: color-mix(in srgb, var(--wire) 40%, transparent);
-  border-bottom-color: var(--wire);
-  color: var(--chalk);
-}
+.stepper li[data-state='done'] button { color: var(--text-secondary); border-top-color: color-mix(in srgb, var(--wire) 55%, transparent); }
+.stepper li[data-state='done'] button:hover { color: var(--chalk); }
+.stepper li[data-state='current'] button { border-top-color: var(--wire); color: var(--chalk); }
 .stepper li[data-state='current'] button > span { background: var(--wire); border-color: var(--wire); color: var(--oche); }
 .stepper button:disabled { cursor: default; }
-.stepper li[data-state='todo'] button:disabled { opacity: .55; }
+/* A step you can't reach yet stays legible — dimming it to 55% opacity put it under the
+   contrast floor, which is what made "disabled" and "unavailable" indistinguishable. */
+.stepper li[data-state='todo'] button:disabled { color: var(--text-disabled); }
 .stepper button:focus-visible { outline: 2px solid var(--wire); outline-offset: 3px; }
 
-.stepNav { display: flex; gap: 12px; }
+/* Docked to the bottom of the step panel: on the short settings and review steps the forward
+   action used to sit high on the screen above a large empty region, out of thumb reach. */
+/* The dock holds the summary line and the navigation together, pushed to the bottom of the
+   step panel as one unit. */
+.stepDock { display: flex; flex-direction: column; gap: var(--space-2); margin-top: auto; padding-top: var(--space-5); }
+.stepNav { display: flex; align-items: center; gap: var(--space-3); }
 .stepNav button {
-  flex: 1;
   min-height: 48px;
-  padding: 12px 20px;
+  padding: var(--space-3) var(--space-5);
   background: transparent;
-  border: 1px solid var(--wire);
-  color: var(--wire);
+  border: 0;
+  color: var(--text-secondary);
   font: 600 14px/1 var(--font-sans), sans-serif;
+  transition: color 160ms ease, opacity 160ms ease;
+}
+/* Back is a tertiary escape hatch: no border, no fill, sized to its own label. */
+.stepNav button:not([data-primary]) { padding-inline: var(--space-2); margin-left: calc(var(--space-2) * -1); }
+.stepNav button:not([data-primary]):hover:not(:disabled) { color: var(--chalk); }
+/* Next carries the flow, so it gets the fill and the remaining width. */
+.stepNav button[data-primary] {
+  flex: 1;
+  background: var(--wire);
+  color: var(--oche);
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .06em;
-  transition: opacity 160ms ease;
 }
-.stepNav button[data-primary] { background: var(--wire); color: var(--oche); }
-.stepNav button:hover:not(:disabled) { opacity: .85; }
-.stepNav button:disabled { opacity: .4; }
+.stepNav button[data-primary]:hover:not(:disabled) { opacity: .88; }
+.stepNav button:disabled { color: var(--text-disabled); }
+.stepNav button[data-primary]:disabled { background: color-mix(in srgb, var(--wire) 35%, var(--oche)); color: var(--text-disabled); }
 .stepNav button:focus-visible { outline: 2px solid var(--wire); outline-offset: 3px; }
 
+/* A one-line readout of everything chosen so far, sitting directly above the forward action
+   so the choice being confirmed is visible at the moment of confirming it. */
+.stepSummary {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 16px;
+  overflow-wrap: anywhere;
+}
+.stepSummary strong { color: var(--text-secondary); font-weight: 600; }
+
 @media (max-width: 639px) {
-  .stepper button { flex-direction: column; align-items: flex-start; gap: 4px; padding: 8px; font-size: 10px; }
-  .stepNav button { padding: 12px 10px; font-size: 13px; }
+  .stepper button { flex-direction: column; align-items: flex-start; gap: var(--space-1); padding-block: var(--space-2); font-size: 10px; }
+  .stepNav button[data-primary] { padding-inline: var(--space-3); font-size: 13px; }
 }

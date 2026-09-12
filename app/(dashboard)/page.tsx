@@ -16,6 +16,7 @@ import {
   buildSettings,
   loadSetup,
   saveSetup,
+  summaryLine,
 } from './matchSetup';
 import styles from './dashboard.module.css';
 
@@ -124,8 +125,11 @@ export default function Dashboard() {
   const heading = step === 'game' ? 'Pick a game' : step === 'settings' ? 'Match settings' : 'Review & start';
 
   return (
-    <div className="dashboard-page page-gutters min-h-screen text-chalk p-3 md:p-8 flex flex-col items-center relative">
-      <div className="relative z-10 w-full max-w-3xl flex flex-col gap-3 md:gap-9 pt-0 md:pt-12">
+    <div className="dashboard-page page-gutters min-h-screen text-chalk flex flex-col items-center relative">
+      {/* flex-1 on the column, and on the step panel inside it, is what lets the forward
+          action dock to the bottom of the viewport on the short steps instead of leaving a
+          large dead region below it. */}
+      <div className="relative z-10 w-full max-w-3xl flex flex-col flex-1 gap-4 md:gap-6">
         <nav className={styles.stepper} aria-label="Match setup progress">
           <ol>
             {WIZARD_STEPS.map((entry, index) => {
@@ -147,8 +151,8 @@ export default function Dashboard() {
           </ol>
         </nav>
 
-        <header className="dashboard-header flex flex-col gap-2 md:gap-5">
-          <h1 id="dashboard-step-heading" ref={headingRef} tabIndex={-1} className="step-heading text-sisal text-sm md:text-base font-normal">
+        <header className="dashboard-header">
+          <h1 id="dashboard-step-heading" ref={headingRef} tabIndex={-1} className="step-heading page-title">
             {heading}
           </h1>
         </header>
@@ -190,15 +194,19 @@ export default function Dashboard() {
           )}
 
           {step !== 'game' && (
-            <div className={styles.stepNav}>
-              <button type="button" onClick={() => setStep(step === 'review' ? 'settings' : 'game')} disabled={creating}>
-                Back
-              </button>
-              {step === 'settings' && (
-                <button type="button" data-primary onClick={() => setStep('review')}>
-                  Next
+            <div className={styles.stepDock}>
+              {/* The rules as one line, directly above the action that accepts them. */}
+              {step === 'settings' && <p className={styles.stepSummary}>{summaryLine(setup)}</p>}
+              <div className={styles.stepNav}>
+                <button type="button" onClick={() => setStep(step === 'review' ? 'settings' : 'game')} disabled={creating}>
+                  Back
                 </button>
-              )}
+                {step === 'settings' && (
+                  <button type="button" data-primary onClick={() => setStep('review')}>
+                    Review
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </section>

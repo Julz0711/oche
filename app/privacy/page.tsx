@@ -1,5 +1,5 @@
 import { tokens } from '@/lib/theme';
-import { BackLink } from '@/components/atoms/BackLink';
+import { AppBar } from '@/components/molecules';
 
 export const metadata = {
   title: 'Privacy Policy - Oche',
@@ -8,15 +8,10 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: tokens.oche }}>
-      <div className="page-gutters max-w-2xl mx-auto px-3 py-3 md:px-4 md:py-12" style={{ color: tokens.chalk }}>
-        <div className="mb-4 md:mb-8"><BackLink href="/" label="Back to Oche" /></div>
+    <main className="legal-page page-gutters">
+      <AppBar back={{ href: '/', label: 'Back to Oche' }} eyebrow="Oche" title="Privacy policy" />
 
-        <h1 className="page-title mb-4 md:mb-8" style={{ color: tokens.wire }}>
-          Privacy Policy
-        </h1>
-
-        <div className="space-y-6 text-sm leading-relaxed" style={{ color: tokens.sisal }}>
+      <div className="space-y-6 text-sm leading-relaxed" style={{ color: tokens.sisal }}>
           <section>
             <h2 className="text-lg md:text-xl font-bold mb-2 md:mb-3" style={{ color: tokens.chalk }}>Introduction</h2>
             <p>
@@ -70,7 +65,6 @@ export default function PrivacyPage() {
             <p className="text-xs" style={{ color: tokens.sisal }}>Last updated: September 2026</p>
           </div>
         </div>
-      </div>
-    </div>
+    </main>
   );
 }

@@ -6,6 +6,7 @@ import {
   parseSetup,
   serializeSetup,
   summarize,
+  summaryLine,
 } from './matchSetup';
 
 const custom: MatchSetup = {
@@ -91,5 +92,33 @@ describe('summarize', () => {
     const rows = summarize(custom);
     expect(rows.map(row => row.label)).toEqual(['Mode', 'Game', 'Legs', 'Scoring', 'Players']);
     expect(rows.find(row => row.label === 'Players')?.value).toBe('Ann, Bo, Cy');
+  });
+});
+
+describe('summaryLine', () => {
+  it('names every X01 rule in one line', () => {
+    expect(summaryLine(DEFAULT_SETUP)).toBe('501 · First to 1 leg · No sets');
+  });
+
+  it('pluralises legs and names a set target', () => {
+    const setup: MatchSetup = { ...DEFAULT_SETUP, x01: { startingScore: 301, firstTo: 5, sets: 3 } };
+    expect(summaryLine(setup)).toBe('301 · First to 5 legs · First to 3 sets');
+  });
+
+  it('describes Cricket by its own rules, not X01s', () => {
+    const setup: MatchSetup = { ...DEFAULT_SETUP, gameId: 'cricket', cricket: { firstTo: 3, scoring: 'no-points' } };
+    expect(summaryLine(setup)).toBe('First to 3 legs · No points');
+  });
+
+  it('describes Copycat by its point target', () => {
+    const setup: MatchSetup = { ...DEFAULT_SETUP, gameId: 'copycat', copycat: { firstTo: 7 } };
+    expect(summaryLine(setup)).toBe('First to 7 points');
+  });
+
+  // The mode is already the selected tab, and a list of names does not fit on one line.
+  it('leaves out the mode and the player list', () => {
+    const line = summaryLine({ ...DEFAULT_SETUP, mode: 'singleplayer', playerNames: ['Ann', 'Bo'] });
+    expect(line).not.toContain('Ann');
+    expect(line).not.toContain('Local');
   });
 });

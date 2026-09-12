@@ -4,10 +4,15 @@ import { PlayerAvatar } from '@/components/profile/PlayerAvatar';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { ArrowUpRight, Copy, Share2, Users } from 'lucide-react';
 import { Panel } from '@/components/atoms/Panel';
 import { Button } from '@/components/atoms/Button';
+import { AppBar, EmptyState, InlineFeedback, TextLink } from '@/components/molecules';
 import { normalizeFriendCode } from '@/lib/friends/policy';
 import type { FriendsResponse, FriendAction, FriendPerson } from '@/lib/friends/types';
+
+/** Below this many friends a search field is just another control to skip past. */
+const SEARCH_THRESHOLD = 8;
 
 export default function FriendsPage() {
   const { status } = useSession();
@@ -16,6 +21,11 @@ export default function FriendsPage() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
+  const [query, setQuery] = useState('');
+  // Read after mount: navigator.share does not exist during the server render, and on
+  // desktop browsers it usually doesn't exist at all.
+  const [canShare, setCanShare] = useState(false);
+  useEffect(() => { setCanShare(typeof navigator !== 'undefined' && typeof navigator.share === 'function'); }, []);
   const controller = useRef<AbortController | null>(null);
   const load = useCallback(async () => {
     controller.current?.abort();
@@ -53,26 +63,135 @@ export default function FriendsPage() {
   const act = (person: FriendPerson, action: FriendAction) => void mutate(`/api/friends/${person.id}`, { action }, 'PATCH', action === 'accept' ? `You and ${person.name} are now friends.` : 'Request cleared.');
   async function copyCode() {
     if (!data) return;
-    try { await navigator.clipboard.writeText(data.code); setNotice('Friend code copied.'); }
-    catch { setError('Could not copy. You can select and copy the code below.'); }
+    try { await navigator.clipboard.writeText(data.code); setNotice('Friend code copied to your clipboard.'); }
+    catch { setError('Could not copy. You can select the code and copy it by hand.'); }
   }
+  async function shareCode() {
+    if (!data) return;
+    try { await navigator.share({ title: 'Add me on Oche', text: `My Oche friend code is ${data.code}` }); }
+    catch { /* The user dismissed the share sheet — not an error worth reporting. */ }
+  }
+  const visibleFriends = (data?.friends ?? []).filter(person =>
+    person.name.toLowerCase().includes(query.trim().toLowerCase()));
   if (status === 'loading') return <LoadingIndicator fullPage label="Loading friends…" />;
-  if (status === 'unauthenticated') return <main className="social-page page-gutters"><header><h1 className="page-title">Friends</h1><p>Sign in to add friends and keep your head-to-head records.</p></header><Link href="/signin" className="social-link">Sign in</Link></main>;
+  if (status === 'unauthenticated') return <main className="social-page page-gutters">
+    <AppBar eyebrow="Players" title="Friends" />
+    <EmptyState
+      icon={Users}
+      title="Sign in to add friends"
+      body="Friends let you keep a head-to-head record and compare statistics after every match."
+      action={<TextLink href="/signin">Sign in</TextLink>}
+    />
+  </main>;
+
   return <main className="social-page page-gutters">
-    <header><h1 className="page-title">Friends</h1><p>Your players, your rivalries.</p></header>
-    {error && <div role="alert" className="social-error"><span>{error}</span><Button size="sm" variant="ghost" onClick={() => { setError(''); void load(); }}>Retry</Button></div>}
-    {notice && <p role="status" className="text-sm text-wire">{notice}</p>}
+    <AppBar eyebrow="Players" title="Friends" />
+
+    {error && <InlineFeedback tone="error">
+      {error} <button type="button" className="underline" onClick={() => { setError(''); void load(); }}>Retry</button>
+    </InlineFeedback>}
+    {notice && <InlineFeedback tone="success">{notice}</InlineFeedback>}
+
     {data ? <>
-      <Panel notch="panel" className="p-3 flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-2"><div className="min-w-0"><p className="text-xs text-sisal">Your friend code</p><p className="friend-code select-all">{data.code.match(/.{1,4}/g)?.join(' ')}</p></div><Button size="sm" variant="secondary" onClick={copyCode}>Copy</Button></div>
-        <form onSubmit={request} className="flex flex-col gap-2 border-t border-sisal/20 pt-3">
-          <label htmlFor="friend-code" className="text-xs font-bold uppercase text-sisal">Add a player</label>
-          <div className="flex gap-2"><input id="friend-code" className="code-input min-w-0 flex-1" placeholder="Their friend code" value={code} maxLength={16} autoCapitalize="characters" autoComplete="off" spellCheck={false} required onChange={e => setCode(e.target.value.toUpperCase())} /><Button type="submit" size="sm" disabled={busy || normalizeFriendCode(code).length !== 12}>Send</Button></div>
+      {/* One compact block: your code with its actions on one line, then the add field.
+          This used to be a tall slab that dominated a page whose actual content — the
+          friends list — sat below it. */}
+      <Panel notch="panel" className="p-4 flex flex-col gap-4">
+        <div className="friend-code-row">
+          <div>
+            <p className="t-label">Your friend code</p>
+            <p className="friend-code select-all">{data.code.match(/.{1,4}/g)?.join(' ')}</p>
+          </div>
+          <div className="friend-code-actions">
+            <Button size="sm" variant="secondary" onClick={copyCode} className="flex items-center gap-2">
+              <Copy size={14} aria-hidden="true" />Copy
+            </Button>
+            {canShare && <Button size="sm" variant="secondary" onClick={shareCode} className="flex items-center gap-2">
+              <Share2 size={14} aria-hidden="true" />Share
+            </Button>}
+          </div>
+        </div>
+
+        <form onSubmit={request} className="flex flex-col gap-2 border-t border-[color:var(--border-subtle)] pt-4">
+          <label htmlFor="friend-code" className="t-label">Add a player</label>
+          <div className="flex gap-2">
+            <input
+              id="friend-code"
+              className="code-input min-w-0 flex-1"
+              placeholder="Enter friend code"
+              value={code}
+              maxLength={16}
+              autoCapitalize="characters"
+              autoComplete="off"
+              spellCheck={false}
+              required
+              onChange={e => setCode(e.target.value.toUpperCase())}
+            />
+            <Button type="submit" size="sm" disabled={busy || normalizeFriendCode(code).length !== 12} className="shrink-0">
+              {busy ? 'Sending…' : 'Add friend'}
+            </Button>
+          </div>
         </form>
       </Panel>
-      {data.incoming.length > 0 && <section><h2 className="social-section-title">Requests · {data.incoming.length}</h2><div className="social-list">{data.incoming.map(person => <Panel key={person.id} notch="panel" className="social-person"><span>{person.name}</span><div className="flex gap-1"><Button size="sm" disabled={busy} onClick={() => act(person, 'accept')}>Accept</Button><Button size="sm" variant="ghost" disabled={busy} onClick={() => act(person, 'decline')}>Decline</Button></div></Panel>)}</div></section>}
-      <section><h2 className="social-section-title">Friends · {data.friends.length}</h2>{data.friends.length ? <div className="social-list">{data.friends.map(person => <Link key={person.id} href={`/profile/${person.id}`} className="block"><Panel notch="panel" className="social-person"><span className="flex items-center gap-3 min-w-0"><PlayerAvatar name={person.name} image={person.image} /><span className="truncate">{person.name}</span></span><span className="text-xs text-wire shrink-0">View profile →</span></Panel></Link>)}</div> : <p className="text-sm text-sisal">Share your code or enter a friend’s code to get started.</p>}</section>
-      {data.outgoing.length > 0 && <section><h2 className="social-section-title">Sent requests · {data.outgoing.length}</h2><div className="social-list">{data.outgoing.map(person => <Panel key={person.id} notch="panel" className="social-person"><span>{person.name}</span><Button size="sm" variant="ghost" disabled={busy} onClick={() => act(person, 'cancel')}>Cancel</Button></Panel>)}</div></section>}
-    </> : !error && <LoadingIndicator label="Loading friends…" />}
+
+      {data.incoming.length > 0 && <section className="flex flex-col gap-2">
+        <div className="section-header"><h2>Requests <span className="section-header-count">{data.incoming.length}</span></h2></div>
+        <div className="social-list">{data.incoming.map(person =>
+          <Panel key={person.id} notch="panel" className="social-person">
+            <span className="flex items-center gap-3 min-w-0"><PlayerAvatar name={person.name} image={person.image} /><span className="truncate">{person.name}</span></span>
+            <div className="flex gap-1">
+              <Button size="sm" disabled={busy} onClick={() => act(person, 'accept')}>Accept</Button>
+              <Button size="sm" variant="ghost" disabled={busy} onClick={() => act(person, 'decline')}>Decline</Button>
+            </div>
+          </Panel>)}
+        </div>
+      </section>}
+
+      <section className="flex flex-col gap-2">
+        <div className="section-header"><h2>Friends <span className="section-header-count">{data.friends.length}</span></h2></div>
+        {/* Search only earns its space once the list is long enough to need it. */}
+        {data.friends.length > SEARCH_THRESHOLD && <input
+          type="search"
+          className="code-input"
+          placeholder="Search friends"
+          aria-label="Search friends"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+        />}
+        {data.friends.length === 0 ? (
+          <EmptyState
+            icon={Users}
+            title="No friends yet"
+            body="Share your code above, or enter someone else's, and their matches against you start counting."
+          />
+        ) : visibleFriends.length === 0 ? (
+          <EmptyState title="No matches for that search" body={`Nobody in your friends list matches "${query}".`} />
+        ) : (
+          <div className="social-list">{visibleFriends.map(person =>
+            <Link key={person.id} href={`/profile/${person.id}`} className="block">
+              <Panel notch="panel" className="social-person">
+                <span className="flex items-center gap-3 min-w-0"><PlayerAvatar name={person.name} image={person.image} /><span className="truncate">{person.name}</span></span>
+                <span className="text-link shrink-0">View profile<ArrowUpRight size={15} aria-hidden="true" /></span>
+              </Panel>
+            </Link>)}
+          </div>
+        )}
+      </section>
+
+      {data.outgoing.length > 0 && <section className="flex flex-col gap-2">
+        <div className="section-header"><h2>Sent requests <span className="section-header-count">{data.outgoing.length}</span></h2></div>
+        <div className="social-list">{data.outgoing.map(person =>
+          <Panel key={person.id} notch="panel" className="social-person">
+            <span className="flex items-center gap-3 min-w-0"><PlayerAvatar name={person.name} image={person.image} /><span className="truncate">{person.name}</span></span>
+            <span className="t-meta shrink-0">Pending</span>
+            <Button size="sm" variant="ghost" disabled={busy} onClick={() => act(person, 'cancel')}>Cancel</Button>
+          </Panel>)}
+        </div>
+      </section>}
+    </> : !error && <div className="flex flex-col gap-3" aria-busy="true">
+      <div className="skeleton h-28" />
+      <div className="skeleton h-14" />
+      <div className="skeleton h-14" />
+    </div>}
   </main>;
 }

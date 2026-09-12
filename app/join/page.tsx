@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Panel } from '@/components/atoms/Panel';
 import { Button } from '@/components/atoms/Button';
-import { BackLink } from '@/components/atoms/BackLink';
+import { AppBar } from '@/components/molecules';
 
 export default function JoinRoomPage() {
   const router = useRouter();
@@ -25,11 +25,11 @@ export default function JoinRoomPage() {
     finally { setBusy(false); }
   }
   return <main className="social-page page-gutters">
-    <BackLink />
-    <header><h1 className="page-title">Join a room</h1><p>Ask the host for their room code. You can join as a guest.</p></header>
+    <AppBar back={{ href: '/', label: 'Back to dashboard' }} eyebrow="Online" title="Join a room" />
+    <p className="t-body">Ask the host for their room code. You can join as a guest.</p>
     <Panel notch="panel" className="p-4">
       <form onSubmit={submit} className="flex flex-col gap-3">
-        <label htmlFor="room-code" className="text-xs font-bold uppercase text-sisal">Room code</label>
+        <label htmlFor="room-code" className="t-label">Room code</label>
         <input id="room-code" value={code} onChange={e => { setCode(e.target.value.toUpperCase()); setError(''); }} placeholder="ABCDEF"
           autoComplete="off" autoCapitalize="characters" spellCheck={false} maxLength={12} required
           aria-invalid={!!error} aria-describedby={error ? 'join-error' : undefined}

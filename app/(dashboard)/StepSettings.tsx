@@ -1,8 +1,9 @@
 // app/(dashboard)/StepSettings.tsx
 'use client';
+import { Plus, X } from 'lucide-react';
 import { Panel } from '@/components/atoms';
 import { Input } from '@/components/atoms/Input';
-import { Pills, SettingLabel } from './SetupControls';
+import { Pills, Setting, SettingLabel } from './SetupControls';
 import {
   COPYCAT_LIMIT_OPTIONS,
   CRICKET_SCORING,
@@ -28,57 +29,53 @@ export function StepSettings({
 
   return (
     <>
-      <Panel notch="panel" className="dashboard-settings p-3 md:p-6">
+      <Panel notch="panel" className="dashboard-settings p-4 md:p-6">
         {gameId === 'x01' && (
           <>
-            <div className="dashboard-setting flex flex-col gap-2">
-              <SettingLabel>Starting score</SettingLabel>
-              <Pills options={STARTING_SCORES} value={setup.x01.startingScore} onChange={startingScore => onChange({ x01: { ...setup.x01, startingScore } })} />
-            </div>
-            <div className="dashboard-setting flex flex-col gap-2">
-              <SettingLabel>Legs (first to)</SettingLabel>
-              <Pills options={LEG_OPTIONS} value={setup.x01.firstTo} onChange={firstTo => onChange({ x01: { ...setup.x01, firstTo } })} />
-            </div>
-            <div className="dashboard-setting flex flex-col gap-2">
-              <SettingLabel>Sets (first to)</SettingLabel>
+            <Setting label="Starting score">
+              <Pills label="Starting score" options={STARTING_SCORES} value={setup.x01.startingScore} onChange={startingScore => onChange({ x01: { ...setup.x01, startingScore } })} />
+            </Setting>
+            <Setting label="Legs (first to)">
+              <Pills label="Legs, first to" options={LEG_OPTIONS} value={setup.x01.firstTo} onChange={firstTo => onChange({ x01: { ...setup.x01, firstTo } })} />
+            </Setting>
+            <Setting label="Sets (first to)">
               <Pills
+                label="Sets, first to"
                 options={SET_OPTIONS}
                 value={setup.x01.sets}
                 onChange={sets => onChange({ x01: { ...setup.x01, sets } })}
                 format={(value) => (value === 0 ? 'Off' : String(value))}
               />
-            </div>
+            </Setting>
           </>
         )}
 
         {gameId === 'cricket' && (
           <>
-            <div className="dashboard-setting flex flex-col gap-2">
-              <SettingLabel>Legs (first to)</SettingLabel>
-              <Pills options={LEG_OPTIONS} value={setup.cricket.firstTo} onChange={firstTo => onChange({ cricket: { ...setup.cricket, firstTo } })} />
-            </div>
-            <div className="dashboard-setting flex flex-col gap-2">
-              <SettingLabel>Scoring</SettingLabel>
+            <Setting label="Legs (first to)">
+              <Pills label="Legs, first to" options={LEG_OPTIONS} value={setup.cricket.firstTo} onChange={firstTo => onChange({ cricket: { ...setup.cricket, firstTo } })} />
+            </Setting>
+            <Setting
+              label="Scoring"
+              hint={setup.cricket.scoring === 'standard'
+                ? 'Extra hits score while an opponent has the number open. Close all numbers and lead or tie on points to win.'
+                : 'First to close all seven numbers wins the leg. Extra hits do not score.'}
+            >
               <Pills
+                label="Scoring"
                 options={CRICKET_SCORING}
                 value={setup.cricket.scoring}
                 onChange={scoring => onChange({ cricket: { ...setup.cricket, scoring } })}
                 format={value => (value === 'standard' ? 'Standard' : 'No points')}
               />
-              <p className="text-xs text-sisal max-w-xs">
-                {setup.cricket.scoring === 'standard'
-                  ? 'Extra hits score while an opponent has the number open. Close all numbers and lead or tie on points to win.'
-                  : 'First to close all seven numbers wins the leg. Extra hits do not score.'}
-              </p>
-            </div>
+            </Setting>
           </>
         )}
 
         {gameId === 'copycat' && (
-          <div className="dashboard-setting flex flex-col gap-2">
-            <SettingLabel>Points (first to)</SettingLabel>
-            <Pills options={COPYCAT_LIMIT_OPTIONS} value={setup.copycat.firstTo} onChange={firstTo => onChange({ copycat: { firstTo } })} />
-          </div>
+          <Setting label="Points (first to)">
+            <Pills label="Points, first to" options={COPYCAT_LIMIT_OPTIONS} value={setup.copycat.firstTo} onChange={firstTo => onChange({ copycat: { firstTo } })} />
+          </Setting>
         )}
       </Panel>
 
@@ -88,14 +85,14 @@ export function StepSettings({
             <SettingLabel>Players · {setup.playerNames.length} / {MAX_PLAYERS}</SettingLabel>
             <button
               type="button"
-              className="min-h-11 px-3 border border-wire text-sm text-wire disabled:opacity-40"
+              className="text-link"
               disabled={setup.playerNames.length >= MAX_PLAYERS}
               onClick={() => onChange({ playerNames: [...setup.playerNames, `Player ${setup.playerNames.length + 1}`] })}
             >
-              Add player
+              <Plus size={15} aria-hidden="true" />Add player
             </button>
           </div>
-          <p className="text-xs text-sisal">Throw in this order. Pass the device when your turn ends.</p>
+          <p className="t-meta">Throw in this order. Pass the device when your turn ends.</p>
           <div className="grid gap-3 sm:grid-cols-2">
             {setup.playerNames.map((name, index) => (
               <div key={index} className="flex items-end gap-2">
@@ -112,10 +109,10 @@ export function StepSettings({
                   <button
                     type="button"
                     aria-label={`Remove player ${index + 1}`}
-                    className="min-h-11 px-2 text-sm text-sisal"
+                    className="flex items-center justify-center w-11 h-11 shrink-0 text-[color:var(--text-muted)] hover:text-treble transition-colors"
                     onClick={() => onChange({ playerNames: setup.playerNames.filter((_, i) => i !== index) })}
                   >
-                    Remove
+                    <X size={16} aria-hidden="true" />
                   </button>
                 )}
               </div>

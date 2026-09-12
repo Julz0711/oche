@@ -40,6 +40,63 @@
   --motif-rest: 0.24;
   --motif-hover: 0.44;
   --motif-quiet: 0.17;
+
+  /* ── Spacing scale ───────────────────────────────────────────────────────────
+     One ladder for every gap, pad and margin in the app. Anything that isn't on
+     this ladder is a one-off and should be justified by geometry (a notch size, an
+     optical centring), never by taste. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* ── Layout ──────────────────────────────────────────────────────────────────
+     `--gutter-page` is THE page gutter: every standalone page's left/right padding
+     resolves to it, so headings, cards and utility links share one content column.
+     `--tabbar-height` is the real rendered height of the mobile bottom bar and is
+     what scroll containers inset by — never a hand-guessed spacer. */
+  --gutter-page: 24px;
+  --content-max: 1200px;
+  --tabbar-height: 60px;
+  --height-button: 44px;
+  --height-segment: 44px;
+
+  /* ── Border weights ──────────────────────────────────────────────────────────
+     `default` traces a real, interactive or load-bearing edge. `subtle` is for
+     dividers inside an already-bounded surface — the audit's "box within a box"
+     is what happens when an inner container reaches for `default`. */
+  --border-default: color-mix(in srgb, var(--sisal) 28%, transparent);
+  --border-subtle: color-mix(in srgb, var(--sisal) 14%, transparent);
+
+  /* ── Surfaces ────────────────────────────────────────────────────────────────
+     `quiet` groups content by tone instead of by outline; it is the preferred way
+     to bound a secondary block (metric cells, stat rows) inside a card. */
+  --surface: var(--slate);
+  --surface-quiet: color-mix(in srgb, var(--slate) 55%, transparent);
+  --surface-raised: #202B28;
+
+  /* ── Text roles ──────────────────────────────────────────────────────────────
+     Four levels, matching the audit's hierarchy. `muted` is the quietest text the
+     app is allowed to render: it still clears 4.5:1 on `--oche`. Below this we use
+     size or weight, never more transparency. */
+  --text-primary: var(--chalk);
+  --text-secondary: var(--sisal);
+  --text-muted: color-mix(in srgb, var(--sisal) 72%, var(--oche));
+
+  /* Disabled keeps legibility (~4.6:1 on --oche) — opacity alone drops well under
+     the contrast floor, which is exactly what the audit flagged. */
+  --text-disabled: color-mix(in srgb, var(--sisal) 62%, var(--oche));
+  --opacity-disabled: 1;
+
+  /* Text-safe variants of the two result colours. --double / --treble are fill tokens:
+     as 10–12px type on --oche they measure roughly 3.5:1, under the 4.5:1 floor. These
+     lift them toward --chalk until they clear it, without changing which colour means
+     what. Fills and borders keep using the raw tokens. */
+  --double-text: color-mix(in srgb, var(--double) 45%, var(--chalk));
+  --treble-text: color-mix(in srgb, var(--treble) 50%, var(--chalk));
 }
 
 /**
@@ -55,6 +112,31 @@ body {
   font-family: var(--font-sans, "Inter Tight", system-ui, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/**
+ * Text roles
+ *
+ * Eight named jobs, so a heading's size/weight/casing is decided once by what the text
+ * IS rather than re-chosen per screen. The rules that follow are the whole typographic
+ * vocabulary of the app — a screen that needs a treatment not in this list is a sign the
+ * hierarchy is wrong, not that the list is short.
+ *
+ * Casing: ALL CAPS is reserved for `.t-label` (short status/field labels, <= ~3 words).
+ * Titles and body copy are sentence case, always — uppercase runs of prose are what made
+ * the settings and history screens read as shouty.
+ */
+.t-display { font: 700 36px/1.15 var(--font-display), sans-serif; color: var(--text-primary); overflow-wrap: anywhere; }
+.t-section { font: 600 22px/1.2 var(--font-display), sans-serif; color: var(--text-primary); }
+.t-card-title { font: 700 15px/1.3 var(--font-sans), sans-serif; color: var(--text-primary); }
+.t-metric { font: 600 28px/1.15 var(--font-display), sans-serif; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.t-metric-sm { font: 600 20px/1.2 var(--font-display), sans-serif; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.t-body { font: 400 14px/1.5 var(--font-sans), sans-serif; color: var(--text-secondary); }
+.t-label { font: 700 11px/16px var(--font-sans), sans-serif; text-transform: uppercase; letter-spacing: .08em; color: var(--text-secondary); }
+.t-meta { font: 400 12px/16px var(--font-sans), sans-serif; color: var(--text-muted); }
+@media (min-width: 1024px) {
+  .t-display { font-size: 44px; }
+  .t-section { font-size: 24px; }
 }
 
 /* Every enabled button in the app gets a pointer cursor, rather than relying on each button's
@@ -244,12 +326,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
     --type-2xl: 1.5rem;
     --type-3xl: 1.75rem;
     --type-4xl: 2rem;
-  }
-  .page-gutters {
-    padding-top: max(12px, env(safe-area-inset-top));
-    padding-left: max(12px, env(safe-area-inset-left));
-    padding-right: max(12px, env(safe-area-inset-right));
-    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    --gutter-page: 16px;
   }
   input, select, textarea { font-size: 16px; min-height: 44px; }
   .auth-page { min-height: 100dvh; }
@@ -259,7 +336,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 @media (max-width: 639px) {
   .game-card-content { padding-left: 36px; }
   .game-card-index { position: absolute; left: 12px; top: 12px; }
-  .dashboard-game .board-motif { width: 100px; height: 100px; right: -20px; bottom: -35px; }
+  .dashboard-game .board-motif { width: 92px; height: 92px; right: -18px; bottom: -32px; }
   .dashboard-navigation { flex-wrap: wrap; }
   .dashboard-user { flex: 1 1 70px; }
   .dashboard-links { margin-left: auto; }
@@ -267,13 +344,10 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   .auth-page { align-items: flex-start; padding-top: max(32px, env(safe-area-inset-top)); }
 }
 
-@media (max-width: 639px) {
-  .dashboard-settings { display: flex; flex-direction: column; gap: 16px; }
-  .dashboard-setting { display: flex; flex-direction: column; gap: 8px; }
-  .dashboard-setting > span { letter-spacing: .06em; }
-  .dashboard-setting > div { display: grid; grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); gap: 6px; width: 100%; }
-  .dashboard-setting > div > button { width: 100%; min-width: 0; padding-inline: 8px; }
-}
+/* Match settings stack at one rhythm at every width. The SegmentedControl inside each row
+   owns its own column behaviour, so nothing here reaches in to re-grid its buttons. */
+.dashboard-settings { display: flex; flex-direction: column; gap: var(--space-5); }
+.dashboard-setting { display: flex; flex-direction: column; gap: var(--space-2); }
 
 /* Phones omit visit history; Cricket's per-number score details remain available.
    Include short landscape viewports so rotating a phone doesn't reveal history. */
@@ -317,17 +391,17 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 .join-room-link { min-height: 44px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 8px; border: 1px solid color-mix(in srgb, var(--sisal) 25%, transparent); color: var(--sisal); padding: 8px 12px; font-size: 13px; transition: border-color 160ms ease; }
 .join-room-link span { color: var(--wire); font-weight: 700; }
 .join-room-link:hover { border-color: var(--wire); }
-.social-page { width: 100%; max-width: 680px; margin: 0 auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+.social-page { display: flex; flex-direction: column; gap: var(--space-4); }
 /* Canonical page-title style — every standalone page's <h1> (Friends, Join, Settings, Stats,
    Terms, Privacy, Sign out...) uses this one class instead of a bespoke Tailwind size, so page
    headers read as one consistent typographic scale across the app. Chrome-bar titles that sit
    next to a BackLink (the match screen) and House Rules' own display-scale headings are
    deliberately different contexts and don't use this class. */
-.page-title { font: 700 36px/1.15 var(--font-display), sans-serif; color: var(--chalk); overflow-wrap: anywhere; margin-top: 4px; }
-.social-page header p { color: var(--sisal); font-size: 14px; margin-top: 6px; }
+.page-title { font: 700 36px/1.15 var(--font-display), sans-serif; color: var(--text-primary); overflow-wrap: anywhere; }
+.social-page header p { color: var(--text-muted); font-size: 14px; margin-top: var(--space-1); }
 .social-link { display: flex; align-items: center; min-height: 44px; color: var(--wire); font-size: 14px; font-weight: 600; transition: opacity 160ms ease; }
 .social-link:hover { opacity: 0.75; }
-.social-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--sisal); margin-bottom: 8px; }
+.social-section-title { font: 700 11px/16px var(--font-sans), sans-serif; text-transform: uppercase; letter-spacing: .08em; color: var(--text-secondary); margin-bottom: var(--space-2); }
 .social-list { display: flex; flex-direction: column; gap: 8px; }
 .social-person { display: flex !important; align-items: center; justify-content: space-between; gap: 8px; padding: 10px; min-height: 56px; font-size: 14px; }
 .social-person > span:first-child { min-width: 0; overflow-wrap: anywhere; }
@@ -335,10 +409,12 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 .social-person > span:last-child:not(:first-child) { max-width: 50%; overflow-wrap: anywhere; }
 .social-error { display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 8px; border: 1px solid var(--treble); font-size: 14px; }
 .code-input { width: 100%; min-height: 44px; border: 1px solid var(--wire); background: var(--slate); color: var(--chalk); padding: 8px 10px; font-size: 16px; border-radius: 0; }
-.friend-code { font-family: var(--font-display); font-size: 24px; font-weight: 700; letter-spacing: .06em; color: var(--wire); }
+
 @media (max-width: 767px) {
-  .app-content > .min-h-screen { min-height: calc(100dvh - 64px - env(safe-area-inset-bottom)); }
-  .app-content { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+  .app-content > .min-h-screen { min-height: calc(100dvh - var(--tabbar-height) - env(safe-area-inset-bottom, 0px)); }
+  /* Content inset = the bar's real height + the home indicator + one spacing step, so the
+     last card on any page clears the bar completely instead of tucking under it. */
+  .app-content { padding-bottom: calc(var(--tabbar-height) + env(safe-area-inset-bottom, 0px) + var(--space-4)); }
   .app-navigation { position: fixed; top: auto; bottom: 0; left: 0; right: 0; padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); border-bottom: 0; border-top: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); }
   .nav-brand { display: none; }
   .nav-destinations { width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
@@ -350,13 +426,24 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 
 /* Account and navigation share a single content grid. */
 .app-navigation { padding: calc(8px + env(safe-area-inset-top, 0px)) max(24px, calc((100vw - 1152px) / 2)) 8px; }
-.app-content > .page-gutters, .account-page { width: 100%; max-width: 1200px; margin-inline: auto; padding: 24px; }
-.app-content > .page-gutters > .max-w-3xl { max-width: none; padding-top: 0; gap: 24px; }
-.app-content .social-page { max-width: 1200px; }
-.account-page { display: flex; flex-direction: column; gap: 24px; color: var(--chalk); }
-.page-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-.eyebrow { font-size: 11px; line-height: 16px; font-weight: 600; color: var(--sisal); text-transform: uppercase; letter-spacing: .08em; }
-.quiet-action { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--wire); font-size: 13px; }
+/* The canonical page column. Every standalone page carries `.page-gutters`, and this is
+   the only place its horizontal padding and max width are decided — so page titles, section
+   headings, cards and right-aligned utility links all snap to the same content edges.
+   Safe-area insets are folded in here rather than added by each page. */
+.page-gutters {
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding-block: var(--space-5);
+  padding-left: max(var(--gutter-page), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter-page), env(safe-area-inset-right, 0px));
+}
+.app-content > .page-gutters > .max-w-3xl { max-width: none; padding-top: 0; gap: var(--space-5); }
+
+.account-page { display: flex; flex-direction: column; gap: var(--space-5); color: var(--text-primary); }
+
+.eyebrow { font: 700 11px/16px var(--font-sans), sans-serif; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .08em; }
+
 .player-avatar { width: 36px; height: 36px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--slate); color: var(--wire); font: 600 16px var(--font-display); overflow: hidden; }
 .player-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .player-avatar-large { width: 64px; height: 64px; font-size: 24px; }
@@ -381,54 +468,93 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 .dashboard-review button:disabled { opacity: .4; }
 .play-action { min-height: 56px; padding: 12px 20px; display: flex; align-items: center; justify-content: center; font: 600 22px/1.1 var(--font-display); color: var(--chalk); }
 .play-action-primary { color: var(--oche); }
-.profile-identity { display: flex; align-items: center; gap: 16px; padding: 20px; }
-.profile-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 20px; align-items: start; }
+
+.profile-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: var(--space-5); align-items: start; }
 .profile-layout > div:only-child { grid-column: 1 / -1; }
-.settings-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr); gap: 20px; align-items: start; }
-.account-section { padding: 20px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.section-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
-.section-heading h2 { font: 600 24px/1.2 var(--font-display); }
-.section-heading a { display: inline-flex; align-items: center; min-height: 44px; color: var(--wire); font-size: 12px; }
-.account-input { width: 100%; min-height: 44px; border: 1px solid var(--sisal); background: var(--oche); padding: 10px 12px; color: var(--chalk); font-size: 16px; }
-.period-picker { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid color-mix(in srgb, var(--sisal) 25%, transparent); }
-.period-picker button { min-height: 44px; padding: 6px 4px; font-size: 12px; color: var(--sisal); }
-.period-picker button[aria-pressed="true"] { background: var(--wire); color: var(--oche); font-weight: 600; }
-.profile-totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.profile-totals > div { padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); background: color-mix(in srgb, var(--slate) 50%, transparent); text-align: center; }
-.profile-totals dt { color: var(--sisal); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
-.profile-totals dd { color: var(--chalk); font: 600 28px/1.3 var(--font-display); font-variant-numeric: tabular-nums; }
-@media (min-width: 480px) {
-  .profile-totals { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-}
-.stats-game-cards { display: flex; flex-direction: column; gap: 16px; }
-.stats-game-card { border-left: 3px solid var(--wire); background: color-mix(in srgb, var(--slate) 60%, transparent); padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+.settings-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr); gap: var(--space-5); align-items: start; }
+.account-section { padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+.section-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
+.section-heading h2 { font: 600 22px/1.2 var(--font-display), sans-serif; color: var(--text-primary); }
+
+.account-input { width: 100%; min-height: var(--height-button); border: 1px solid var(--border-default); background: var(--oche); padding: 10px var(--space-3); color: var(--text-primary); font-size: 16px; transition: border-color 160ms ease; }
+.account-input:focus { border-color: var(--wire); }
+
+
+
+
+
+
+
+
+.stats-game-cards { display: flex; flex-direction: column; gap: var(--space-5); }
+.stats-game-card { border-left: 3px solid var(--wire); background: var(--surface-quiet); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-4); }
 .stats-game-card-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px; }
 .stats-game-card-heading h3 { font: 700 20px/1.2 var(--font-display); }
-.stats-game-card-heading span { color: var(--sisal); font-size: 12px; }
-.stats-game-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.stats-heatmaps { display: grid; grid-template-columns: 1fr; gap: 20px; padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); }
-.stats-heatmap-item { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
-.stats-heatmap-item h4 { font: 600 16px/1.2 var(--font-display); color: var(--chalk); }
-.stats-heatmap-item p { margin-bottom: 6px; color: var(--sisal); font-size: 12px; }
-.stats-heatmap-item svg { width: 100%; max-width: 280px; }
+.stats-game-card-heading span { color: var(--text-muted); font-size: 12px; }
+
+.stats-heatmaps { display: grid; grid-template-columns: 1fr; gap: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--border-subtle); }
+
+
+
+
 @media (min-width: 640px) {
   .stats-heatmaps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (min-width: 640px) {
-  .stats-game-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+
+
+
+
+
+.profile-friends { display: flex; flex-direction: column; }
+/* A friend row is a TextLink, so it inherits the one link affordance; these rules only give
+   it a full-width layout and a divider instead of the inline, nowrap default. */
+.profile-friend { display: flex; width: 100%; gap: var(--space-3); min-height: 52px; color: var(--text-primary); font-size: 14px; font-weight: 500; white-space: normal; border-bottom: 1px solid var(--border-subtle); }
+.profile-friend:last-child { border-bottom: 0; }
+.profile-friend > span:not(.player-avatar) { flex: 1; min-width: 0; }
+.profile-friend > svg { color: var(--wire); margin-left: auto; }
+
+/* The name + avatar pair that forms a profile page's title. */
+.profile-title { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.profile-title > .player-avatar { width: 32px; height: 32px; font-size: 15px; }
+
+/* Destructive, rarely wanted, and always confirmed: a quiet text action, not a button
+   competing with the page's real controls. It only takes on the danger colour on hover,
+   once the pointer has committed to it. */
+.danger-action {
+  align-self: flex-start;
+  min-height: var(--height-button);
+  color: var(--text-muted);
+  font: 600 13px/1 var(--font-sans), sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 160ms ease;
 }
-.history-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid color-mix(in srgb, var(--sisal) 25%, transparent); }
-.history-summary > div { padding: 10px 12px; border-left: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); }
-.history-summary > div:first-child { border-left: 0; }
-.history-summary dt { color: var(--sisal); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
-.history-summary dd { margin-top: 2px; font: 600 24px/1.2 var(--font-display); }
-.profile-friends { display: flex; flex-direction: column; gap: 4px; }
-.profile-friend { display: flex; align-items: center; gap: 10px; padding-block: 8px; min-height: 52px; font-size: 14px; border-bottom: 1px solid color-mix(in srgb, var(--sisal) 15%, transparent); }
-.achievement-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.achievement-tile { display: flex; align-items: center; gap: 10px; padding: 10px; min-height: 64px; border: 1px solid color-mix(in srgb, var(--wire) 40%, transparent); text-align: left; }
-.achievement-tile strong { display: block; font-size: 12px; line-height: 16px; }
-.achievement-tile small { color: var(--sisal); font-size: 11px; }
-.achievement-locked { border-color: color-mix(in srgb, var(--sisal) 20%, transparent); color: var(--sisal); }
+.danger-action:hover { color: var(--treble-text); }
+.achievement-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); list-style: none; margin: 0; padding: 0; }
+.achievement-tile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  height: 100%;
+  padding: var(--space-2) var(--space-3);
+  min-height: 60px;
+  background: var(--surface-quiet);
+  border: 0;
+  border-left: 3px solid var(--wire);
+  text-align: left;
+}
+.achievement-icon { font-size: 20px; line-height: 1; flex-shrink: 0; }
+.achievement-tile strong { display: block; font-size: 13px; line-height: 16px; font-weight: 700; color: var(--text-primary); }
+/* The rarity and status on one line: wrapped, they doubled every tile's height for no
+   extra information. */
+.achievement-tile small { display: block; color: var(--text-muted); font-size: 11px; line-height: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* "Locked" is written on the tile, so the dimmer treatment is reinforcement rather than
+   the only signal — and it stays above the contrast floor. */
+.achievement-locked { border-left-color: var(--border-default); background: transparent; }
+.achievement-locked strong { color: var(--text-muted); font-weight: 500; }
+.achievement-locked .achievement-icon { filter: grayscale(1); opacity: .7; }
 .achievement-dialog { margin: auto; width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px); overflow-y: auto; background: var(--slate); color: var(--chalk); border: 1px solid var(--wire); padding: 20px; }
 .achievement-dialog[open] { display: flex; flex-direction: column; gap: 20px; animation: achievement-enter 160ms ease-out; }
 .achievement-dialog::backdrop { background: #080e0bd9; }
@@ -437,10 +563,11 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 @keyframes achievement-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { .achievement-dialog[open] { animation: none; } }
 @media (max-width: 1023px) {
-  .app-content > .page-gutters, .account-page { padding: 16px; gap: 16px; }
-  .app-content > .page-gutters > .max-w-3xl { gap: 16px; }
+  .page-gutters { padding-block: var(--space-4); }
+  .account-page { gap: var(--space-4); }
+  .app-content > .page-gutters > .max-w-3xl { gap: var(--space-4); }
   .profile-layout, .settings-layout { grid-template-columns: 1fr; gap: 16px; }
-  .account-section { padding: 16px; }
+  .account-section { padding: var(--space-4); }
   .match-page:not(.match-live) { padding-top: calc(env(safe-area-inset-top, 0px) + 12px); }
   .match-live { padding-top: calc(env(safe-area-inset-top, 0px) + 8px); }
 }
@@ -453,25 +580,25 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   .nav-account-icon, .nav-account-mobile, .nav-sound span { display: block; }
   .nav-account-icon.player-avatar { width: 20px; height: 20px; font-size: 9px; }
   .nav-sound { flex-direction: column; gap: 4px; font-size: 11px; min-height: 60px; border-top: 2px solid transparent; padding: 6px 0; }
-  .app-content { padding-top: calc(env(safe-area-inset-top, 0px) + 8px); }
-  .app-content .page-gutters { padding-top: 12px; }
-  .app-content > .page-gutters, .account-page { padding-inline: 12px; gap: 12px; }
-  .profile-identity { padding: 12px; gap: 12px; flex-wrap: wrap; }
+  .app-content { padding-top: env(safe-area-inset-top, 0px); }
+
+
+
   .player-avatar-large { width: 52px; height: 52px; }
-  .account-section { padding: 12px; gap: 12px; }
-  .section-heading h2 { font-size: 22px; }
-  .profile-totals dd { font-size: 25px; }
-  .profile-totals > div { padding-inline: 6px; }
-  .stats-filter { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-  .stats-filter button { min-width: 0; padding-inline: 5px; font-size: 12px; }
+  .account-section { padding: var(--space-4); gap: var(--space-3); }
+  .section-heading h2 { font-size: 20px; }
+
+
+  
+  
   .play-action { min-height: 48px; padding: 12px; font-size: 20px; }
 }
 
 @media (max-width: 1023px) { .nav-sound, .nav-destinations a.nav-desktop-only { display: none; } }
 @media (min-width: 1024px) {
-  .dashboard-header h1 { font-size: 64px; }
-  .dashboard-settings { display: grid; grid-template-columns: repeat(3, max-content); justify-content: start; gap: 24px; }
-  .dashboard-settings > span:first-child { grid-column: 1 / -1; }
+  /* Two settings per row on a wide screen — three squeezed the segmented controls narrower
+     than their own labels. */
+  .dashboard-settings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5) var(--space-6); }
 }
 
 /* Motion follows the board's rings and the existing brass/green palette. */
@@ -484,9 +611,9 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 .page-enter { animation: page-enter 180ms ease-out both; }
 @keyframes page-enter { from { opacity: .35; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 .achievement-tile { transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease; }
+.achievement-tile:hover:not(.achievement-locked) { background: var(--surface-raised); }
 .achievement-tile small { text-transform: capitalize; }
-.achievement-tile[data-rarity="legendary"]:not(.achievement-locked),
-.achievement-tile[data-rarity="legendary"]:not(.achievement-locked) small { color: var(--oche); }
+
 .achievement-tile:focus-visible { outline: 2px solid var(--wire); outline-offset: 3px; }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) { .achievement-tile:hover { transform: translateY(-2px); } }
 /* Anchored to its own relatively-positioned parent — the wrapper directly around the dartboard
@@ -502,3 +629,369 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 @media (prefers-reduced-motion: reduce) {
   .oche-loading-ring, .page-enter, .turn-toast { animation: none !important; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Shared components
+
+   Each block below owns one component's spacing, type, border treatment and
+   interaction states, so a screen composes them instead of restyling them. Values
+   come from the token ladder at the top of this file — a literal px here is a bug
+   unless it is geometry (a hairline, an optical nudge).
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── TextLink ────────────────────────────────────────────────────────────────
+   One affordance for every "go and see more" link: same colour, same size, same
+   trailing chevron, same 44px target, aligned to the same right content edge. */
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: var(--height-button);
+  color: var(--wire);
+  font: 600 13px/1 var(--font-sans), sans-serif;
+  white-space: nowrap;
+  transition: color 160ms ease;
+}
+.text-link > svg { flex-shrink: 0; }
+.text-link:hover { color: var(--chalk); }
+.text-link:disabled, .text-link[aria-disabled="true"] { color: var(--text-disabled); pointer-events: none; }
+
+/* ── AppBar ──────────────────────────────────────────────────────────────────
+   A compact top bar: chevron, eyebrow + title, optional trailing action — replacing
+   the large square back button that used to occupy a row of its own. The chevron's
+   negative inline margin pulls its 44px target's *optical* left edge back onto the
+   page gutter, so the title below still starts on the content column. */
+.app-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+/* The chrome row. It only renders when it has something to hold, so a bare title never
+   reserves 44px for nothing. */
+.app-bar-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--height-button);
+}
+/* A negative inline margin pulls the 44px target's optical left edge back onto the page
+   gutter, so the chevron glyph lines up with the title beneath it rather than sitting
+   a touch-target's worth of padding inboard of everything. */
+.app-bar-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--height-button);
+  height: var(--height-button);
+  margin-left: calc(var(--space-3) * -1);
+  margin-right: calc(var(--space-2) * -1);
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: color 160ms ease;
+}
+.app-bar-back:hover { color: var(--text-primary); }
+.app-bar-top > .eyebrow { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-bar-top > :last-child:not(.eyebrow):not(.app-bar-back) { margin-left: auto; flex-shrink: 0; }
+.app-bar > h1 { font: 700 30px/1.15 var(--font-display), sans-serif; color: var(--text-primary); overflow-wrap: anywhere; }
+@media (min-width: 1024px) { .app-bar > h1 { font-size: 40px; } }
+
+/* ── SectionHeader ───────────────────────────────────────────────────────────
+   Title on the baseline, count beside it, one utility link flush right. */
+.section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.section-header h2, .section-header h3 { font: 600 20px/1.2 var(--font-display), sans-serif; color: var(--text-primary); }
+.section-header-count { color: var(--text-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+/* ── SegmentedControl ────────────────────────────────────────────────────────
+   Deliberately NOT a solid gold fill. Gold at this size, repeated across filters
+   and settings, out-shouted the content it was filtering. The selected segment is
+   a raised surface + a gold underline + heavier weight, so it still reads first
+   without becoming the loudest thing on the screen — and the weight change means
+   selection survives in greyscale. */
+/* Capped rather than full-bleed: stretched across a desktop card, four segments became four
+   280px slabs and the selected underline read as a section rule rather than a selection. */
+.segmented {
+  width: 100%;
+  max-width: 460px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 2px;
+  padding: 2px;
+  background: var(--surface-quiet);
+}
+.segmented button {
+  min-width: 0;
+  min-height: var(--height-segment);
+  padding: 0 var(--space-2);
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font: 500 12px/1.2 var(--font-sans), sans-serif;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+.segmented button:hover:not([aria-pressed="true"]):not([aria-selected="true"]) { color: var(--text-secondary); }
+.segmented button[aria-pressed="true"],
+.segmented button[aria-selected="true"] {
+  background: var(--surface-raised);
+  border-bottom-color: var(--wire);
+  color: var(--wire);
+  font-weight: 700;
+}
+.segmented button:disabled { color: var(--text-disabled); }
+/* Wrapping variant, for when the options are too many or too long for one row. */
+.segmented-wrap { display: flex; flex-wrap: wrap; }
+.segmented-wrap button { flex: 1 1 auto; padding-inline: var(--space-3); }
+
+/* ── MetricCell / MetricGrid ─────────────────────────────────────────────────
+   The audit's first refactor: four bordered boxes inside a bordered card become a
+   plain grid. Grouping comes from alignment and rhythm, so the numbers themselves
+   are the only thing with visual weight. */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-3);
+  margin: 0;
+}
+.metric-grid > div { min-width: 0; }
+.metric-grid dt {
+  font: 700 11px/16px var(--font-sans), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+.metric-grid dd {
+  margin: 0;
+  font: 600 28px/1.15 var(--font-display), sans-serif;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.metric-grid[data-size="sm"] dd { font-size: 20px; line-height: 1.2; }
+/* Three short values fit across the narrowest phone; four do not, so only the 4-column
+   variant waits for room. */
+.metric-grid[data-cols="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (min-width: 420px) {
+  .metric-grid[data-cols="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (min-width: 640px) {
+  .metric-grid[data-cols="auto"] { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+}
+
+/* ── ResultBadge ─────────────────────────────────────────────────────────────
+   A quiet pill, not a filled block: the match's game and opponent are what you
+   scan for, and a saturated red/green slab beat them to the eye every time. The
+   word itself carries the meaning, so nothing depends on the colour. */
+.result-badge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 1px var(--space-2);
+  font: 700 10px/16px var(--font-sans), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+.result-badge[data-result="win"] {
+  color: var(--double-text);
+  background: color-mix(in srgb, var(--double) 20%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--double) 55%, transparent);
+}
+.result-badge[data-result="loss"] {
+  color: var(--treble-text);
+  background: color-mix(in srgb, var(--treble) 18%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--treble) 50%, transparent);
+}
+
+/* ── MatchHistoryRow ─────────────────────────────────────────────────────────
+   One grid for every row, so the badge, game name, metadata and headline metric
+   land on the same x positions down the whole list however the metric is labelled. */
+.history-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+.history-row-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.history-row-title { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.history-row-title > strong { font: 700 15px/1.3 var(--font-sans), sans-serif; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history-row-meta { color: var(--text-muted); font-size: 12px; line-height: 16px; overflow-wrap: anywhere; }
+.history-row-metric { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; text-align: right; min-width: 68px; }
+.history-row-metric dt { font: 700 10px/14px var(--font-sans), sans-serif; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); }
+.history-row-metric dd { margin: 0; font: 600 20px/1.2 var(--font-display), sans-serif; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+/* Date grouping: a quiet rule with the day sitting on it, so a long history reads
+   in chunks rather than as one undifferentiated column. */
+.history-group { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-2); }
+.history-group:first-child { margin-top: 0; }
+.history-group::after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
+
+/* ── EmptyState ──────────────────────────────────────────────────────────────
+   Says what would be here and how to make it appear — never just "no data". */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+}
+.empty-state > svg { color: var(--wire); opacity: .65; }
+.empty-state h3 { font: 600 18px/1.2 var(--font-display), sans-serif; color: var(--text-primary); }
+.empty-state p { max-width: 36ch; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+
+/* ── Skeleton ────────────────────────────────────────────────────────────────
+   Placeholders match the real content's silhouette (including the notch) so the
+   page doesn't reflow when data lands. */
+.skeleton {
+  background: color-mix(in srgb, var(--slate) 80%, var(--oche));
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--notch-panel)), calc(100% - var(--notch-panel)) 100%, 0 100%);
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+@keyframes skeleton-pulse { 0%, 100% { opacity: .55; } 50% { opacity: .9; } }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; opacity: .7; } }
+
+/* ── InlineFeedback ──────────────────────────────────────────────────────────
+   Confirmations and errors appear next to the control that caused them, carrying an
+   icon as well as a colour so the tone survives greyscale. */
+.inline-feedback {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: 13px;
+  line-height: 18px;
+  background: var(--surface-quiet);
+  border-left: 3px solid var(--border-default);
+}
+.inline-feedback > svg { flex-shrink: 0; }
+.inline-feedback[data-tone="success"] { border-left-color: var(--double); color: var(--double-text); }
+.inline-feedback[data-tone="error"] { border-left-color: var(--treble); color: var(--treble-text); }
+.inline-feedback[data-tone="info"] { border-left-color: var(--wire); color: var(--text-secondary); }
+
+/* ── ChartLegend + chart callouts ────────────────────────────────────────────
+   The dartboard heat maps carried no key at all: colour was the sole carrier of
+   meaning and nothing said what "hot" was relative to. */
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1) var(--space-3);
+  font: 400 11px/16px var(--font-sans), sans-serif;
+  color: var(--text-muted);
+}
+.chart-legend-scale { display: flex; align-items: center; gap: var(--space-2); }
+.chart-legend-bar {
+  width: 84px;
+  height: 8px;
+  background: linear-gradient(90deg, var(--heat-cold), var(--heat-mid), var(--heat-hot));
+}
+/* Left-aligned like every other metric on the page — the board above them is centred,
+   but these are read as a column of labelled values, not as a caption. */
+.chart-callouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: var(--space-3); text-align: left; margin: 0; }
+.chart-callout { min-width: 0; }
+.chart-callout dt { font: 700 10px/14px var(--font-sans), sans-serif; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); }
+.chart-callout dd { margin: 0; font: 600 18px/1.25 var(--font-display), sans-serif; color: var(--text-primary); overflow-wrap: anywhere; }
+
+/* ── HeatmapFigure ───────────────────────────────────────────────────────────
+   The board plus its callouts, readout, key and text alternative, as one block. */
+.stats-heatmap-item { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-2); margin: 0; text-align: center; }
+.stats-heatmap-head h4 { font: 600 16px/1.2 var(--font-display), sans-serif; color: var(--text-primary); }
+.stats-heatmap-head p { color: var(--text-muted); font-size: 12px; line-height: 16px; }
+.stats-heatmap-item > svg { width: 100%; max-width: 280px; margin-inline: auto; }
+.chart-readout { min-height: 32px; font-size: 12px; line-height: 16px; color: var(--text-muted); }
+.chart-readout strong { color: var(--text-primary); font-weight: 700; }
+/* Each inspectable region is a button in the accessibility tree, so it needs a visible focus
+   ring — SVG can't take the global outline cleanly, hence the explicit stroke treatment. */
+.heatmap-region:focus-visible { outline: none; }
+.heatmap-region:focus-visible > :first-child { stroke: var(--wire); stroke-width: 3; }
+.chart-table { text-align: left; }
+.chart-table > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--height-button);
+  color: var(--wire);
+  font: 600 13px/1 var(--font-sans), sans-serif;
+  cursor: pointer;
+  list-style: none;
+}
+.chart-table > summary::-webkit-details-marker { display: none; }
+.chart-table > summary::after { content: ' ▾'; }
+.chart-table[open] > summary::after { content: ' ▴'; }
+.chart-table table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+.chart-table th, .chart-table td { padding: var(--space-1) var(--space-2); text-align: right; border-bottom: 1px solid var(--border-subtle); }
+.chart-table thead th { color: var(--text-muted); font: 700 10px/14px var(--font-sans), sans-serif; text-transform: uppercase; letter-spacing: .08em; }
+.chart-table tbody th { text-align: left; font-weight: 500; color: var(--text-secondary); }
+.chart-table td { color: var(--text-primary); }
+
+/* ── Account metadata ────────────────────────────────────────────────────────
+   Low-frequency, privacy-sensitive identifiers. Rendered at metadata weight with no
+   box of their own: the audit's point was that an email address had been given the
+   same visual prominence as the controls people actually come to this page to use. */
+.account-meta { display: flex; flex-direction: column; gap: var(--space-3); margin: 0; }
+.account-meta dt { font: 700 11px/16px var(--font-sans), sans-serif; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); }
+.account-meta dd { margin: 0; color: var(--text-secondary); font-size: 14px; overflow-wrap: anywhere; }
+.reveal-value {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--height-button);
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.reveal-hint { color: var(--wire); font-size: 12px; font-weight: 600; flex-shrink: 0; }
+.reveal-value:hover .reveal-hint { color: var(--chalk); }
+
+/* ── Friend code ─────────────────────────────────────────────────────────────
+   Compact: a label, the code, and its actions on one line, instead of the slab that
+   used to dominate an otherwise near-empty page. */
+.friend-code-row { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); }
+.friend-code-row > div { min-width: 0; flex: 1 1 auto; }
+.friend-code-actions { display: flex; gap: var(--space-2); flex-shrink: 0; }
+.friend-code { font-family: var(--font-display), sans-serif; font-size: 22px; font-weight: 700; letter-spacing: .08em; color: var(--wire); }
+
+/* ── Dead space ──────────────────────────────────────────────────────────────
+   Short pages (the setup wizard's later steps) used to leave a large empty region
+   below their content while the forward action stayed stranded at the top. The panel
+   takes the available height and the step navigation is pushed to its bottom edge,
+   inside the same content column — no decorative filler, just the primary action
+   where the thumb already is. */
+.step-flow { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: var(--space-4); }
+.step-flow > .step-nav-dock { margin-top: auto; }
+
+
+/* ── Head-to-head by-game table ──────────────────────────────────────────────
+   A plain table rather than a Panel full of rows: it is tabular data, and the only
+   rules it needs are the hairlines between rows. */
+.h2h-table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.h2h-table th, .h2h-table td { padding: var(--space-2) var(--space-2); text-align: right; }
+.h2h-table thead th { color: var(--text-muted); font: 700 10px/14px var(--font-sans), sans-serif; text-transform: uppercase; letter-spacing: .08em; }
+.h2h-table thead th:first-child, .h2h-table tbody th { text-align: left; }
+.h2h-table tbody th { text-transform: uppercase; font-weight: 700; color: var(--text-primary); }
+.h2h-table tbody tr { border-top: 1px solid var(--border-subtle); }
+
+/* ── Achievement progress ────────────────────────────────────────────────────
+   The count is the headline; the bar repeats it as shape, so progress is readable
+   without reading. */
+.achievement-progress { display: flex; flex-direction: column; gap: var(--space-2); }
+.achievement-progress p { color: var(--text-muted); font-size: 13px; }
+.achievement-progress strong { color: var(--text-primary); font-family: var(--font-display), sans-serif; font-size: 20px; font-weight: 700; }
+.achievement-progress-bar { height: 4px; background: var(--border-subtle); overflow: hidden; }
+.achievement-progress-bar > span { display: block; height: 100%; background: var(--wire); transition: width 320ms ease; }
+@media (prefers-reduced-motion: reduce) { .achievement-progress-bar > span { transition: none; } }
+
+/* Long-form legal copy: a narrower measure than the app's data screens, because prose is
+   read line by line rather than scanned. */
+.legal-page { display: flex; flex-direction: column; gap: var(--space-5); max-width: 46rem; }
+.legal-page h2 { font: 600 20px/1.2 var(--font-display), sans-serif; color: var(--text-primary); margin-bottom: var(--space-2); }

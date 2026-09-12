@@ -2,9 +2,10 @@
 import { use, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { Swords } from 'lucide-react';
 import { Panel } from '@/components/atoms/Panel';
 import { Button } from '@/components/atoms/Button';
-import { BackLink } from '@/components/atoms/BackLink';
+import { AppBar, EmptyState, InlineFeedback, MetricGrid, ResultBadge, TextLink } from '@/components/molecules';
 import type { HeadToHeadResponse } from '@/lib/friends/types';
 
 export default function FriendPage({ params }: { params: Promise<{ id: string }> }) {
@@ -39,18 +40,68 @@ export default function FriendPage({ params }: { params: Promise<{ id: string }>
     } catch { setError('Could not load more matches. Please try again.'); }
     finally { setBusy(false); }
   }
-  if (status === 'unauthenticated') return <main className="social-page page-gutters"><Link href="/signin" className="social-link">Sign in to view your friends</Link></main>;
+  if (status === 'unauthenticated') return <main className="social-page page-gutters">
+    <AppBar eyebrow="Players" title="Head-to-head" />
+    <EmptyState icon={Swords} title="Sign in to see this record" body="Head-to-head records are kept per account." action={<TextLink href="/signin">Sign in</TextLink>} />
+  </main>;
+
   return <main className="social-page page-gutters">
-    <BackLink href="/friends" label="Back to friends" />
-    {error && <div role="alert" className="social-error"><span>{error}</span>{!data && <Button size="sm" variant="ghost" onClick={() => setRetry(n => n + 1)}>Retry</Button>}</div>}
+    <AppBar
+      back={{ href: '/friends', label: 'Back to friends' }}
+      eyebrow="Head-to-head"
+      title={data ? `You vs ${data.friend.name}` : 'Head-to-head'}
+      action={<TextLink href={`/profile/${id}`} arrow="detail">View profile</TextLink>}
+    />
+    {error && <InlineFeedback tone="error">
+      {error}{!data && <> <button type="button" className="underline" onClick={() => setRetry(n => n + 1)}>Retry</button></>}
+    </InlineFeedback>}
     {data ? <>
-      <header><p>Head-to-head</p><h1 className="page-title">You vs {data.friend.name}</h1><p>One-on-one online matches, across all your games.</p><Link className="social-link" href={`/profile/${id}`}>View player profile →</Link></header>
-      <div className="grid grid-cols-3 gap-2">{[['Played', data.summary.played], ['Your wins', data.summary.wins], ['Their wins', data.summary.losses]].map(([label, value]) => <Panel key={label} notch="panel" className="p-3"><p className="text-xs text-sisal">{label}</p><p className="text-[28px] font-display font-bold">{value}</p></Panel>)}</div>
-      {data.games.length > 0 && <Panel notch="panel" className="p-3"><h2 className="social-section-title">By game</h2><table className="w-full text-sm"><thead><tr className="text-xs text-sisal text-left"><th className="py-2">Game</th><th>Played</th><th>You</th><th>Them</th></tr></thead><tbody>{data.games.map(game => <tr key={game.gameId} className="border-t border-sisal/15"><th className="py-2 text-left uppercase">{game.gameId}</th><td>{game.played}</td><td>{game.wins}</td><td>{game.losses}</td></tr>)}</tbody></table></Panel>}
-      <section><h2 className="social-section-title">Recent matches</h2>{data.matches.length ? <div className="social-list">{data.matches.map(match => <Link href={`/match/${match.id}`} key={match.id}><Panel notch="panel" className="social-person"><div><p className="uppercase font-bold">{match.gameId}</p><p className="text-xs text-sisal">{match.completedAt ? new Date(match.completedAt).toLocaleDateString() : 'Completed match'}</p></div><span className={match.won ? 'text-wire' : 'text-sisal'}>{match.won ? 'You won' : `${data.friend.name} won`}</span></Panel></Link>)}</div> : <p className="text-sm text-sisal">No matches yet. Create an online room and share its code with your friend.</p>}
-        {data.nextCursor && <Button className="mt-3" size="sm" variant="secondary" disabled={busy} onClick={more}>{busy ? 'Loading…' : 'Load more'}</Button>}
+      <p className="t-meta">One-on-one online matches, across all your games.</p>
+
+      {/* The same unboxed metric grid used on the profile and statistics screens — three
+          numbers in three bordered Panels was three boxes doing spacing's job. */}
+      <MetricGrid
+        cols={3}
+        metrics={[
+          { label: 'Played', value: data.summary.played },
+          { label: 'Your wins', value: data.summary.wins },
+          { label: 'Their wins', value: data.summary.losses },
+        ]}
+      />
+
+      {data.games.length > 0 && <section className="flex flex-col gap-2">
+        <div className="section-header"><h2>By game</h2></div>
+        <table className="h2h-table">
+          <thead><tr><th scope="col">Game</th><th scope="col">Played</th><th scope="col">You</th><th scope="col">Them</th></tr></thead>
+          <tbody>{data.games.map(game => <tr key={game.gameId}>
+            <th scope="row">{game.gameId}</th><td>{game.played}</td><td>{game.wins}</td><td>{game.losses}</td>
+          </tr>)}</tbody>
+        </table>
+      </section>}
+
+      <section className="flex flex-col gap-2">
+        <div className="section-header"><h2>Recent matches</h2></div>
+        {data.matches.length ? <div className="social-list">{data.matches.map(match =>
+          <Link href={`/match/${match.id}`} key={match.id} className="block">
+            <Panel notch="panel" className="social-person">
+              <span className="flex flex-col gap-0.5 min-w-0">
+                <strong className="uppercase">{match.gameId}</strong>
+                <span className="t-meta">{match.completedAt ? new Date(match.completedAt).toLocaleDateString() : 'Completed match'}</span>
+              </span>
+              <ResultBadge won={match.won} />
+            </Panel>
+          </Link>)}
+        </div> : <EmptyState
+          icon={Swords}
+          title="No matches together yet"
+          body="Create an online room and share its code — results against each other start counting from the first game."
+          action={<TextLink href="/">Start a match</TextLink>}
+        />}
+        {data.nextCursor && <Button className="mt-3 self-start" size="sm" variant="secondary" disabled={busy} onClick={more}>{busy ? 'Loading…' : 'Load more'}</Button>}
       </section>
-      <Link href="/" className="social-link">Start a game →</Link>
-    </> : !error && <p className="text-sm text-sisal">Loading record…</p>}
+    </> : !error && <div className="flex flex-col gap-3" aria-busy="true">
+      <div className="skeleton h-20" />
+      <div className="skeleton h-32" />
+    </div>}
   </main>;
 }

@@ -14,11 +14,21 @@ export const RADIUS = {
 /** A real dartboard's segment order, clockwise starting from the top (12 o'clock). */
 export const BOARD_ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
 
+/** Trig is not required to be bit-identical between JavaScript engines, and Node's and the
+ *  browser's disagree in the last digit or two — `125.0915675429748` server-side against
+ *  `125.09156754297479` in the browser. React compares the rendered strings, finds them
+ *  different, and reports a hydration mismatch for the whole board, at which point it stops
+ *  patching that subtree. Three decimals is far finer than a pixel on a 400-unit viewBox and
+ *  makes both engines produce the same string. */
+function round(value: number): number {
+  return Math.round(value * 1000) / 1000;
+}
+
 /** Builds an SVG path for one non-overlapping annular wedge (a ring "slice"): the actual shape of one dartboard scoring band for one segment. */
 export function annularWedgePath(innerRadius: number, outerRadius: number, startAngle: number, endAngle: number): string {
   const point = (r: number, angle: number) => ({
-    x: CENTER + r * Math.cos(angle),
-    y: CENTER + r * Math.sin(angle),
+    x: round(CENTER + r * Math.cos(angle)),
+    y: round(CENTER + r * Math.sin(angle)),
   });
   const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
 

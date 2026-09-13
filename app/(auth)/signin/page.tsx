@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { tokens } from "@/lib/theme";
 import { Panel } from "@/components/atoms";
 
@@ -24,12 +25,14 @@ export default function SignInPage() {
       style={{ backgroundColor: tokens.oche }}
     >
       <div className="w-full max-w-md"><Panel notch="card" className="p-4 md:p-8">
-        <h1
-          className="text-2xl font-bold text-center mb-4 md:mb-8 font-display"
-          style={{ color: tokens.wire }}
-        >
-          Sign in to Oche
-        </h1>
+        {/* The mark, not a separate lockup image: one logo asset used everywhere in the app
+            (see components/AppNavigation.tsx) rather than a second, independently-exported
+            file that can drift out of sync with it. */}
+        <div className="auth-brand">
+          <Image src="/oche-mark.png" alt="" width={1024} height={1024} priority aria-hidden="true" />
+          <p className="auth-brand-word">OCHE</p>
+          <h1>Sign in</h1>
+        </div>
 
         {process.env.NODE_ENV === 'development' && (
           <div className="mb-4 p-3 rounded-none border border-sisal/30 bg-slate/50">

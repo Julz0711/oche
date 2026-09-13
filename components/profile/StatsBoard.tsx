@@ -48,7 +48,7 @@ function x01Tiles(s: X01AggregateStats): Tile[] {
     { label: 'Busts/game', value: s.bustsPerMatch.toFixed(1) },
     { label: 'Doubles hit %', value: `${s.doublesRate.toFixed(0)}%` },
     { label: 'Trebles hit %', value: `${s.treblesRate.toFixed(0)}%` },
-    { label: 'Most common double out', value: s.commonDoubleOut ?? '—' },
+    { label: 'Top double out', value: s.commonDoubleOut ?? '—' },
   ];
 }
 
@@ -85,44 +85,60 @@ function Heatmaps({ heatmap, dartsThrown }: { heatmap: Record<string, number>; d
   const total = dartsThrown ?? summarizeHeatmap(heatmap).darts;
 
   return (
-    <div className="stats-heatmaps">
-      <HeatmapFigure
-        title="All throws"
-        caption={dartsThrown ? `${dartsThrown} recorded darts` : 'No recorded darts in this period'}
-        heatmap={heatmap}
-      />
-      <HeatmapFigure
-        title="Doubles, trebles & bulls"
-        caption={total
-          ? `${specialsSummary.darts} of ${total} darts found a multiplier or a bull`
-          : 'No recorded darts in this period'}
-        heatmap={specials}
-        callouts={[
-          { label: 'Trebles', value: specialsSummary.byRing.T },
-          { label: 'Doubles', value: specialsSummary.byRing.D },
-          { label: 'Bulls', value: bulls },
-        ]}
-      />
-    </div>
+    // Behind a disclosure: two dartboards are by far the heaviest thing on this page, and they
+    // are a thing you go looking for rather than something you need every time you check an
+    // average. Closed by default even inside an open game.
+    <details className="stats-disclosure">
+      <summary>Shot maps</summary>
+      <div className="stats-heatmaps">
+        <HeatmapFigure
+          title="All throws"
+          caption={dartsThrown ? `${dartsThrown} recorded darts` : 'No recorded darts in this period'}
+          heatmap={heatmap}
+        />
+        <HeatmapFigure
+          title="Doubles, trebles & bulls"
+          caption={total
+            ? `${specialsSummary.darts} of ${total} darts found a multiplier or a bull`
+            : 'No recorded darts in this period'}
+          heatmap={specials}
+          callouts={[
+            { label: 'Trebles', value: specialsSummary.byRing.T },
+            { label: 'Doubles', value: specialsSummary.byRing.D },
+            { label: 'Bulls', value: bulls },
+          ]}
+        />
+      </div>
+    </details>
   );
 }
 
 /** One game's numbers. The card is bounded by a single accent edge and its own spacing —
  *  no outline, and none of the per-statistic boxes the tiles used to sit in. */
-function GameStatsCard({ gameId, played, wins, winRate, tiles, heatmap, dartsThrown }: {
+function GameStatsCard({ gameId, played, wins, winRate, tiles, heatmap, dartsThrown, defaultOpen }: {
   gameId: string; played: number; wins: number; winRate: number; tiles: Tile[];
-  heatmap?: Record<string, number>; dartsThrown?: number;
+  heatmap?: Record<string, number>; dartsThrown?: number; defaultOpen: boolean;
 }) {
   const meta = GAME_META[gameId] ?? { name: gameId, accent: 'wire' as const };
   return (
-    <section className="stats-game-card" style={{ borderColor: `var(--${meta.accent})` }} aria-labelledby={`stats-game-${gameId}`}>
-      <div className="stats-game-card-heading">
-        <h3 id={`stats-game-${gameId}`} style={{ color: `var(--${meta.accent})` }}>{meta.name}</h3>
+    // Collapsible, with the record in the summary. Every game used to be fully expanded at
+    // once: three stacked blocks of a dozen statistics each, plus two dartboards, all at the
+    // same visual weight. The row you can always see — name, played, won, win rate — is the
+    // part anyone actually scans; the dozen numbers are what you open a game to read.
+    <details
+      className="stats-game-card"
+      style={{ borderColor: `var(--${meta.accent})` }}
+      open={defaultOpen}
+    >
+      <summary className="stats-game-card-heading">
+        <h3 style={{ color: `var(--${meta.accent})` }}>{meta.name}</h3>
         <span>{played} played · {wins} won · {winRate}%</span>
+      </summary>
+      <div className="stats-game-card-body">
+        <MetricGrid metrics={tiles} cols="auto" size="sm" />
+        {heatmap && <Heatmaps heatmap={heatmap} dartsThrown={dartsThrown} />}
       </div>
-      <MetricGrid metrics={tiles} cols="auto" size="sm" />
-      {heatmap && <Heatmaps heatmap={heatmap} dartsThrown={dartsThrown} />}
-    </section>
+    </details>
   );
 }
 
@@ -168,6 +184,9 @@ export function StatsBoard({ board, compact = false, showHeatmap = false }: { bo
     {!compact && gameCards.length > 0 && (
       <div className="stats-game-cards">
         {gameCards.map(game => {
+          // One game open on arrival, so the section isn't a wall of collapsed rows — the one
+          // you've played most, which is the one you most likely came to read.
+          const mostPlayed = gameCards.reduce((best, entry) => (entry.totalMatches > best.totalMatches ? entry : best), gameCards[0]);
           const tiles =
             game.gameId === 'x01' && stats.x01 ? x01Tiles(stats.x01) :
             game.gameId === 'cricket' && stats.cricket ? cricketTiles(stats.cricket) :
@@ -183,6 +202,7 @@ export function StatsBoard({ board, compact = false, showHeatmap = false }: { bo
               tiles={tiles}
               heatmap={showHeatmap && game.gameId === 'x01' ? stats.heatmap : undefined}
               dartsThrown={game.gameId === 'x01' ? stats.dartsThrown : undefined}
+              defaultOpen={game.gameId === mostPlayed.gameId}
             />
           );
         })}

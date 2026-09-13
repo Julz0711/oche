@@ -394,8 +394,10 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
    own padding-bottom (below, on phones) is what holds content clear of the fixed tab bar. */
 .app-content { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .app-content > .min-h-screen { min-height: calc(100dvh - 62px); }
-.app-navigation { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px max(16px, calc((100vw - 960px) / 2)); background: var(--oche); border-bottom: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); }
-.nav-brand { font: 700 24px var(--font-display); color: var(--wire); transition: opacity 160ms ease; }
+.app-navigation { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px max(16px, calc((100% - 960px) / 2)); background: var(--oche); border-bottom: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); }
+.nav-brand { display: flex; align-items: center; gap: var(--space-2); flex-shrink: 0; transition: opacity 160ms ease; }
+.nav-brand img { width: 28px; height: 28px; object-fit: contain; }
+.nav-brand span { font: 700 24px/1 var(--font-display), sans-serif; color: var(--wire); letter-spacing: .04em; }
 .nav-brand:hover { opacity: 0.8; }
 .nav-destinations { display: flex; gap: 8px; }
 .nav-destinations a { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 12px; color: var(--sisal); font-size: 13px; border-bottom: 2px solid transparent; transition: color 160ms ease, border-color 160ms ease; }
@@ -440,8 +442,19 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   .social-person { flex-wrap: wrap; }
 }
 
-/* Account and navigation share a single content grid. */
-.app-navigation { padding: calc(8px + env(safe-area-inset-top, 0px)) max(24px, calc((100vw - 1152px) / 2)) 8px; }
+/* Account and navigation share a single content grid.
+
+   `100%`, not `100vw`: `100vw` resolves against the initial containing block, which INCLUDES
+   the vertical scrollbar's own width, while every page's actual content column (`.page-gutters`,
+   below — max-width + `margin-inline: auto`) is centered against the real, scrollbar-excluded
+   layout width. On any page tall enough to scroll (nearly all of them), that gap between the two
+   was consistently the width of one scrollbar (~7-8px on this content column), showing up as
+   the nav bar's content sitting a few pixels right of the page title and cards beneath it.
+   `100%` here resolves against `.app-navigation`'s own (scrollbar-excluded) box, so it always
+   agrees with `.page-gutters`. The `1152px` basis is deliberate, not a rounding of 1200: it is
+   `--content-max` (1200) minus two `--gutter-page`s (24 each), so this single padding value
+   reproduces both `.page-gutters`' outer centering margin AND its own inner gutter in one step. */
+.app-navigation { padding: calc(8px + env(safe-area-inset-top, 0px)) max(24px, calc((100% - 1152px) / 2)) 8px; }
 /* The canonical page column. Every standalone page carries `.page-gutters`, and this is
    the only place its horizontal padding and max width are decided — so page titles, section
    headings, cards and right-aligned utility links all snap to the same content edges.
@@ -456,11 +469,14 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 }
 .app-content > .page-gutters > .max-w-3xl { max-width: none; padding-top: 0; gap: var(--space-5); }
 
-/* Narrower than the app's full content width. The profile and statistics screens are columns
-   of short labelled numbers; given 1200px the four-up metric rows put 275px of nothing between
-   a label and its neighbour, and a card's right-aligned meta drifted most of a metre from the
-   heading it belonged to. */
-.account-page { display: flex; flex-direction: column; gap: var(--space-5); color: var(--text-primary); max-width: 1000px; }
+/* Full standard width, aligned with the nav bar's own content grid — capping THIS container
+   was tried first, but a page-level max-width decouples the page title and section headers from
+   the nav's brand/links above them (they stop sharing a left edge on wide screens the moment the
+   two containers use different max-widths), which reads as worse than the sprawl it fixed. The
+   sprawl itself is handled at the point it actually happens instead: `.metric-grid[data-cols]`
+   and `.segmented-choice` below cap THEMSELVES, so a row of short numbers stays a tight group
+   without narrowing everything above and below it too. */
+.account-page { display: flex; flex-direction: column; gap: var(--space-5); color: var(--text-primary); }
 
 .eyebrow { font: 700 11px/16px var(--font-sans), sans-serif; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .08em; }
 
@@ -507,12 +523,56 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 
 
 .stats-game-cards { display: flex; flex-direction: column; gap: var(--space-5); }
-.stats-game-card { border-left: 3px solid var(--wire); background: var(--surface-quiet); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-4); }
-.stats-game-card-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px; }
+/* A collapsible per-game block. The summary row is always visible; the numbers live inside. */
+.stats-game-card { border-left: 3px solid var(--wire); background: var(--surface-quiet); }
+.stats-game-card > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  min-height: var(--height-button);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  list-style: none;
+}
+.stats-game-card > summary::-webkit-details-marker { display: none; }
+/* A caret, so the row reads as something that opens rather than a heading that happens to be
+   clickable. */
+.stats-game-card > summary::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform 160ms ease;
+}
+.stats-game-card[open] > summary::after { transform: rotate(-135deg) translate(-2px, -2px); }
+.stats-game-card > summary:hover { background: color-mix(in srgb, var(--slate) 70%, transparent); }
+.stats-game-card > summary:focus-visible { outline: 2px solid var(--wire); outline-offset: -2px; }
+.stats-game-card-body { display: flex; flex-direction: column; gap: var(--space-5); padding: 0 var(--space-4) var(--space-4); }
+
+/* Nested disclosure inside a game — the shot maps. */
+.stats-disclosure > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--height-button);
+  color: var(--wire);
+  font: 600 13px/1 var(--font-sans), sans-serif;
+  cursor: pointer;
+  list-style: none;
+}
+.stats-disclosure > summary::-webkit-details-marker { display: none; }
+.stats-disclosure > summary::after { content: ' ▾'; }
+.stats-disclosure[open] > summary::after { content: ' ▴'; }
+
 .stats-game-card-heading h3 { font: 700 20px/1.2 var(--font-display); }
 .stats-game-card-heading span { color: var(--text-muted); font-size: 12px; }
 
-.stats-heatmaps { display: grid; grid-template-columns: 1fr; gap: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--border-subtle); }
+.stats-heatmaps { display: grid; grid-template-columns: 1fr; gap: var(--space-6); padding-top: var(--space-4); }
 
 
 
@@ -845,6 +905,9 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 }
 .metric-grid > div { min-width: 0; }
 .metric-grid dt {
+  /* Two lines reserved: one long label among short ones used to shunt its own value a row
+     below its neighbours', which made a tidy grid look broken. */
+  min-height: 32px;
   font: 700 11px/16px var(--font-sans), sans-serif;
   text-transform: uppercase;
   letter-spacing: .06em;
@@ -1270,3 +1333,12 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   color: var(--text-secondary);
   cursor: default;
 }
+
+
+/* ── Brand ───────────────────────────────────────────────────────────────────
+   The mark above the sign-in heading: the first thing anyone sees of the app, and the
+   only place it appears at size. */
+.auth-brand { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); margin-bottom: var(--space-5); }
+.auth-brand img { width: 72px; height: 72px; }
+.auth-brand-word { font: 700 30px/1 var(--font-display), sans-serif; color: var(--wire); letter-spacing: .04em; margin-top: var(--space-1); }
+.auth-brand h1 { font: 700 26px/1.2 var(--font-display), sans-serif; color: var(--text-primary); text-align: center; }

@@ -97,9 +97,10 @@ export function HeatmapBoard({ heatmap = {}, label, decorative = false, onSelect
         const { startAngle, endAngle, midAngle } = segmentAngles(i);
         // Outside the board's outer edge (not on the double ring, where it used to compete
         // with the heat overlay's color for legibility).
+        // Rounded for the same reason the wedge paths are — see lib/dartboard-geometry.ts.
         const labelPoint = {
-          x: CENTER + (RADIUS.boardEdge + 18) * Math.cos(midAngle),
-          y: CENTER + (RADIUS.boardEdge + 18) * Math.sin(midAngle),
+          x: Math.round((CENTER + (RADIUS.boardEdge + 18) * Math.cos(midAngle)) * 1000) / 1000,
+          y: Math.round((CENTER + (RADIUS.boardEdge + 18) * Math.sin(midAngle)) * 1000) / 1000,
         };
 
         const doubleRatio = ratioOf(`D${segment}`);

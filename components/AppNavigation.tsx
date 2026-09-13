@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Crosshair, Swords, Users, BarChart3, UserRound, Volume2, VolumeX } from 'lucide-react';
@@ -24,7 +25,15 @@ export function AppNavigation({ children }: { children: ReactNode }) {
   if (hidden) return children;
   return <div className="app-shell app-shell-pattern">
     <nav className="app-navigation" aria-label="Main navigation">
-      <Link href="/" className="nav-brand" aria-label="Oche home">OCHE</Link>
+      {/* The mark, not the lockup: at the ~30px a navigation bar allows, the lockup's
+          "DARTS TRACKER" subline is about three pixels tall and renders as a smudge under the
+          wordmark. The mark stays crisp at any size, and the wordmark beside it is set in the
+          display face the rest of the app uses. The full lockup gets the sign-in screen, where
+          it has room to be read. */}
+      <Link href="/" className="nav-brand" aria-label="Oche home">
+        <Image src="/oche-mark.png" alt="" width={1024} height={1024} priority aria-hidden="true" />
+        <span>OCHE</span>
+      </Link>
       <div className="nav-destinations">
         {destinations.map(({ href, label, icon: Icon, requiresAuth, desktopOnly }) => {
           const selected = href === '/' ? pathname === '/' || pathname.startsWith('/join') : href === '/solo' ? pathname.startsWith('/solo') : pathname.startsWith(href) || (href === '/friends' && pathname.startsWith('/profile/'));

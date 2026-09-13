@@ -94,10 +94,16 @@
 
 /* Docked to the bottom of the step panel: on the short settings and review steps the forward
    action used to sit high on the screen above a large empty region, out of thumb reach. */
-/* The dock holds the summary line and the navigation together, pushed to the bottom of the
-   step panel as one unit. */
+/* The dock holds the summary line and the navigation together. On a phone it is pushed to the
+   bottom of the step panel, which puts the forward action in thumb reach and closes the dead
+   region the short steps used to leave below their content. On a desktop it stays with the
+   content: a 900px-tall window would otherwise strand the button half a screen away from the
+   settings it confirms. */
 .stepDock { display: flex; flex-direction: column; gap: var(--space-2); margin-top: auto; padding-top: var(--space-5); }
 .stepNav { display: flex; align-items: center; gap: var(--space-3); }
+@media (min-width: 1024px) {
+  .stepDock { margin-top: 0; }
+}
 .stepNav button {
   min-height: 48px;
   padding: var(--space-3) var(--space-5);
@@ -107,10 +113,23 @@
   font: 600 14px/1 var(--font-sans), sans-serif;
   transition: color 160ms ease, opacity 160ms ease;
 }
-/* Back is a tertiary escape hatch: no border, no fill, sized to its own label. */
-.stepNav button:not([data-primary]) { padding-inline: var(--space-2); margin-left: calc(var(--space-2) * -1); }
-.stepNav button:not([data-primary]):hover:not(:disabled) { color: var(--chalk); }
-/* Next carries the flow, so it gets the fill and the remaining width. */
+/* Back is secondary, not invisible. Quiet enough that the gold forward action is plainly the
+   one to press, but it still has to look pressable: a hairline box, and the same left chevron
+   the page header uses, so "go back" is one glyph everywhere in the app. As bare text beside a
+   filled button it read as a caption. Sized to its own label and sitting flush on the page
+   gutter — its border is now its visible edge, so the old optical nudge would push it off. */
+.stepNav button:not([data-primary]) {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--border-default);
+}
+.stepNav button:not([data-primary]):hover:not(:disabled) { border-color: var(--wire); color: var(--chalk); }
+.stepNav button:not([data-primary]):disabled { border-color: var(--border-subtle); }
+/* Next carries the flow, so it gets the fill and — on a phone — the remaining width, which
+   makes it a comfortable thumb target. Past that it is sized to itself and sits at the right
+   end of the row; stretched across a desktop it became a metre of gold. */
 .stepNav button[data-primary] {
   flex: 1;
   background: var(--wire);
@@ -133,6 +152,10 @@
   overflow-wrap: anywhere;
 }
 .stepSummary strong { color: var(--text-secondary); font-weight: 600; }
+
+@media (min-width: 640px) {
+  .stepNav button[data-primary] { flex: 0 0 auto; min-width: 220px; margin-left: auto; }
+}
 
 @media (max-width: 639px) {
   .stepper button { flex-direction: column; align-items: flex-start; gap: var(--space-1); padding-block: var(--space-2); font-size: 10px; }

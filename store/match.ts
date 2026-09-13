@@ -37,6 +37,8 @@ interface MatchStore {
   }) => void;
   setGameState: (gameState: any, status?: MatchStatus) => void;
   setPlayers: (players: unknown[]) => void;
+  /** Applied when a lobby refresh brings back settings the host has changed. */
+  setSettings: (settings: any) => void;
   applyThrow: (throw_: Throw) => Promise<void>;
   undo: () => Promise<void>;
   addVisit: (visit: Visit) => void;
@@ -87,6 +89,8 @@ export const useMatchStore = create<MatchStore>((set, get) => ({
   setGameState: (gameState, status) => set((state) => ({ gameState, status: status ?? state.status })),
 
   setPlayers: (players) => set({ players }),
+
+  setSettings: (settings) => set({ settings }),
 
   applyThrow: async (throw_) => {
     const state = get();

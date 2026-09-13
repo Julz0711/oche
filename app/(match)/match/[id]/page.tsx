@@ -530,19 +530,21 @@ export default function MatchPage({ params }: MatchPageProps) {
     const isHost = hostId !== null && you !== null && hostId === you;
 
     return (
-      <div className="min-h-screen bg-oche text-chalk p-4 flex flex-col gap-3 items-center justify-center">
-        <MatchPresence players={lobbyPlayers as MatchPlayerDoc[]} {...sync} />
-        {throwError && <p role="alert" className="text-sm text-sisal">{throwError}</p>}
-        <MatchLobby
-          matchId={id}
-          roomCode={roomCode ?? ''}
-          players={lobbyPlayers as MatchPlayerDoc[]}
-          playerRange={gameModule.playerRange}
-          isHost={isHost}
-          onStart={handleStart}
-          starting={starting}
-        />
-      </div>
+      <MatchLobby
+        matchId={id}
+        gameId={gameModule.id as GameId}
+        gameName={gameModule.name}
+        roomCode={roomCode ?? ''}
+        players={lobbyPlayers as MatchPlayerDoc[]}
+        settings={(settings ?? gameModule.defaultSettings) as Record<string, unknown>}
+        playerRange={gameModule.playerRange}
+        isHost={isHost}
+        you={you}
+        hostId={hostId}
+        onStart={handleStart}
+        starting={starting}
+        presence={sync}
+      />
     );
   }
 

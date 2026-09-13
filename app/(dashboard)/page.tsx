@@ -1,55 +1,38 @@
 // app/(dashboard)/page.tsx
 'use client';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { gameRegistry, GameId, getGameModule } from '@/lib/games/registry';
+import { InlineFeedback } from '@/components/molecules';
 import { GameOption } from './SetupControls';
 import { StepGame, ActiveMatch } from './StepGame';
-import { StepSettings } from './StepSettings';
-import { StepReview } from './StepReview';
-import {
-  DEFAULT_SETUP,
-  MatchSetup,
-  WIZARD_STEPS,
-  WizardStep,
-  buildSettings,
-  loadSetup,
-  saveSetup,
-  summaryLine,
-} from './matchSetup';
+import { PlayMode, loadMode, saveMode } from './playMode';
 import styles from './dashboard.module.css';
 
+/**
+ * The dashboard is now only a way in: how you're playing, what you're playing, and the games
+ * already in progress.
+ *
+ * It used to be a three-step wizard — game, then settings, then a review — which meant the rules
+ * were fixed two screens before anyone else could see them, and could never be changed once a
+ * room existed. Picking a game now goes straight to that match's room, where the rules live
+ * alongside the players and the start button. See components/organisms/MatchRoom.tsx.
+ */
 export default function Dashboard() {
   const router = useRouter();
   const { data: session } = useSession();
   const [games, setGames] = useState<GameOption[] | null>(null);
   const [activeMatches, setActiveMatches] = useState<ActiveMatch[]>([]);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [creating, setCreating] = useState(false);
+  const [opening, setOpening] = useState<GameId | null>(null);
 
-  const [step, setStep] = useState<WizardStep>('game');
-  const [setup, setSetup] = useState<MatchSetup>(DEFAULT_SETUP);
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  const focusedStep = useRef<WizardStep>(step);
-
-  // Restore after mount, never during render: the server has no localStorage, so reading it any
-  // earlier would hydrate a different tree than the one rendered on the server. Saving waits for
-  // that restore to land — otherwise the first save runs while `setup` is still the default and
-  // overwrites the setup we were in the middle of reading back.
+  const [mode, setMode] = useState<PlayMode>('multiplayer');
+  // Restored after mount, never during render: the server has no localStorage, so reading it
+  // any earlier would hydrate a different tree than the one rendered on the server.
   const [restored, setRestored] = useState(false);
-  useEffect(() => { setSetup(loadSetup()); setRestored(true); }, []);
-  useEffect(() => { if (restored) saveSetup(setup); }, [restored, setup]);
-
-  // Moving between steps replaces the whole panel, so send focus to the new heading rather than
-  // leaving it on a button that no longer exists. Comparing against the step already focused
-  // (rather than a "first render" flag) also keeps StrictMode's double-invoked effect from
-  // stealing focus on arrival, when nobody has navigated anywhere yet.
-  useEffect(() => {
-    if (focusedStep.current === step) return;
-    focusedStep.current = step;
-    headingRef.current?.focus();
-  }, [step]);
+  useEffect(() => { setMode(loadMode()); setRestored(true); }, []);
+  useEffect(() => { if (restored) saveMode(mode); }, [restored, mode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -82,8 +65,6 @@ export default function Dashboard() {
     return () => { cancelled = true; };
   }, [session?.user]);
 
-  const update = (patch: Partial<MatchSetup>) => setSetup(current => ({ ...current, ...patch }));
-
   const handleDeleteMatch = async (id: string) => {
     if (!window.confirm('Delete this game? This cannot be undone.')) return;
     const res = await fetch(`/api/matches/${id}`, { method: 'DELETE' });
@@ -96,119 +77,57 @@ export default function Dashboard() {
     if (res.ok) setActiveMatches(prev => prev.filter(match => match.id !== id));
   };
 
-  const handleCreateMatch = async () => {
-    const mode = setup.mode === 'multiplayer' ? 'remote' : 'local';
+  /**
+   * Picking a game opens its room.
+   *
+   * Local play needs nothing from the server to set up, so it goes straight to a client-side
+   * room and the match is only created on Start. Online play needs a room code, so the match is
+   * created here — `POST /api/matches` hands back an existing unstarted room for this game if
+   * the player already has one, rather than leaving a new empty room behind on every visit.
+   */
+  const handlePickGame = async (gameId: GameId) => {
     setCreateError(null);
-    setCreating(true);
+    if (mode === 'singleplayer') {
+      router.push(`/play/local?game=${gameId}`);
+      return;
+    }
+    setOpening(gameId);
     try {
       const res = await fetch('/api/matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          gameId: setup.gameId,
-          mode,
-          settings: buildSettings(setup, games?.find(game => game.id === setup.gameId)?.defaultSettings),
-          ...(mode === 'local' ? { playerNames: setup.playerNames } : {}),
-        }),
+        body: JSON.stringify({ gameId, mode: 'remote' }),
       });
       const body = await res.json();
-      if (!res.ok || !body.id) throw new Error(body.error || 'Could not start the match. Try again.');
+      if (!res.ok || !body.id) throw new Error(body.error || 'Could not open a room. Try again.');
       router.push(`/match/${body.id}`);
     } catch (error) {
-      setCreateError(error instanceof Error ? error.message : 'Could not start the match. Check your connection.');
-    } finally {
-      setCreating(false);
+      setCreateError(error instanceof Error ? error.message : 'Could not open a room. Check your connection.');
+      setOpening(null);
     }
   };
 
-  const stepIndex = WIZARD_STEPS.findIndex(entry => entry.id === step);
-  const heading = step === 'game' ? 'Pick a game' : step === 'settings' ? 'Match settings' : 'Review & start';
-
   return (
     <div className="dashboard-page page-gutters min-h-screen text-chalk flex flex-col items-center relative">
-      {/* flex-1 on the column, and on the step panel inside it, is what lets the forward
-          action dock to the bottom of the viewport on the short steps instead of leaving a
-          large dead region below it. */}
       <div className="relative z-10 w-full max-w-3xl flex flex-col flex-1 gap-4 md:gap-6">
-        <nav className={styles.stepper} aria-label="Match setup progress">
-          <ol>
-            {WIZARD_STEPS.map((entry, index) => {
-              const state = index === stepIndex ? 'current' : index < stepIndex ? 'done' : 'todo';
-              return (
-                <li key={entry.id} data-state={state}>
-                  <button
-                    type="button"
-                    onClick={() => setStep(entry.id)}
-                    disabled={index > stepIndex || creating}
-                    aria-current={state === 'current' ? 'step' : undefined}
-                  >
-                    <span>{index + 1}</span>
-                    {entry.label}
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-        </nav>
-
         <header className="dashboard-header">
-          <h1 id="dashboard-step-heading" ref={headingRef} tabIndex={-1} className="step-heading page-title">
-            {heading}
-          </h1>
+          <h1 className="page-title">Play</h1>
         </header>
 
-        {/* Only step one is a tabpanel — it's the step the mode tabs actually switch between.
-            The later steps are plain regions named by the step heading. */}
-        <section
-          id="dashboard-play-panel"
-          className={styles.playPanel}
-          {...(step === 'game'
-            ? { role: 'tabpanel' as const, 'aria-labelledby': `play-tab-${setup.mode}` }
-            : { 'aria-labelledby': 'dashboard-step-heading' })}
-        >
-          {step === 'game' && (
-            <StepGame
-              mode={setup.mode}
-              onModeChange={mode => update({ mode })}
-              games={games}
-              onPickGame={(gameId) => { update({ gameId }); setStep('settings'); }}
-              activeMatches={activeMatches}
-              onResumeMatch={id => router.push(`/match/${id}`)}
-              onDeleteMatch={handleDeleteMatch}
-              onLeaveMatch={handleLeaveMatch}
-            />
-          )}
+        {createError && <InlineFeedback tone="error">{createError}</InlineFeedback>}
 
-          {step === 'settings' && (
-            <StepSettings setup={setup} onChange={update} sessionName={session?.user?.name} />
-          )}
-
-          {step === 'review' && (
-            <StepReview
-              setup={setup}
-              onEdit={setStep}
-              onStart={handleCreateMatch}
-              creating={creating}
-              error={createError}
-            />
-          )}
-
-          {step !== 'game' && (
-            <div className={styles.stepDock}>
-              {/* The rules as one line, directly above the action that accepts them. */}
-              {step === 'settings' && <p className={styles.stepSummary}>{summaryLine(setup)}</p>}
-              <div className={styles.stepNav}>
-                <button type="button" onClick={() => setStep(step === 'review' ? 'settings' : 'game')} disabled={creating}>
-                  Back
-                </button>
-                {step === 'settings' && (
-                  <button type="button" data-primary onClick={() => setStep('review')}>
-                    Review
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
+        <section id="dashboard-play-panel" className={styles.playPanel} role="tabpanel" aria-labelledby={`play-tab-${mode}`}>
+          <StepGame
+            mode={mode}
+            onModeChange={setMode}
+            games={games}
+            onPickGame={handlePickGame}
+            opening={opening}
+            activeMatches={activeMatches}
+            onResumeMatch={id => router.push(`/match/${id}`)}
+            onDeleteMatch={handleDeleteMatch}
+            onLeaveMatch={handleLeaveMatch}
+          />
         </section>
       </div>
     </div>

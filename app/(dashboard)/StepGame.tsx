@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 import { Panel, BoardMotif } from '@/components/atoms';
 import type { GameId } from '@/lib/games/registry';
 import { GameCard, GameOption, SettingLabel } from './SetupControls';
-import type { PlayMode } from './matchSetup';
+import type { PlayMode } from './playMode';
 import styles from './dashboard.module.css';
 
 export interface ActiveMatch {
@@ -18,14 +18,17 @@ export interface ActiveMatch {
   isHost: boolean;
 }
 
-/** Step one: how you're playing and what you're playing. Resuming an existing game and joining
- *  by room code live here too — they're ways into a match rather than part of setting one up,
- *  so they belong on the first screen and nowhere else in the flow. */
+/** How you're playing and what you're playing. Resuming an existing game and joining by room
+ *  code live here too — they're ways into a match rather than part of setting one up.
+ *
+ *  Picking a game no longer advances a wizard; it opens that match's room, where the rules and
+ *  the start button are. */
 export function StepGame({
   mode,
   onModeChange,
   games,
   onPickGame,
+  opening,
   activeMatches,
   onResumeMatch,
   onDeleteMatch,
@@ -35,6 +38,8 @@ export function StepGame({
   onModeChange: (mode: PlayMode) => void;
   games: GameOption[] | null;
   onPickGame: (gameId: GameId) => void;
+  /** The game whose online room is being opened, if any — its card shows the wait. */
+  opening: GameId | null;
   activeMatches: ActiveMatch[];
   onResumeMatch: (id: string) => void;
   onDeleteMatch: (id: string) => void;
@@ -128,7 +133,14 @@ export function StepGame({
           <SettingLabel>{mode === 'singleplayer' ? 'Classic games · same device' : 'Choose a game'}</SettingLabel>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3.5">
             {games.map((game, index) => (
-              <GameCard key={game.id} game={game} index={index} onSelect={() => onPickGame(game.id)} />
+              <GameCard
+                key={game.id}
+                game={game}
+                index={index}
+                opening={opening === game.id}
+                disabled={opening !== null && opening !== game.id}
+                onSelect={() => onPickGame(game.id)}
+              />
             ))}
           </div>
         </>

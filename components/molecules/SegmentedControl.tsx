@@ -13,11 +13,11 @@ export interface SegmentOption<T extends string | number> {
  * One control for picking one value from a small fixed set — stats periods, game filters,
  * match settings.
  *
- * The selected segment is a raised surface plus a gold underline plus heavier weight, not a
- * solid gold fill. Solid gold is reserved for the single highest-priority control on a
- * screen (the primary CTA); used for every filter row as well, it made the filters compete
- * with the data they filter. The weight change also means selection is still visible without
- * colour, which the filled version did not guarantee.
+ * Rendered as a tab strip: a baseline runs under every option, and the selected one thickens
+ * its own segment of that baseline in gold and brightens its label. No solid gold fill —
+ * that is reserved for the single highest-priority action on a screen, and using it here as
+ * well made filters compete with the data they filter. The weight change means selection is
+ * still visible in greyscale.
  *
  * `aria-pressed` (not `role="tablist"`) because these filter content in place rather than
  * switching between panels.
@@ -27,7 +27,7 @@ export function SegmentedControl<T extends string | number>({
   value,
   onChange,
   label,
-  wrap = false,
+  even = false,
   className = '',
 }: {
   options: readonly SegmentOption<T>[];
@@ -36,13 +36,14 @@ export function SegmentedControl<T extends string | number>({
   /** Names the group for screen readers — required, since the options alone rarely say what
    *  is being filtered. */
   label: string;
-  /** Let options flow onto more than one row instead of squeezing into equal columns. Use
-   *  when there are more than ~4 options or the labels are long. */
-  wrap?: boolean;
+  /** Fill the available width with equal columns instead of sizing each option to its label.
+   *  For closed numeric sets (match settings), where an even rhythm reads better than a
+   *  ragged row of tabs. */
+  even?: boolean;
   className?: string;
 }) {
   return (
-    <div role="group" aria-label={label} className={`segmented ${wrap ? 'segmented-wrap' : ''} ${className}`}>
+    <div role="group" aria-label={label} className={`segmented ${even ? 'segmented-even' : ''} ${className}`}>
       {options.map((option) => (
         <button
           key={String(option.value)}

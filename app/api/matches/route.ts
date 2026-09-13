@@ -69,6 +69,23 @@ export async function POST(req: NextRequest) {
   const { identity, newGuestCookie } = await getIdentity(req);
   const session = await auth();
 
+  // Picking a game from the dashboard goes straight into its waiting room, so a player who
+  // backs out and picks the same game again would otherwise leave a trail of empty rooms behind
+  // them. If they already host an unstarted room for this game, they go back to that one — the
+  // rules are edited in the room now, so there is nothing about the new request to lose.
+  const existing = await Match.findOne({
+    hostId: identity.id,
+    gameId,
+    mode: 'remote',
+    status: 'lobby',
+  }).sort({ createdAt: -1 });
+  if (existing) {
+    return applyIdentityCookie(
+      NextResponse.json({ id: existing._id.toString(), roomCode: existing.roomCode, reused: true }),
+      newGuestCookie
+    );
+  }
+
   let roomCode = generateRoomCode();
   while (await Match.exists({ roomCode })) {
     roomCode = generateRoomCode();

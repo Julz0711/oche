@@ -3,15 +3,22 @@ import { useEffect, useState } from 'react';
 import type { StatsBoard as Board, StatsPeriod } from '@/lib/stats/board';
 import type { X01AggregateStats, CricketAggregateStats, CopycatAggregateStats } from '@/lib/stats/aggregateGameStats';
 import { Target } from 'lucide-react';
-import { EmptyState, MetricGrid, SegmentedControl, HeatmapFigure } from '@/components/molecules';
+import { EmptyState, MetricGrid, SegmentedControl, HeatmapFigure, summarizeHeatmap } from '@/components/molecules';
 import type { Metric } from '@/components/molecules';
 
 type Tile = Metric;
 
-/** Heatmap keys are `${ring}${sector}` (ring one of S/D/T/OB/IB) or the fixed `M0` for a miss —
+/** Every dart that landed in a multiplier or a bull.
+ *
+ *  This used to be presented as "Finishing throws", which it is not and never was: it keeps
+ *  every D/T/OB/IB hit in the period, not the darts that actually checked out a leg — the
+ *  data has no notion of which dart finished anything. It is the board's high-value regions,
+ *  so it is now labelled as exactly that.
+ *
+ *  Heatmap keys are `${ring}${sector}` (ring one of S/D/T/OB/IB) or the fixed `M0` for a miss —
  *  see lib/stats/board.ts. A double/inner-bull or treble/outer-bull is unambiguous from the key's
  *  leading letter(s), so this needs no extra data beyond the same heatmap already fetched. */
-function finishingHeatmap(heatmap: Record<string, number>): Record<string, number> {
+function specialsHeatmap(heatmap: Record<string, number>): Record<string, number> {
   const out: Record<string, number> = {};
   for (const [key, count] of Object.entries(heatmap)) {
     if (key.startsWith('D') || key.startsWith('T') || key.startsWith('OB') || key.startsWith('IB')) out[key] = count;
@@ -62,6 +69,44 @@ function copycatTiles(s: CopycatAggregateStats): Tile[] {
   ];
 }
 
+/** The two boards: everything thrown, and the subset that found a multiplier or a bull.
+ *
+ *  The second board gets its own callouts rather than the defaults. Sharing them meant it
+ *  reported "Strongest double" — derived only from D keys, which the filter keeps in full —
+ *  so both boards printed the identical figure, and "Off the board 0%", which is a property
+ *  of the filter rather than of anyone's throwing. Counts per ring are things only this board
+ *  knows. */
+function Heatmaps({ heatmap, dartsThrown }: { heatmap: Record<string, number>; dartsThrown?: number }) {
+  const specials = specialsHeatmap(heatmap);
+  const specialsSummary = summarizeHeatmap(specials);
+  const bulls = specialsSummary.byRing.OB + specialsSummary.byRing.IB;
+  // Prefer the API's own dart count over re-summing the map, so this caption and the "N recorded
+  // darts" one above it can never quote two different totals for the same period.
+  const total = dartsThrown ?? summarizeHeatmap(heatmap).darts;
+
+  return (
+    <div className="stats-heatmaps">
+      <HeatmapFigure
+        title="All throws"
+        caption={dartsThrown ? `${dartsThrown} recorded darts` : 'No recorded darts in this period'}
+        heatmap={heatmap}
+      />
+      <HeatmapFigure
+        title="Doubles, trebles & bulls"
+        caption={total
+          ? `${specialsSummary.darts} of ${total} darts found a multiplier or a bull`
+          : 'No recorded darts in this period'}
+        heatmap={specials}
+        callouts={[
+          { label: 'Trebles', value: specialsSummary.byRing.T },
+          { label: 'Doubles', value: specialsSummary.byRing.D },
+          { label: 'Bulls', value: bulls },
+        ]}
+      />
+    </div>
+  );
+}
+
 /** One game's numbers. The card is bounded by a single accent edge and its own spacing —
  *  no outline, and none of the per-statistic boxes the tiles used to sit in. */
 function GameStatsCard({ gameId, played, wins, winRate, tiles, heatmap, dartsThrown }: {
@@ -76,20 +121,7 @@ function GameStatsCard({ gameId, played, wins, winRate, tiles, heatmap, dartsThr
         <span>{played} played · {wins} won · {winRate}%</span>
       </div>
       <MetricGrid metrics={tiles} cols="auto" size="sm" />
-      {heatmap && (
-        <div className="stats-heatmaps">
-          <HeatmapFigure
-            title="All throws"
-            caption={dartsThrown ? `${dartsThrown} recorded darts` : 'No recorded darts in this period'}
-            heatmap={heatmap}
-          />
-          <HeatmapFigure
-            title="Finishing throws"
-            caption="Doubles, trebles and bulls only"
-            heatmap={finishingHeatmap(heatmap)}
-          />
-        </div>
-      )}
+      {heatmap && <Heatmaps heatmap={heatmap} dartsThrown={dartsThrown} />}
     </section>
   );
 }

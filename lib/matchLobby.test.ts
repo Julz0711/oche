@@ -1,6 +1,6 @@
 // lib/matchLobby.test.ts
 import { describe, it, expect } from 'vitest';
-import { seatFor, identityIdOf, isSeated, canJoinLobby, canStartMatch, canReorderLobby, canLeaveMatch, allParticipantsLeft, MatchPlayerDoc } from './matchLobby';
+import { seatFor, identityIdOf, isSeated, canJoinLobby, canStartMatch, canReorderLobby, canEditSettings, canLeaveMatch, allParticipantsLeft, MatchPlayerDoc } from './matchLobby';
 import { Identity } from './identity';
 
 const TWO_TO_FOUR: [number, number] = [2, 4];
@@ -200,5 +200,36 @@ describe('allParticipantsLeft', () => {
     const guestSeat = { userId: undefined, guestId: 'g9', name: 'Guest', isGuest: true };
     const match = { hostId: 'u1', players: [host, guestSeat], leftBy: ['u1'] };
     expect(allParticipantsLeft(match)).toBe(true);
+  });
+});
+
+
+describe('canEditSettings', () => {
+  const lobby = { status: 'lobby', hostId: 'g1' };
+
+  it('lets the host change the rules while the match is still a lobby', () => {
+    expect(canEditSettings(lobby, { type: 'guest', id: 'g1' })).toEqual({ ok: true });
+  });
+
+  it('refuses anyone who is not the host, seated or not', () => {
+    const result = canEditSettings(lobby, { type: 'guest', id: 'g2' });
+    expect(result).toEqual({ ok: false, status: 403, error: 'Only the host can change the match settings' });
+  });
+
+  // The settings are baked into the game state once play starts — X01's starting score is
+  // already on the scoreboard — so a late change would disagree with what everyone can see.
+  it('refuses the host once the match is live', () => {
+    const result = canEditSettings({ status: 'live', hostId: 'g1' }, { type: 'guest', id: 'g1' });
+    expect(result).toEqual({ ok: false, status: 409, error: 'Settings can only be changed before the match starts' });
+  });
+
+  it('refuses on a completed or abandoned match', () => {
+    for (const status of ['complete', 'abandoned']) {
+      expect(canEditSettings({ status, hostId: 'g1' }, { type: 'guest', id: 'g1' }).ok).toBe(false);
+    }
+  });
+
+  it('identifies the host by identity id, so a signed-in host works the same way', () => {
+    expect(canEditSettings({ status: 'lobby', hostId: 'u1' }, { type: 'user', id: 'u1' }).ok).toBe(true);
   });
 });

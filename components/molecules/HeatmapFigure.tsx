@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { HeatmapBoard } from '@/components/organisms/HeatmapBoard';
 
 
@@ -34,12 +34,17 @@ export function regionName(key: string): string {
   return `${{ S: 'Single', D: 'Double', T: 'Treble' }[parsed.ring]} ${parsed.number}`;
 }
 
+export type Ring = 'S' | 'D' | 'T' | 'OB' | 'IB' | 'M';
+
 export interface HeatmapSummary {
   darts: number;
   misses: number;
   topRegion: { key: string; count: number } | null;
   topNumber: { number: number; count: number } | null;
   topDouble: { key: string; count: number } | null;
+  /** Darts per ring. What a board filtered to one kind of region can say about itself that
+   *  the unfiltered board cannot. */
+  byRing: Record<Ring, number>;
   totalScore: number;
 }
 
@@ -57,12 +62,14 @@ export function summarizeHeatmap(heatmap: Record<string, number>): HeatmapSummar
   let topRegion: { key: string; count: number } | null = null;
   let topDouble: { key: string; count: number } | null = null;
   const byNumber = new Map<number, number>();
+  const byRing: Record<Ring, number> = { S: 0, D: 0, T: 0, OB: 0, IB: 0, M: 0 };
 
   for (const [key, count] of Object.entries(heatmap)) {
     if (!count) continue;
     const parsed = parseRegion(key);
     if (!parsed) continue;
     darts += count;
+    byRing[parsed.ring] += count;
     if (parsed.ring === 'M') {
       misses += count;
       continue;
@@ -77,7 +84,7 @@ export function summarizeHeatmap(heatmap: Record<string, number>): HeatmapSummar
   for (const [number, count] of byNumber) {
     if (!topNumber || count > topNumber.count) topNumber = { number, count };
   }
-  return { darts, misses, topRegion, topNumber, topDouble, totalScore };
+  return { darts, misses, topRegion, topNumber, topDouble, byRing, totalScore };
 }
 
 /** The sentence a screen reader hears instead of the board. */
@@ -89,6 +96,15 @@ export function heatmapDescription(title: string, summary: HeatmapSummary): stri
   if (summary.topDouble) parts.push(`Strongest double: ${regionName(summary.topDouble.key)}, ${summary.topDouble.count} hits.`);
   if (summary.misses) parts.push(`${Math.round((summary.misses / summary.darts) * 100)}% of darts missed the board.`);
   return parts.join(' ');
+}
+
+/** Headline numbers for an unfiltered board: where the darts cluster, and how many missed. */
+function defaultCallouts(summary: HeatmapSummary): { label: string; value: ReactNode }[] {
+  const out: { label: string; value: ReactNode }[] = [];
+  if (summary.topNumber) out.push({ label: 'Favourite number', value: summary.topNumber.number });
+  if (summary.topDouble) out.push({ label: 'Strongest double', value: regionName(summary.topDouble.key).replace('Double ', 'D') });
+  out.push({ label: 'Off the board', value: `${Math.round((summary.misses / summary.darts) * 100)}%` });
+  return out;
 }
 
 /**
@@ -104,10 +120,17 @@ export function HeatmapFigure({
   title,
   caption,
   heatmap,
+  callouts,
 }: {
   title: string;
   caption: string;
   heatmap: Record<string, number>;
+  /** Overrides the default headline numbers. A board that was filtered before it got here
+   *  needs its own: the defaults below describe an unfiltered board, and on a filtered one
+   *  they end up restating the filter (a doubles-only board always misses 0% of its darts)
+   *  or repeating a figure the unfiltered board already showed. Pass `summarizeHeatmap` output
+   *  to build them. */
+  callouts?: readonly { label: string; value: ReactNode }[];
 }) {
   const [selected, setSelected] = useState<string | null>(null);
   const summary = summarizeHeatmap(heatmap);
@@ -129,22 +152,12 @@ export function HeatmapFigure({
 
       {summary.darts > 0 && (
         <dl className="chart-callouts">
-          {summary.topNumber && (
-            <div className="chart-callout">
-              <dt>Favourite number</dt>
-              <dd>{summary.topNumber.number}</dd>
+          {(callouts ?? defaultCallouts(summary)).map((callout) => (
+            <div className="chart-callout" key={callout.label}>
+              <dt>{callout.label}</dt>
+              <dd>{callout.value}</dd>
             </div>
-          )}
-          {summary.topDouble && (
-            <div className="chart-callout">
-              <dt>Strongest double</dt>
-              <dd>{regionName(summary.topDouble.key).replace('Double ', 'D')}</dd>
-            </div>
-          )}
-          <div className="chart-callout">
-            <dt>Off the board</dt>
-            <dd>{Math.round((summary.misses / summary.darts) * 100)}%</dd>
-          </div>
+          ))}
         </dl>
       )}
 

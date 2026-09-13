@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Panel, BoardMotif } from '@/components/atoms';
-import { SegmentedControl } from '@/components/molecules';
 import type { AccentToken, MotifName } from '@/components/atoms';
 import type { GameId } from '@/lib/games/registry';
 
@@ -32,17 +31,22 @@ const ACCENT_TEXT: Record<AccentToken, string> = {
   sisal: 'text-sisal',
 };
 
-/** Picking a game moves straight on to its settings, so a card is a way forward rather than a
- *  toggle — no selected state, and no `aria-pressed` claiming otherwise. Each card instead wears
- *  its game's colour permanently, which is what actually tells them apart. */
+/** Picking a game opens its room, so a card is a way forward rather than a toggle — no selected
+ *  state, and no `aria-pressed` claiming otherwise. Each card instead wears its game's colour
+ *  permanently, which is what actually tells them apart. */
 export function GameCard({
   game,
   index,
   onSelect,
+  opening = false,
+  disabled = false,
 }: {
   game: GameOption;
   index: number;
   onSelect: () => void;
+  /** This card's room is being opened — the tap has been registered and a request is in flight. */
+  opening?: boolean;
+  disabled?: boolean;
 }) {
   const { accent, motif } = GAME_IDENTITY[game.id];
 
@@ -54,6 +58,8 @@ export function GameCard({
       accentBar
       accentTrace
       onClick={onSelect}
+      disabled={disabled || opening}
+      aria-busy={opening}
       className="dashboard-game min-h-[68px] sm:min-h-[140px]"
     >
       {/* Quieter than the resting motif elsewhere: three of these side by side, each with a
@@ -71,40 +77,10 @@ export function GameCard({
           {game.name}
         </span>
         <span className="block text-xs sm:text-[11px] leading-[1.4] text-[color:var(--text-muted)]">
-          {game.playerRange[0]}–{game.playerRange[1]} players · {game.description}
+          {opening ? 'Opening room…' : `${game.playerRange[0]}–${game.playerRange[1]} players · ${game.description}`}
         </span>
       </span>
     </Panel>
-  );
-}
-
-/** A row of choices for one match setting.
- *
- *  Now a thin wrapper over the shared SegmentedControl, so a setting on this screen and a
- *  filter on the statistics screen are visibly the same kind of control. It also drops the
- *  solid-gold fill these used to carry: a settings page is five of these rows stacked, and
- *  five gold blocks read as five primary actions. */
-export function Pills<T extends string | number>({
-  options,
-  value,
-  onChange,
-  format,
-  label,
-}: {
-  options: readonly T[];
-  value: T;
-  onChange: (value: T) => void;
-  format?: (value: T) => string;
-  label: string;
-}) {
-  return (
-    <SegmentedControl
-      label={label}
-      value={value}
-      onChange={onChange}
-      wrap={options.length > 4}
-      options={options.map((option) => ({ value: option, label: format ? format(option) : String(option) }))}
-    />
   );
 }
 

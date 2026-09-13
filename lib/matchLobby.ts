@@ -88,6 +88,22 @@ export function canReorderLobby(
   return { ok: true };
 }
 
+/** Only the host sets the rules, and only while the match hasn't started. Once play begins the
+ *  settings are baked into the game state (X01's starting score is already on the scoreboard),
+ *  so a late change would silently disagree with what everyone is looking at. */
+export function canEditSettings(
+  match: { status: string; hostId: string },
+  identity: Identity
+): LobbyResult {
+  if (identity.id !== match.hostId) {
+    return { ok: false, status: 403, error: 'Only the host can change the match settings' };
+  }
+  if (match.status !== 'lobby') {
+    return { ok: false, status: 409, error: 'Settings can only be changed before the match starts' };
+  }
+  return { ok: true };
+}
+
 /** Any signed-in participant — host or seated player — can leave a match on their own, unlike
  *  the host-only DELETE. Leaving only needs to make sense while the match is still something to
  *  come back to; a finished or already-abandoned match has nothing left to leave. */

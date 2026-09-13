@@ -95,6 +95,12 @@
      as 10–12px type on --oche they measure roughly 3.5:1, under the 4.5:1 floor. These
      lift them toward --chalk until they clear it, without changing which colour means
      what. Fills and borders keep using the raw tokens. */
+  /* How much fixed chrome sits at the foot of the viewport. Zero by default, because a match
+     screen hides the navigation entirely; `.app-shell` raises it on phones, where the tab bar
+     is real. Anything pinned to the bottom (the match room's action dock) offsets by this
+     rather than assuming a bar that may not be there. */
+  --chrome-bottom: 0px;
+
   --double-text: color-mix(in srgb, var(--double) 45%, var(--chalk));
   --treble-text: color-mix(in srgb, var(--treble) 50%, var(--chalk));
 }
@@ -374,12 +380,19 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 .summary-heatmap { border-top: 1px solid color-mix(in srgb, var(--sisal) 15%, transparent); }
 
 /* A consistent destination bar; live matches keep their focused scoring shell. */
-.app-shell { min-height: 100dvh; }
+/* A flex column, so a page that wants to fill the screen can say `flex: 1` and get exactly the
+   space left over after the navigation bar and its insets — rather than computing its own
+   height from 100dvh and having to know what the shell already reserved. Getting that sum
+   wrong is what put the match room's start button underneath the fixed tab bar. */
+.app-shell { min-height: 100dvh; display: flex; flex-direction: column; }
 .app-shell-pattern {
   background-image:
     repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.009) 0 2px, transparent 2px 9px),
     radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--wire) 10%, transparent), transparent 60%);
 }
+/* The page slot. A flex column so a page can claim the remaining height with `flex: 1`; its
+   own padding-bottom (below, on phones) is what holds content clear of the fixed tab bar. */
+.app-content { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .app-content > .min-h-screen { min-height: calc(100dvh - 62px); }
 .app-navigation { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px max(16px, calc((100vw - 960px) / 2)); background: var(--oche); border-bottom: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); }
 .nav-brand { font: 700 24px var(--font-display); color: var(--wire); transition: opacity 160ms ease; }
@@ -415,6 +428,9 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   /* Content inset = the bar's real height + the home indicator + one spacing step, so the
      last card on any page clears the bar completely instead of tucking under it. */
   .app-content { padding-bottom: calc(var(--tabbar-height) + env(safe-area-inset-bottom, 0px) + var(--space-4)); }
+  /* Only pages inside the shell have a tab bar beneath them; a match screen renders without
+     the shell entirely (see components/AppNavigation.tsx). */
+  .app-shell { --chrome-bottom: calc(var(--tabbar-height) + env(safe-area-inset-bottom, 0px)); }
   .app-navigation { position: fixed; top: auto; bottom: 0; left: 0; right: 0; padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); border-bottom: 0; border-top: 1px solid color-mix(in srgb, var(--sisal) 20%, transparent); }
   .nav-brand { display: none; }
   .nav-destinations { width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
@@ -466,8 +482,8 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 .dashboard-review button { min-height: 44px; padding: 0 8px; color: var(--wire); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
 .dashboard-review button:hover:not(:disabled) { color: var(--chalk); }
 .dashboard-review button:disabled { opacity: .4; }
-.play-action { min-height: 56px; padding: 12px 20px; display: flex; align-items: center; justify-content: center; font: 600 22px/1.1 var(--font-display); color: var(--chalk); }
-.play-action-primary { color: var(--oche); }
+
+
 
 .profile-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: var(--space-5); align-items: start; }
 .profile-layout > div:only-child { grid-column: 1 / -1; }
@@ -591,7 +607,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 
   
   
-  .play-action { min-height: 48px; padding: 12px; font-size: 20px; }
+
 }
 
 @media (max-width: 1023px) { .nav-sound, .nav-destinations a.nav-desktop-only { display: none; } }
@@ -708,48 +724,62 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 .section-header-count { color: var(--text-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
 
 /* ── SegmentedControl ────────────────────────────────────────────────────────
-   Deliberately NOT a solid gold fill. Gold at this size, repeated across filters
-   and settings, out-shouted the content it was filtering. The selected segment is
-   a raised surface + a gold underline + heavier weight, so it still reads first
-   without becoming the loudest thing on the screen — and the weight change means
-   selection survives in greyscale. */
-/* Capped rather than full-bleed: stretched across a desktop card, four segments became four
-   280px slabs and the selected underline read as a section rule rather than a selection. */
+   A tab strip, matching the dashboard's own Online / Local & solo tabs, so the app
+   has ONE way of showing "one of these is chosen".
+
+   The previous version failed in a specific way worth recording: the selected option
+   got a fill AND a gold underline AND gold text AND bold weight, while unselected
+   options got nothing at all — no track, no baseline, no border. Four simultaneous
+   changes on one side and zero on the other stop reading as two states of one
+   control and start reading as a box sitting next to some captions. Nothing said the
+   other three were tappable.
+
+   So: the baseline runs under every option and is the thing that ties them together.
+   Selection thickens its own segment of that baseline and brightens the label. The
+   unselected labels sit at --text-secondary, bright enough to read as available.
+   That is two changes, both anchored to the label, and the weight change carries
+   selection in greyscale. */
 .segmented {
-  width: 100%;
-  max-width: 460px;
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-  gap: 2px;
-  padding: 2px;
-  background: var(--surface-quiet);
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-1);
+  /* Sized to the labels and left-aligned rather than stretched: a 12px word centred
+     in a 107px cell was most of what made these feel loose. */
+  width: max-content;
+  max-width: 100%;
+  /* When the options genuinely don't fit, the row scrolls instead of crushing them —
+     a clipped last option is a better signal than four ellipsised ones. */
+  overflow-x: auto;
+  scrollbar-width: none;
+  box-shadow: inset 0 -1px 0 var(--border-subtle);
 }
+.segmented::-webkit-scrollbar { display: none; }
 .segmented button {
-  min-width: 0;
+  flex: 0 0 auto;
   min-height: var(--height-segment);
-  padding: 0 var(--space-2);
+  padding: 0 var(--space-4);
   background: transparent;
   border-bottom: 2px solid transparent;
-  color: var(--text-muted);
-  font: 500 12px/1.2 var(--font-sans), sans-serif;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--text-secondary);
+  font: 500 13px/1.2 var(--font-sans), sans-serif;
   white-space: nowrap;
-  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+  transition: color 160ms ease, border-color 160ms ease;
 }
-.segmented button:hover:not([aria-pressed="true"]):not([aria-selected="true"]) { color: var(--text-secondary); }
+.segmented button:hover:not([aria-pressed="true"]):not([aria-selected="true"]) {
+  color: var(--text-primary);
+  border-bottom-color: var(--border-default);
+}
 .segmented button[aria-pressed="true"],
 .segmented button[aria-selected="true"] {
-  background: var(--surface-raised);
   border-bottom-color: var(--wire);
   color: var(--wire);
   font-weight: 700;
 }
-.segmented button:disabled { color: var(--text-disabled); }
-/* Wrapping variant, for when the options are too many or too long for one row. */
-.segmented-wrap { display: flex; flex-wrap: wrap; }
-.segmented-wrap button { flex: 1 1 auto; padding-inline: var(--space-3); }
+.segmented button:disabled { color: var(--text-disabled); border-bottom-color: transparent; }
+/* Equal columns, filling the width. For the handful of places where the options are a
+   closed numeric set (match settings) and an even rhythm reads better than ragged tabs. */
+.segmented-even { width: 100%; }
+.segmented-even button { flex: 1 1 0; padding-inline: var(--space-2); }
 
 /* ── MetricCell / MetricGrid ─────────────────────────────────────────────────
    The audit's first refactor: four bordered boxes inside a bordered card become a
@@ -897,8 +927,13 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 }
 /* Left-aligned like every other metric on the page — the board above them is centred,
    but these are read as a column of labelled values, not as a caption. */
-.chart-callouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: var(--space-3); text-align: left; margin: 0; }
-.chart-callout { min-width: 0; }
+/* Flex, not a fixed-minimum grid. The two boards carry different callouts: three short counts
+   (Trebles / Doubles / Bulls) and three long labels (Favourite number / Strongest double / Off
+   the board). Any single grid minimum is wrong for one of them — too wide and the short row
+   breaks 2 + 1, too narrow and the long labels wrap to three lines. Sizing to content lets each
+   board lay out on its own terms. */
+.chart-callouts { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); text-align: left; margin: 0; }
+.chart-callout { flex: 1 1 auto; min-width: 0; }
 .chart-callout dt { font: 700 10px/14px var(--font-sans), sans-serif; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); }
 .chart-callout dd { margin: 0; font: 600 18px/1.25 var(--font-display), sans-serif; color: var(--text-primary); overflow-wrap: anywhere; }
 
@@ -995,3 +1030,166 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
    read line by line rather than scanned. */
 .legal-page { display: flex; flex-direction: column; gap: var(--space-5); max-width: 46rem; }
 .legal-page h2 { font: 600 20px/1.2 var(--font-display), sans-serif; color: var(--text-primary); margin-bottom: var(--space-2); }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Match room
+
+   One screen for setting a match up, online or local (components/organisms/MatchRoom.tsx).
+
+   The shape: one framed card for the invite, two unframed sections for the players and the
+   rules, and a sticky action at the foot. An earlier pass gave all three blocks equal-weight
+   panels and let the action sit wherever the content ended, which put the only thing that
+   gets people into a room at the same volume as the rules, and put "start" below a scroll.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Fills whatever the shell has left, so the action can sit at the foot of a phone screen —
+   above the tab bar, because `.app-content` has already subtracted it.
+   Narrower than the app's full content width: this is a short form and a list of names, and
+   at 1200px the rules sprawled into three-quarters of a metre of empty row. */
+.room-page { flex: 1; max-width: 820px; }
+
+/* ── Sections ────────────────────────────────────────────────────────────────
+   Players and rules are bounded by a heading and spacing rather than an outline: they are
+   the body of the page, not cards floating on it. */
+.room-section { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+
+/* ── Invite ──────────────────────────────────────────────────────────────────
+   The one framed surface on the screen, and the only one with an accent bar. Until players
+   arrive it is the entire job of this page, so it reads first and loudest. */
+.room-invite { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4); }
+.room-page > .group:has(.room-invite) { max-width: 520px; }
+.room-code-value {
+  font: 700 40px/1 var(--font-display), sans-serif;
+  letter-spacing: .22em;
+  color: var(--wire);
+  /* Selectable in one tap for anyone reading it out or pasting it somewhere else. */
+  user-select: all;
+  overflow-wrap: anywhere;
+}
+.room-invite-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-1); }
+
+/* ── Players ─────────────────────────────────────────────────────────────────
+   A numbered list, because the order IS the throwing order — which the old lobby showed as
+   identical green blocks that gave no hint they were a sequence. */
+.room-players { display: flex; flex-direction: column; list-style: none; margin: 0; padding: 0; }
+.room-player {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 52px;
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.room-player:last-child { border-bottom: 0; }
+.room-player-name { display: flex; align-items: center; gap: var(--space-2); flex: 1; min-width: 0; }
+.room-player-seat {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-default);
+  font: 700 13px var(--font-display), sans-serif;
+  color: var(--text-muted);
+}
+/* A seat nobody has taken yet: dashed, quiet, and it says so in words. */
+.room-player-empty { color: var(--text-muted); }
+.room-player-empty .room-player-seat { border-style: dashed; }
+/* "You" / "Host" — small facts about a row, at metadata weight so they never compete with
+   the name they annotate. */
+.room-tag {
+  flex-shrink: 0;
+  padding: 1px var(--space-2);
+  font: 700 10px/16px var(--font-sans), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+.room-player-order { display: flex; gap: var(--space-1); flex-shrink: 0; }
+.room-player-order button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--height-button);
+  height: var(--height-button);
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+.room-player-order button:hover:not(:disabled) { color: var(--text-primary); border-color: var(--border-default); }
+.room-player-order button:disabled { color: var(--text-disabled); }
+/* Each row carries its own connection state, rather than a second list of the same names
+   underneath repeating them. Never colour alone: the dot is backed by a title and an
+   screen-reader-only word on the row. */
+.room-player-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--border-default);
+}
+.room-player-dot[data-online="true"] { background: var(--double); }
+
+/* ── Rules ───────────────────────────────────────────────────────────────────
+   Editable for the host, the same values as a readout for everyone else. */
+.match-settings { display: flex; flex-direction: column; gap: var(--space-5); }
+.match-setting { display: flex; flex-direction: column; gap: var(--space-2); }
+@media (min-width: 720px) {
+  .match-settings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5) var(--space-6); }
+}
+.settings-readout { display: flex; flex-direction: column; gap: var(--space-3); margin: 0; }
+.settings-readout > div { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-2); }
+.settings-readout > div:last-child { border-bottom: 0; }
+.settings-readout dt { font: 700 11px/16px var(--font-sans), sans-serif; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); }
+.settings-readout dd { margin: 0; font: 600 17px/1.2 var(--font-display), sans-serif; color: var(--text-primary); text-align: right; }
+
+/* ── Dock ────────────────────────────────────────────────────────────────────
+   Sticky, not merely last. A waiting room is a screen you sit on watching for people to
+   arrive: "can we start yet?" and the button that starts it have to be answerable without
+   scrolling back past the rules. It sticks just above the tab bar on a phone, and at the
+   window foot on a desktop, where there is no bar. */
+.room-dock {
+  position: sticky;
+  bottom: var(--chrome-bottom);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: auto;
+  /* Negative inline margins let the backdrop run edge to edge while the content inside stays
+     on the page column. */
+  margin-inline: calc(var(--gutter-page) * -1);
+  padding: var(--space-3) var(--gutter-page);
+  background: var(--oche);
+  border-top: 1px solid var(--border-subtle);
+  box-shadow: 0 -10px 24px #10161499;
+}
+
+.room-status { color: var(--text-secondary); font-size: 13px; overflow-wrap: anywhere; }
+.room-action { width: 100%; min-height: 52px; font-size: 15px; text-transform: uppercase; letter-spacing: .06em; }
+/* A disabled primary at 50% opacity turned into dark text on muddy olive — under the contrast
+   floor, and the audit was explicit that a disabled control must stay readable. A dimmer fill
+   with secondary-weight text keeps it plainly inactive and plainly legible (~7:1). */
+.room-action:disabled {
+  opacity: 1;
+  background: color-mix(in srgb, var(--wire) 26%, var(--oche));
+  color: var(--text-secondary);
+}
+@media (min-width: 640px) {
+  .room-dock { flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-4); }
+  .room-action { width: auto; min-width: 220px; }
+}
+
+/* A seat that can't be renamed — the signed-in account's own, which is who the match is
+   recorded against. Styled as a value rather than a field so it doesn't invite a tap that
+   does nothing. */
+.room-page input[readonly] {
+  border-color: var(--border-subtle);
+  background: var(--surface-quiet);
+  color: var(--text-secondary);
+  cursor: default;
+}

@@ -69,7 +69,15 @@ describe('summarizeHeatmap', () => {
 
   it('reports an empty board as empty rather than throwing', () => {
     const summary = summarizeHeatmap({});
-    expect(summary).toEqual({ darts: 0, misses: 0, topRegion: null, topNumber: null, topDouble: null, totalScore: 0 });
+    expect(summary).toEqual({
+      darts: 0,
+      misses: 0,
+      topRegion: null,
+      topNumber: null,
+      topDouble: null,
+      byRing: { S: 0, D: 0, T: 0, OB: 0, IB: 0, M: 0 },
+      totalScore: 0,
+    });
     expect(heatmapDescription('All throws', summary)).toBe('All throws: no darts recorded.');
   });
 
@@ -88,6 +96,21 @@ describe('heatmapDescription', () => {
   });
 
   it('says nothing about misses when there were none', () => {
-    expect(heatmapDescription('Finishing throws', summarizeHeatmap({ D20: 4 }))).not.toContain('missed');
+    expect(heatmapDescription('Doubles, trebles & bulls', summarizeHeatmap({ D20: 4 }))).not.toContain('missed');
+  });
+});
+
+describe('summarizeHeatmap ring totals', () => {
+  it('counts darts per ring, misses included', () => {
+    const { byRing } = summarizeHeatmap({ T20: 10, T19: 2, S20: 4, D20: 3, D16: 5, OB25: 7, IB25: 1, M0: 6 });
+    expect(byRing).toEqual({ S: 4, D: 8, T: 12, OB: 7, IB: 1, M: 6 });
+  });
+
+  it('reports zero for rings a filtered board no longer contains', () => {
+    // What the doubles/trebles/bulls board is handed: every single and every miss removed.
+    const { byRing, misses } = summarizeHeatmap({ T20: 10, D16: 5, IB25: 1 });
+    expect(byRing.S).toBe(0);
+    expect(byRing.M).toBe(0);
+    expect(misses).toBe(0);
   });
 });

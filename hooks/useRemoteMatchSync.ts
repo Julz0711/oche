@@ -23,6 +23,10 @@ export function useRemoteMatchSync(matchId: string | null) {
           if (!disposed && useMatchStore.getState().matchId === matchId) {
             useMatchStore.getState().setGameState(snapshot.state, snapshot.status);
             useMatchStore.getState().setPlayers(snapshot.players);
+            // Settings too: the host can change the rules from the waiting room, and that
+            // change reaches everyone else only through this refresh. Guarded because a
+            // pre-settings match document (or a failed read) would otherwise blank them.
+            if (snapshot.settings) useMatchStore.getState().setSettings(snapshot.settings);
           }
         }
       } catch { /* Polling and reconnection retry transient failures. */ }

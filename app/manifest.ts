@@ -11,10 +11,10 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: 'portrait-primary',
     background_color: tokens.oche,
     theme_color: tokens.oche,
-    // No `maskable` entry: Android masks the whole image to a circle or squircle, which needs
-    // an export whose background bleeds to the edges. These icons are the bare gold mark on a
-    // transparent square, so declaring them maskable risks the ring being clipped by the mask
-    // on some launchers. A padded, full-bleed export can be added here later if that's wanted.
+    // These icons are now a solid --oche tile with the mark inset to roughly Android's
+    // maskable "safe zone" (the glyph sits within the centre ~65-70% of the square), so a
+    // `purpose: 'maskable'` entry could be added safely if adaptive-icon theming is wanted —
+    // left as plain `any` for now since nothing has asked for that yet.
     icons: [
       { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
       { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },

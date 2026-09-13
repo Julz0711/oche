@@ -48,7 +48,7 @@ export function MatchSettingsFields({
           <div className="match-setting" key={field.key}>
             <span className="t-label">{field.label}</span>
             <SegmentedControl
-              even
+              variant="choice"
               label={field.label}
               value={value}
               options={field.options.map((option) => ({ value: option.value, label: option.label }))}

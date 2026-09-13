@@ -13,11 +13,11 @@ export interface SegmentOption<T extends string | number> {
  * One control for picking one value from a small fixed set — stats periods, game filters,
  * match settings.
  *
- * Rendered as a tab strip: a baseline runs under every option, and the selected one thickens
- * its own segment of that baseline in gold and brightens its label. No solid gold fill —
- * that is reserved for the single highest-priority action on a screen, and using it here as
- * well made filters compete with the data they filter. The weight change means selection is
- * still visible in greyscale.
+ * Two variants, because filtering a view and choosing a value are different acts. `tabs` (the
+ * default) is a strip with a shared baseline, for filters. `choice` is a row of bounded,
+ * pressable cells, for settings — where an option that is merely text on a baseline does not
+ * read as something you can press. Neither uses a solid gold fill: that is reserved for the
+ * single highest-priority action on a screen.
  *
  * `aria-pressed` (not `role="tablist"`) because these filter content in place rather than
  * switching between panels.
@@ -27,7 +27,7 @@ export function SegmentedControl<T extends string | number>({
   value,
   onChange,
   label,
-  even = false,
+  variant = 'tabs',
   className = '',
 }: {
   options: readonly SegmentOption<T>[];
@@ -36,14 +36,15 @@ export function SegmentedControl<T extends string | number>({
   /** Names the group for screen readers — required, since the options alone rarely say what
    *  is being filtered. */
   label: string;
-  /** Fill the available width with equal columns instead of sizing each option to its label.
-   *  For closed numeric sets (match settings), where an even rhythm reads better than a
-   *  ragged row of tabs. */
-  even?: boolean;
+  /** `tabs` filters a view in place: options sit on a shared baseline and the chosen one
+   *  thickens its segment of it. `choice` picks a value in a form: each option is a bounded,
+   *  obviously pressable cell and the chosen one is ringed. Filters are read; values are
+   *  pressed, and they should not look alike. */
+  variant?: 'tabs' | 'choice';
   className?: string;
 }) {
   return (
-    <div role="group" aria-label={label} className={`segmented ${even ? 'segmented-even' : ''} ${className}`}>
+    <div role="group" aria-label={label} className={`segmented ${variant === 'choice' ? 'segmented-choice' : ''} ${className}`}>
       {options.map((option) => (
         <button
           key={String(option.value)}

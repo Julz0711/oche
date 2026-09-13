@@ -456,7 +456,11 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 }
 .app-content > .page-gutters > .max-w-3xl { max-width: none; padding-top: 0; gap: var(--space-5); }
 
-.account-page { display: flex; flex-direction: column; gap: var(--space-5); color: var(--text-primary); }
+/* Narrower than the app's full content width. The profile and statistics screens are columns
+   of short labelled numbers; given 1200px the four-up metric rows put 275px of nothing between
+   a label and its neighbour, and a card's right-aligned meta drifted most of a metre from the
+   heading it belonged to. */
+.account-page { display: flex; flex-direction: column; gap: var(--space-5); color: var(--text-primary); max-width: 1000px; }
 
 .eyebrow { font: 700 11px/16px var(--font-sans), sans-serif; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .08em; }
 
@@ -776,10 +780,58 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   font-weight: 700;
 }
 .segmented button:disabled { color: var(--text-disabled); border-bottom-color: transparent; }
-/* Equal columns, filling the width. For the handful of places where the options are a
-   closed numeric set (match settings) and an even rhythm reads better than ragged tabs. */
-.segmented-even { width: 100%; }
-.segmented-even button { flex: 1 1 0; padding-inline: var(--space-2); }
+/* ── SegmentedControl · choice variant ───────────────────────────────────────
+   For picking a VALUE (a starting score, a number of legs) rather than filtering a view.
+
+   The tab treatment above is right for filters, where the strip reads as one object and the
+   baseline ties the options together. It is wrong for a settings form: an unselected option
+   there is bare text on a hairline, and nothing about it says "press me". A value you are
+   being asked to choose has to look choosable at rest, before anyone has interacted with it.
+
+   So each option here is a real bounded cell — its own border and surface — and the chosen one
+   is ringed in gold and set bold. Still not a solid gold fill: a settings panel is several of
+   these stacked, and filling each selection would put five primary-looking blocks on a screen
+   whose actual primary action is the start button. */
+.segmented-choice {
+  width: 100%;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  overflow-x: visible;
+  box-shadow: none;
+}
+/* Grows to share the row, but capped. Uncapped, a single wrapped option stretched the entire
+   width and read as a broken layout rather than as a second row; not growing at all left a
+   ragged gap at the end of every row. The floor clears the 44pt touch minimum in both
+   directions and lets a five-option row (Sets) stay on one line inside a settings column. */
+.segmented-choice button {
+  flex: 1 1 auto;
+  min-width: 56px;
+  max-width: 140px;
+  padding-inline: var(--space-3);
+  background: var(--surface-quiet);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+.segmented-choice button:hover:not([aria-pressed="true"]) {
+  border-color: var(--border-default);
+  background: var(--surface-raised);
+  color: var(--text-primary);
+}
+.segmented-choice button[aria-pressed="true"] {
+  background: var(--surface-raised);
+  border-color: var(--wire);
+  /* A second inner ring, so selection is a thickness change as well as a colour change and
+     survives a greyscale render. */
+  box-shadow: inset 0 0 0 1px var(--wire);
+  color: var(--wire);
+  font-weight: 700;
+}
+.segmented-choice button:disabled {
+  color: var(--text-disabled);
+  border-color: var(--border-subtle);
+  background: transparent;
+}
 
 /* ── MetricCell / MetricGrid ─────────────────────────────────────────────────
    The audit's first refactor: four bordered boxes inside a bordered card become a
@@ -813,8 +865,18 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 @media (min-width: 420px) {
   .metric-grid[data-cols="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
-@media (min-width: 640px) {
-  .metric-grid[data-cols="auto"] { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+/* Cells land around 170-190px: wide enough for a label and its number to read as one pair,
+   narrow enough that a row of them reads as a group. The original 110px minimum produced nine
+   or ten columns of cramped sprawl on a desktop card; a fixed four columns then went too far
+   the other way and put 220px of nothing between neighbours. */
+@media (min-width: 560px) {
+  .metric-grid[data-cols="auto"] { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+}
+/* A fixed-column grid is capped rather than stretched, for the same reason: four summary
+   numbers spread across a full-width card stop reading as one summary. */
+@media (min-width: 860px) {
+  .metric-grid[data-cols="4"] { max-width: 720px; }
+  .metric-grid[data-cols="3"] { max-width: 540px; }
 }
 
 /* ── ResultBadge ─────────────────────────────────────────────────────────────
@@ -1138,8 +1200,17 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
    Editable for the host, the same values as a readout for everyone else. */
 .match-settings { display: flex; flex-direction: column; gap: var(--space-5); }
 .match-setting { display: flex; flex-direction: column; gap: var(--space-2); }
+/* Sized to the controls rather than split down the middle: two fixed columns left X01's three
+   settings as two-plus-one, with a hole where the fourth would be. auto-fit puts all three on
+   one row when there is room for them and reflows honestly when there isn't. */
 @media (min-width: 720px) {
-  .match-settings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5) var(--space-6); }
+  .match-settings {
+    display: grid;
+    /* Wide enough that a five-option control (Sets) keeps its options on one row. */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-5) var(--space-6);
+    align-items: start;
+  }
 }
 .settings-readout { display: flex; flex-direction: column; gap: var(--space-3); margin: 0; }
 .settings-readout > div { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-2); }
@@ -1182,6 +1253,12 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 @media (min-width: 640px) {
   .room-dock { flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-4); }
   .room-action { width: auto; min-width: 220px; }
+}
+@media (min-width: 1024px) {
+  /* Follows the content instead of being pushed to the foot of the window. On a tall desktop
+     screen a short room left a half-page of nothing between the last setting and the button;
+     `position: sticky` still keeps it in view once there IS enough content to scroll. */
+  .room-dock { margin-top: var(--space-6); }
 }
 
 /* A seat that can't be renamed — the signed-in account's own, which is who the match is

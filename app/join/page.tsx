@@ -24,10 +24,10 @@ export default function JoinRoomPage() {
     } catch { setError('Could not connect. Check your connection and try again.'); }
     finally { setBusy(false); }
   }
-  return <main className="social-page page-gutters">
+  return <main className="join-page social-page page-gutters">
     <AppBar back={{ href: '/', label: 'Back to dashboard' }} eyebrow="Online" title="Join a room" />
     <p className="t-body">Ask the host for their room code. You can join as a guest.</p>
-    <Panel notch="panel" className="p-4">
+    <Panel className="p-4">
       <form onSubmit={submit} className="flex flex-col gap-3">
         <label htmlFor="room-code" className="t-label">Room code</label>
         <input id="room-code" value={code} onChange={e => { setCode(e.target.value.toUpperCase()); setError(''); }} placeholder="ABCDEF"

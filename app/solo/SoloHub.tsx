@@ -1,4 +1,4 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Crown, Crosshair, Coins } from "lucide-react";
 import { Panel } from "@/components/atoms/Panel";
 import { replay, summary } from "@/lib/games/roguelike/engine";
 import type { RunSave } from "@/lib/solo/library";
@@ -23,17 +23,22 @@ export default function SoloHub({
   });
   return (
     <section>
-      <div className={styles.heading}>
+      <div className={styles.hubHero}>
+        <div className={styles.hubCrest} aria-hidden="true"><Crown size={36} /><span>IX</span></div>
         <div>
-          <p className={styles.eyebrow}>YOUR SOLO CORNER</p>
+          <p className={styles.eyebrow}>NINE ROUNDS. ONE CONTENDER.</p>
           <h1>House Rules</h1>
-          <p className={styles.muted}>
-            Pick up a run, try a new build, or challenge your friends.
-          </p>
+          <p className={styles.hubMotto}>The board is familiar.<br />The house plays differently.</p>
+          <p className={styles.muted}>Throw real darts. Build a powerful set of upgrades. Beat the house before your darts run out.</p>
         </div>
         <button className={styles.primary} onClick={onNew}>
           New run <ArrowUpRight size={16} aria-hidden="true" />
         </button>
+        <div className={styles.hubRules}>
+          <span><Crosshair size={16} aria-hidden="true" /><b>9</b> rounds</span>
+          <span><Crown size={16} aria-hidden="true" /><b>3</b> bosses</span>
+          <span><Coins size={16} aria-hidden="true" />Earn & upgrade</span>
+        </div>
       </div>
       {(["Continue playing", "Past runs"] as const).map((label, index) => {
         const group = entries.filter((entry) => entry.ended === (index === 1));
@@ -53,7 +58,6 @@ export default function SoloHub({
                 {group.map(({ save, run, ended }) => (
                   <Panel
                     key={save.config.id}
-                    notch="card"
                     className={styles.hubRun}
                   >
                     <div className={styles.hubRunInfo}>

@@ -29,8 +29,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
+        data-variant={variant}
         className={`
-          min-h-11 min-w-11 rounded-none font-semibold
+          club-button min-h-11 min-w-11 rounded-none font-semibold
           transition-opacity duration-200
           cursor-pointer
           disabled:opacity-50 disabled:cursor-not-allowed

@@ -38,7 +38,7 @@ export function ScoreboardSlot({
   );
 
   return (
-    <Panel notch="panel" accent="wire" active={isCurrentPlayer} activeBadge={false} className="p-5">
+    <Panel accent="wire" active={isCurrentPlayer} activeBadge={false} className="match-scorecard p-5">
       {isCurrentPlayer && (
         <Crosshair className="absolute top-4 right-4 w-4 h-4 text-wire" aria-label="On throw" />
       )}

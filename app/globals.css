@@ -27,15 +27,6 @@
   --heat-cold: #2563EB;
   --heat-mid: #EAB308;
   --heat-hot: #DC2626;
-  /* Shape language — notch sizes for cut-corner surfaces (see Panel atom). The cut corner
-     itself was never the problem (it only ever cuts the single bottom-right corner) — the
-     real defect was that a surface with no border trace at rest left that corner as bare
-     exposed background with nothing marking the edge, reading as broken rather than
-     stylistic. Panel now always traces its own clipped silhouette (see its boxShadow), so
-     the notch is restored here. */
-  --notch-card: 16px;
-  --notch-panel: 13px;
-  --notch-inset: 11px;
   /* Motif intensities — resting, hovered, and quiet (behind live match scores) */
   --motif-rest: 0.24;
   --motif-hover: 0.44;
@@ -43,8 +34,7 @@
 
   /* ── Spacing scale ───────────────────────────────────────────────────────────
      One ladder for every gap, pad and margin in the app. Anything that isn't on
-     this ladder is a one-off and should be justified by geometry (a notch size, an
-     optical centring), never by taste. */
+     this ladder is a one-off and should be justified by geometry (optical centring), never by taste. */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -217,9 +207,6 @@ button:not(:disabled) {
   }
   .group:hover .board-motif {
     transform: none !important;
-  }
-  .group:hover .notch-accent-bar {
-    height: 5px !important;
   }
 }
 
@@ -486,7 +473,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 .nav-account-desktop { display: flex; align-items: center; gap: 10px; max-width: 200px; }
 .nav-account-name { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; font-weight: 600; color: var(--chalk); }
 .nav-account-icon, .nav-account-mobile { display: none; }
-.nav-destinations .nav-account { border: 1px solid color-mix(in srgb, var(--sisal) 25%, transparent); padding: 5px 10px; }
+.nav-destinations .nav-account { border: 0; border-bottom: 2px solid transparent; }
 .nav-sound { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; color: var(--sisal); transition: color 160ms ease; }
 .nav-sound span { display: none; }
 .nav-sound:hover { color: var(--chalk); }
@@ -507,6 +494,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 
 .profile-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: var(--space-5); align-items: start; }
 .profile-layout > div:only-child { grid-column: 1 / -1; }
+.profile-layout > div, .settings-layout > div { min-width: 0; }
 .settings-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr); gap: var(--space-5); align-items: start; }
 .account-section { padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
 .section-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
@@ -646,7 +634,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   .page-gutters { padding-block: var(--space-4); }
   .account-page { gap: var(--space-4); }
   .app-content > .page-gutters > .max-w-3xl { gap: var(--space-4); }
-  .profile-layout, .settings-layout { grid-template-columns: 1fr; gap: 16px; }
+  .profile-layout, .settings-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .account-section { padding: var(--space-4); }
   .match-page:not(.match-live) { padding-top: calc(env(safe-area-inset-top, 0px) + 12px); }
   .match-live { padding-top: calc(env(safe-area-inset-top, 0px) + 8px); }
@@ -1004,11 +992,10 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 .empty-state p { max-width: 36ch; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
 
 /* ── Skeleton ────────────────────────────────────────────────────────────────
-   Placeholders match the real content's silhouette (including the notch) so the
+   Placeholders match the real content's dimensions so the
    page doesn't reflow when data lands. */
 .skeleton {
   background: color-mix(in srgb, var(--slate) 80%, var(--oche));
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--notch-panel)), calc(100% - var(--notch-panel)) 100%, 0 100%);
   animation: skeleton-pulse 1.6s ease-in-out infinite;
 }
 @keyframes skeleton-pulse { 0%, 100% { opacity: .55; } 50% { opacity: .9; } }
@@ -1085,8 +1072,8 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   list-style: none;
 }
 .chart-table > summary::-webkit-details-marker { display: none; }
-.chart-table > summary::after { content: ' ▾'; }
-.chart-table[open] > summary::after { content: ' ▴'; }
+.chart-table > summary::after { content: '▾'; margin-left: 8px; }
+.chart-table[open] > summary::after { content: '▴'; }
 .chart-table table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
 .chart-table th, .chart-table td { padding: var(--space-1) var(--space-2); text-align: right; border-bottom: 1px solid var(--border-subtle); }
 .chart-table thead th { color: var(--text-muted); font: 700 10px/14px var(--font-sans), sans-serif; text-transform: uppercase; letter-spacing: .08em; }
@@ -1117,7 +1104,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
    Compact: a label, the code, and its actions on one line, instead of the slab that
    used to dominate an otherwise near-empty page. */
 .friend-code-row { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); }
-.friend-code-row > div { min-width: 0; flex: 1 1 auto; }
+.friend-code-row > div { min-width: 0; flex: 0 1 auto; }
 .friend-code-actions { display: flex; gap: var(--space-2); flex-shrink: 0; }
 .friend-code { font-family: var(--font-display), sans-serif; font-size: 22px; font-weight: 700; letter-spacing: .08em; color: var(--wire); }
 

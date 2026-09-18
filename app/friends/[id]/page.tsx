@@ -83,7 +83,7 @@ export default function FriendPage({ params }: { params: Promise<{ id: string }>
         <div className="section-header"><h2>Recent matches</h2></div>
         {data.matches.length ? <div className="social-list">{data.matches.map(match =>
           <Link href={`/match/${match.id}`} key={match.id} className="block">
-            <Panel notch="panel" className="social-person">
+            <Panel className="social-person">
               <span className="flex flex-col gap-0.5 min-w-0">
                 <strong className="uppercase">{match.gameId}</strong>
                 <span className="t-meta">{match.completedAt ? new Date(match.completedAt).toLocaleDateString() : 'Completed match'}</span>

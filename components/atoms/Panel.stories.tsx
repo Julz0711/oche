@@ -6,7 +6,6 @@ const meta: Meta<typeof Panel> = {
   title: "Atoms/Panel",
   tags: ["autodocs"],
   argTypes: {
-    notch: { control: "select", options: ["card", "panel", "inset", "none"] },
     accent: { control: "select", options: ["wire", "double", "treble", "sisal"] },
   },
 };
@@ -16,17 +15,15 @@ type Story = StoryObj<typeof meta>;
 
 export const Surface: Story = {
   args: {
-    notch: "card",
     accent: "wire",
     accentBar: true,
     className: "p-5 text-chalk",
-    children: "A cut-corner surface",
+    children: "A shared rectangular surface",
   },
 };
 
 export const Active: Story = {
   args: {
-    notch: "panel",
     accent: "wire",
     active: true,
     className: "p-5 text-chalk",
@@ -37,7 +34,6 @@ export const Active: Story = {
 export const AsButton: Story = {
   args: {
     as: "button",
-    notch: "card",
     accent: "double",
     accentBar: true,
     className: "p-5 text-chalk",

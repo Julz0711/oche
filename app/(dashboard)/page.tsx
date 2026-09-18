@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { gameRegistry, GameId, getGameModule } from '@/lib/games/registry';
-import { InlineFeedback } from '@/components/molecules';
+import { AppBar, InlineFeedback } from '@/components/molecules';
 import { GameOption } from './SetupControls';
 import { StepGame, ActiveMatch } from './StepGame';
 import { PlayMode, loadMode, saveMode } from './playMode';
@@ -110,13 +110,11 @@ export default function Dashboard() {
   return (
     <div className="dashboard-page page-gutters min-h-screen text-chalk flex flex-col items-center relative">
       <div className="relative z-10 w-full max-w-3xl flex flex-col flex-1 gap-4 md:gap-6">
-        <header className="dashboard-header">
-          <h1 className="page-title">Play</h1>
-        </header>
+        <AppBar eyebrow="The darts club" title="Play" />
 
         {createError && <InlineFeedback tone="error">{createError}</InlineFeedback>}
 
-        <section id="dashboard-play-panel" className={styles.playPanel} role="tabpanel" aria-labelledby={`play-tab-${mode}`}>
+        <section className={styles.playPanel} aria-label="Start playing">
           <StepGame
             mode={mode}
             onModeChange={setMode}

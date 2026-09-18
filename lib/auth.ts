@@ -1,6 +1,8 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Discord from "next-auth/providers/discord";
+import Credentials from "next-auth/providers/credentials";
+import { allowDemoLogin } from "./dev/login";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "./mongodb-client";
 
@@ -40,6 +42,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   providers: [
+    ...(process.env.NODE_ENV === 'development' ? [Credentials({
+      id: 'development',
+      name: 'Local demo account',
+      credentials: {},
+      async authorize(_credentials, request) {
+        if (!allowDemoLogin(request.url)) return null;
+        const { ensureDemoAccount } = await import('./dev/demoAccount');
+        return ensureDemoAccount((await clientPromise).db());
+      },
+    })] : []),
     Google({
       clientId: process.env.GOOGLE_ID,
       clientSecret: process.env.GOOGLE_SECRET,
@@ -65,18 +77,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     async session({ session, token, newSession, trigger }) {
-
-      // Dev-only: handle dev login
-      if (process.env.NODE_ENV === 'development' && token?.__devLogin) {
-        session.user = {
-          id: token.__devLogin as string,
-          name: 'Test User',
-          email: 'test@oche.local',
-          image: null,
-          emailVerified: null,
-        };
-        return session;
-      }
 
       if (session.user) {
         session.user.id = token.id as string;

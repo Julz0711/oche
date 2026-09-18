@@ -1,8 +1,8 @@
 // app/(dashboard)/StepGame.tsx
 'use client';
 import Link from 'next/link';
-import { X } from 'lucide-react';
-import { Panel, BoardMotif } from '@/components/atoms';
+import { X, ArrowUpRight, KeyRound } from 'lucide-react';
+import { Panel } from '@/components/atoms';
 import type { GameId } from '@/lib/games/registry';
 import { GameCard, GameOption, SettingLabel } from './SetupControls';
 import type { PlayMode } from './playMode';
@@ -47,10 +47,12 @@ export function StepGame({
 }) {
   return (
     <>
+      <div className={styles.selectionHead}>
+      <div><h2>Choose your game</h2><p className="t-meta">{mode === 'multiplayer' ? 'Create a room and invite your rivals.' : 'One board, one device. Play together.'}</p></div>
       <div className={styles.tabs} role="tablist" aria-label="Play mode">
         {([
-          { id: 'multiplayer', label: 'Online', detail: 'Games with a room code' },
-          { id: 'singleplayer', label: 'Local & solo', detail: 'Same device or solo runs' },
+          { id: 'multiplayer', label: 'Online', detail: 'Play from anywhere' },
+          { id: 'singleplayer', label: 'At the board', detail: 'Share one device' },
         ] as const).map((tab) => (
           <button
             key={tab.id}
@@ -74,25 +76,13 @@ export function StepGame({
         ))}
       </div>
 
-      {mode === 'singleplayer' && (
-        <Link href="/solo" className={styles.soloLink}>
-          <Panel notch="card" accent="wire" interactive className="p-4 sm:p-5">
-            <BoardMotif name="board" className="pointer-events-none absolute -right-8 -bottom-16 w-56 h-56 text-wire" style={{ opacity: 'var(--motif-rest)' }} />
-            <span className="relative block">
-              <span className="block text-[10px] font-bold tracking-[0.2em] text-wire uppercase">Solo roguelike · 1 player</span>
-              <strong className="block font-display font-bold uppercase text-[30px] leading-none text-chalk mt-5 mb-2">House Rules</strong>
-              <span className="block text-xs text-sisal/60">Build your darts. Beat the bosses. Challenge your friends.</span>
-            </span>
-          </Panel>
-        </Link>
-      )}
-
+      </div>
       {mode === 'multiplayer' && activeMatches.length > 0 && (
         <div className="flex flex-col gap-2">
           <SettingLabel>Active games</SettingLabel>
           <div className="flex flex-col gap-2">
             {activeMatches.map((match) => (
-              <Panel key={match.id} notch="panel" className="p-3 flex items-center gap-3">
+              <Panel key={match.id} className="p-3 flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => onResumeMatch(match.id)}
@@ -124,29 +114,15 @@ export function StepGame({
         </div>
       )}
 
-      {games === null ? (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3.5">
-          {[0, 1, 2].map((i) => <div key={i} className="h-48 bg-slate animate-pulse" />)}
-        </div>
-      ) : (
-        <>
-          <SettingLabel>{mode === 'singleplayer' ? 'Classic games · same device' : 'Choose a game'}</SettingLabel>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3.5">
-            {games.map((game, index) => (
-              <GameCard
-                key={game.id}
-                game={game}
-                index={index}
-                opening={opening === game.id}
-                disabled={opening !== null && opening !== game.id}
-                onSelect={() => onPickGame(game.id)}
-              />
-            ))}
-          </div>
-        </>
-      )}
-
-      {mode === 'multiplayer' && <Link href="/join" className="join-room-link">Have a room code? <span>Join a room →</span></Link>}
+      <div id="dashboard-play-panel" role="tabpanel" aria-labelledby={`play-tab-${mode}`} className={styles.gameGrid}>
+        {games === null ? [0, 1, 2].map(i => <div key={i} className="skeleton h-56" />) : games.map((game, index) => (
+          <GameCard key={game.id} game={game} index={index} opening={opening === game.id}
+            disabled={opening !== null && opening !== game.id} onSelect={() => onPickGame(game.id)} />
+        ))}
+      </div>
+      {mode === 'multiplayer' && <Link href="/join" className={styles.joinCard}>
+        <KeyRound size={16} aria-hidden="true" /><span><strong>Join a room</strong><small>Enter a room code</small></span><ArrowUpRight size={16} aria-hidden="true" />
+      </Link>}
     </>
   );
 }

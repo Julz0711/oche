@@ -30,7 +30,7 @@ export function ResultBadge({ won }: { won: boolean }) {
 export function MatchHistoryRow({ match }: { match: MatchHistoryItem }) {
   const when = new Date(match.completedAt);
   return (
-    <Panel notch="panel" className="history-row">
+    <Panel className="history-row">
       <div className="history-row-main">
         <div className="history-row-title">
           <ResultBadge won={match.won} />

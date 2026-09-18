@@ -75,25 +75,25 @@ export function ProfileView({ friendId }: { friendId?: string }) {
         : <TextLink href="/settings" arrow="none"><Settings size={15} aria-hidden="true" /> Settings</TextLink>}
     />
 
-    {error ? <Panel notch="panel" className="p-4 flex flex-col items-start gap-3">
+    {error ? <Panel className="p-4 flex flex-col items-start gap-3">
       <InlineFeedback tone="error">{error}</InlineFeedback>
       <Button variant="secondary" onClick={() => setAttempt(n => n + 1)}>Try again</Button>
     </Panel> : !data ? <LoadingIndicator label="Loading profile…" /> : <>
       <div className="profile-layout"><div className="flex flex-col gap-5">
-        <Panel notch="card" className="account-section">
+        <Panel className="account-section profile-match-summary">
           <div className="section-header">
-            <h2>Match summary</h2>
-            {!friendId && <TextLink href="/stats">View statistics</TextLink>}
+            <div><h2>Match summary</h2>{!friendId && <p className="summary-period">All time</p>}</div>
+            {!friendId && <TextLink href="/stats">Statistics</TextLink>}
           </div>
           <StatsBoard board={data.periods} compact={!friendId} showHeatmap={Boolean(friendId)} />
         </Panel>
 
-        <Panel notch="panel" className="account-section">
+        <Panel className="account-section">
           <div className="section-header"><h2>Achievements</h2></div>
           <Achievements {...data.achievements} />
         </Panel>
 
-        {friendId && <Panel notch="panel" className="account-section">
+        {friendId && <Panel className="account-section">
           <div className="section-header"><h2>Friendship</h2></div>
           <p className="t-body">You and {name} are friends. Removing them keeps every match you played together in your history.</p>
           {removeError && <InlineFeedback tone="error">{removeError}</InlineFeedback>}
@@ -109,7 +109,7 @@ export function ProfileView({ friendId }: { friendId?: string }) {
         </Panel>}
       </div>
 
-      {!friendId && <aside><Panel notch="panel" className="account-section">
+      {!friendId && <aside><Panel className="account-section">
         <div className="section-header">
           <h2>Friends <span className="section-header-count">{data.friends?.length ?? 0}</span></h2>
           <TextLink href="/friends">Manage friends</TextLink>

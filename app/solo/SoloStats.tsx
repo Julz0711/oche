@@ -103,7 +103,7 @@ export default function SoloStats({ runs }: { runs: RunSave[] }) {
         ]}
       />
 
-      <Panel notch="panel" className={styles.panel}>
+      <Panel className={styles.panel}>
         <h2>Where your darts land</h2>
         <p className={styles.muted}>
           Every dart across every saved run. House Rules moves the target each round, so this shows
@@ -123,7 +123,7 @@ export default function SoloStats({ runs }: { runs: RunSave[] }) {
       />
 
       {stats.topItems.length > 0 && (
-        <Panel notch="panel" className={styles.panel}>
+        <Panel className={styles.panel}>
           <h2>Your usual build</h2>
           <p className={styles.muted}>What your runs most often finish holding.</p>
           <div className={styles.tags}>

@@ -20,7 +20,7 @@ const VIEWBOX = `0 0 ${CENTER * 2} ${CENTER * 2}`;
 const INNER_BULL = RADIUS.innerSingleInner * 0.4;
 
 function polar(radius: number, angle: number) {
-  return { x: CENTER + radius * Math.cos(angle), y: CENTER + radius * Math.sin(angle) };
+  return { x: Number((CENTER + radius * Math.cos(angle)).toFixed(3)), y: Number((CENTER + radius * Math.sin(angle)).toFixed(3)) };
 }
 
 /** The full board: rings, all 20 wires, with T20 lit in the treble band and D20 faint at

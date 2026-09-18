@@ -47,17 +47,16 @@ export function LiveStatsDrawer({
     <dialog ref={dialogRef} onCancel={onClose} onClick={e => { if (e.target === e.currentTarget) onClose(); }}
       aria-labelledby="live-stats-title" className="stats-dialog">
       <div
-        className="relative w-full max-w-2xl bg-slate border-t-2 border-x-2 border-wire/30 p-3 flex flex-col gap-2 max-h-[85dvh] pb-[max(16px,env(safe-area-inset-bottom))]"
+        className="stats-dialog-content"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-1.5 h-6 rounded-full bg-wire" />
-            <h2 id="live-stats-title" className="text-sm font-bold uppercase tracking-widest text-sisal">Live Stats</h2>
+            <h2 id="live-stats-title" className="dialog-title">Live Stats</h2>
           </div>
           <button
             onClick={onClose}
             aria-label="Close stats"
-            className="w-11 h-11 flex items-center justify-center border-2 border-sisal/30 bg-oche text-sisal hover:text-chalk hover:border-wire transition-colors"
+            className="dialog-close"
           >
             <X className="w-4 h-4" />
           </button>
@@ -68,7 +67,6 @@ export function LiveStatsDrawer({
           {players.map((playerId) => (
             <Panel
               key={playerId}
-              notch="none"
               accent="wire"
               active={winnerId !== null && playerId === winnerId}
               className="p-2.5"

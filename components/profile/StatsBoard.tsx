@@ -69,77 +69,61 @@ function copycatTiles(s: CopycatAggregateStats): Tile[] {
   ];
 }
 
-/** The two boards: everything thrown, and the subset that found a multiplier or a bull.
- *
- *  The second board gets its own callouts rather than the defaults. Sharing them meant it
- *  reported "Strongest double" — derived only from D keys, which the filter keeps in full —
- *  so both boards printed the identical figure, and "Off the board 0%", which is a property
- *  of the filter rather than of anyone's throwing. Counts per ring are things only this board
- *  knows. */
-function Heatmaps({ heatmap, dartsThrown }: { heatmap: Record<string, number>; dartsThrown?: number }) {
+/** One board with two views. The filtered view uses ring counts: an off-board rate
+ *  would describe the filter, rather than the player's accuracy. */
+function ShotMap({ heatmap, dartsThrown }: { heatmap: Record<string, number>; dartsThrown?: number }) {
+  const [mode, setMode] = useState<'all' | 'specials'>('all');
   const specials = specialsHeatmap(heatmap);
-  const specialsSummary = summarizeHeatmap(specials);
-  const bulls = specialsSummary.byRing.OB + specialsSummary.byRing.IB;
-  // Prefer the API's own dart count over re-summing the map, so this caption and the "N recorded
-  // darts" one above it can never quote two different totals for the same period.
+  const summary = summarizeHeatmap(specials);
   const total = dartsThrown ?? summarizeHeatmap(heatmap).darts;
-
-  return (
-    // Behind a disclosure: two dartboards are by far the heaviest thing on this page, and they
-    // are a thing you go looking for rather than something you need every time you check an
-    // average. Closed by default even inside an open game.
-    <details className="stats-disclosure">
-      <summary>Shot maps</summary>
-      <div className="stats-heatmaps">
-        <HeatmapFigure
-          title="All throws"
-          caption={dartsThrown ? `${dartsThrown} recorded darts` : 'No recorded darts in this period'}
-          heatmap={heatmap}
-        />
-        <HeatmapFigure
-          title="Doubles, trebles & bulls"
-          caption={total
-            ? `${specialsSummary.darts} of ${total} darts found a multiplier or a bull`
-            : 'No recorded darts in this period'}
-          heatmap={specials}
-          callouts={[
-            { label: 'Trebles', value: specialsSummary.byRing.T },
-            { label: 'Doubles', value: specialsSummary.byRing.D },
-            { label: 'Bulls', value: bulls },
-          ]}
-        />
-      </div>
-    </details>
-  );
+  return <details className="stats-disclosure shot-map" open>
+    <summary>Shot map</summary>
+    <div className="shot-map-content">
+      <SegmentedControl label="Shot map filter" value={mode} onChange={setMode}
+        options={[{ value: 'all', label: 'All throws' }, { value: 'specials', label: 'Doubles, trebles & bulls' }]} />
+      <HeatmapFigure key={mode}
+        title={mode === 'all' ? 'All throws' : 'Doubles, trebles & bulls'}
+        caption={mode === 'all' ? total + ' recorded darts' : summary.darts + ' of ' + total + ' darts'}
+        heatmap={mode === 'all' ? heatmap : specials}
+        callouts={mode === 'all' ? undefined : [
+          { label: 'Trebles', value: summary.byRing.T },
+          { label: 'Doubles', value: summary.byRing.D },
+          { label: 'Bulls', value: summary.byRing.OB + summary.byRing.IB },
+        ]} />
+    </div>
+  </details>;
 }
 
-/** One game's numbers. The card is bounded by a single accent edge and its own spacing —
- *  no outline, and none of the per-statistic boxes the tiles used to sit in. */
-function GameStatsCard({ gameId, played, wins, winRate, tiles, heatmap, dartsThrown, defaultOpen }: {
-  gameId: string; played: number; wins: number; winRate: number; tiles: Tile[];
-  heatmap?: Record<string, number>; dartsThrown?: number; defaultOpen: boolean;
+function GameStatsCard({ gameId, played, wins, tiles, heatmap, dartsThrown }: {
+  gameId: string; played: number; wins: number; tiles: Tile[];
+  heatmap?: Record<string, number>; dartsThrown?: number;
 }) {
-  const meta = GAME_META[gameId] ?? { name: gameId, accent: 'wire' as const };
-  return (
-    // Collapsible, with the record in the summary. Every game used to be fully expanded at
-    // once: three stacked blocks of a dozen statistics each, plus two dartboards, all at the
-    // same visual weight. The row you can always see — name, played, won, win rate — is the
-    // part anyone actually scans; the dozen numbers are what you open a game to read.
-    <details
-      className="stats-game-card"
-      style={{ borderColor: `var(--${meta.accent})` }}
-      open={defaultOpen}
-    >
-      <summary className="stats-game-card-heading">
-        <h3 style={{ color: `var(--${meta.accent})` }}>{meta.name}</h3>
-        <span>{played} played · {wins} won · {winRate}%</span>
-      </summary>
-      <div className="stats-game-card-body">
-        <MetricGrid metrics={tiles} cols="auto" size="sm" />
-        {heatmap && <Heatmaps heatmap={heatmap} dartsThrown={dartsThrown} />}
-      </div>
-    </details>
-  );
+  const meta = GAME_META[gameId];
+  const primary = gameId === 'x01' ? [tiles[0], tiles[2], tiles[3]]
+    : gameId === 'copycat' ? [tiles[0], tiles[2], tiles[1]] : tiles;
+  const groups = gameId === 'x01' ? [
+    { title: 'Scoring', metrics: [tiles[1], tiles[5], tiles[6], tiles[7]] },
+    { title: 'Finishing', metrics: [tiles[4], tiles[10], tiles[12]] },
+    { title: 'Accuracy', metrics: [tiles[11], tiles[8], tiles[9]] },
+  ] : gameId === 'copycat' ? [{ title: 'Finishing', metrics: [tiles[3]] }] : [];
+  return <details className="game-performance" data-game={gameId} open>
+    <summary className="game-performance-heading">
+      <span className="game-performance-name">{meta.name}</span><span>{played} played · {wins} won</span>
+    </summary>
+    <div className="game-performance-content">
+    <MetricGrid metrics={primary.filter(Boolean)} cols={3} className="performance-headlines" />
+    {groups.length > 0 && <details className="stats-disclosure" open>
+      <summary>Detailed statistics</summary>
+      <div className="stat-detail-groups">{groups.map(group => <section key={group.title}>
+        <h4>{group.title}</h4>
+        <dl>{group.metrics.filter(Boolean).map(metric => <div key={metric.label}>
+          <dt>{metric.label}</dt><dd>{metric.value}</dd>
+        </div>)}</dl>
+      </section>)}</div>
+    </details>}
+    {heatmap && <ShotMap heatmap={heatmap} dartsThrown={dartsThrown} />}
+    </div>
+  </details>;
 }
 
 const PERIOD_OPTIONS = [
@@ -155,65 +139,48 @@ const PERIOD_KEY = 'oche:stats:period';
 
 export function StatsBoard({ board, compact = false, showHeatmap = false }: { board: Board; compact?: boolean; showHeatmap?: boolean }) {
   const [period, setPeriod] = useState<StatsPeriod>('all');
-  // After mount only — sessionStorage doesn't exist during the server render.
+  const [gameFilter, setGameFilter] = useState('x01');
   useEffect(() => {
     const saved = sessionStorage.getItem(PERIOD_KEY);
     if (saved && PERIOD_OPTIONS.some(option => option.value === saved)) setPeriod(saved as StatsPeriod);
   }, []);
-  useEffect(() => { sessionStorage.setItem(PERIOD_KEY, period); }, [period]);
-  const stats = board[period];
-  const gameCards = stats.games.filter(game => GAME_META[game.gameId]);
+  const stats = board[compact ? 'all' : period];
+  const gameCards = Object.keys(GAME_META).flatMap(id => stats.games.filter(game => game.gameId === id));
 
-  return <div className="flex flex-col gap-5">
-    <SegmentedControl
-      label="Statistics period"
-      value={period}
-      onChange={setPeriod}
-      options={PERIOD_OPTIONS}
-    />
-    <MetricGrid
-      cols={4}
-      aria-live="polite"
-      metrics={[
-        { label: 'Matches', value: stats.totalMatches },
-        { label: 'Win rate', value: `${stats.winRate}%` },
-        { label: 'Wins', value: stats.wins },
-        { label: 'Losses', value: stats.losses },
-      ]}
-    />
-    {!compact && gameCards.length > 0 && (
-      <div className="stats-game-cards">
-        {gameCards.map(game => {
-          // One game open on arrival, so the section isn't a wall of collapsed rows — the one
-          // you've played most, which is the one you most likely came to read.
-          const mostPlayed = gameCards.reduce((best, entry) => (entry.totalMatches > best.totalMatches ? entry : best), gameCards[0]);
-          const tiles =
-            game.gameId === 'x01' && stats.x01 ? x01Tiles(stats.x01) :
-            game.gameId === 'cricket' && stats.cricket ? cricketTiles(stats.cricket) :
-            game.gameId === 'copycat' && stats.copycat ? copycatTiles(stats.copycat) :
-            [];
-          return (
-            <GameStatsCard
-              key={game.gameId}
-              gameId={game.gameId}
-              played={game.totalMatches}
-              wins={game.wins}
-              winRate={game.winRate}
-              tiles={tiles}
-              heatmap={showHeatmap && game.gameId === 'x01' ? stats.heatmap : undefined}
-              dartsThrown={game.gameId === 'x01' ? stats.dartsThrown : undefined}
-              defaultOpen={game.gameId === mostPlayed.gameId}
-            />
-          );
-        })}
-      </div>
-    )}
-    {stats.totalMatches === 0 && (
-      <EmptyState
-        icon={Target}
-        title="Nothing in this period yet"
-        body="Finish a match and its numbers show up here. Widen the period above to see older results."
-      />
-    )}
+  return <div className="stats-board" data-compact={compact || undefined}>
+    {!compact && <div className="stats-overview-heading"><h2>Overview</h2><label className="stats-period"><span className="sr-only">Period</span>
+      <select aria-label="Statistics period" value={period} onChange={event => {
+        setPeriod(event.target.value as StatsPeriod);
+        sessionStorage.setItem(PERIOD_KEY, event.target.value);
+      }}>
+        {PERIOD_OPTIONS.map(option => <option value={option.value} key={option.value}>{option.label}</option>)}
+      </select>
+    </label></div>}
+    <dl className="record-summary" aria-live="polite">
+      <div><dt>Matches</dt><dd>{stats.totalMatches}</dd></div>
+      <div><dt>Win rate</dt><dd>{stats.winRate}%</dd></div>
+      <div className="record-results"><dt>Record</dt><dd><span>{stats.wins} wins</span><span>{stats.losses} losses</span></dd></div>
+    </dl>
+    {!compact && <>
+      <SegmentedControl label="Performance game" value={gameFilter} onChange={setGameFilter}
+        className="performance-game-tabs"
+        options={Object.entries(GAME_META).map(([id, meta]) => ({
+          value: id, label: <span data-game={id}>{meta.name}</span>,
+        }))} />
+      <div className="game-accordions">{gameCards.filter(game => game.gameId === gameFilter).map(game => {
+      const tiles = game.gameId === 'x01' && stats.x01 ? x01Tiles(stats.x01)
+        : game.gameId === 'cricket' && stats.cricket ? cricketTiles(stats.cricket)
+        : game.gameId === 'copycat' && stats.copycat ? copycatTiles(stats.copycat) : [];
+      return <GameStatsCard key={period + gameFilter + game.gameId} gameId={game.gameId} played={game.totalMatches}
+        wins={game.wins} tiles={tiles}
+        heatmap={showHeatmap && game.gameId === 'x01' ? stats.heatmap : undefined}
+        dartsThrown={game.gameId === 'x01' ? stats.dartsThrown : undefined} />;
+    })}</div>
+      {stats.totalMatches > 0 && !gameCards.some(game => game.gameId === gameFilter) &&
+        <EmptyState icon={Target} title={'No ' + GAME_META[gameFilter].name + ' matches in this period'}
+          body="Choose another game or a longer period to see your results." />}
+    </>}
+    {stats.totalMatches === 0 && <EmptyState icon={Target} title="Nothing in this period yet"
+      body="Finish a match or choose a longer period to see your results." />}
   </div>;
 }

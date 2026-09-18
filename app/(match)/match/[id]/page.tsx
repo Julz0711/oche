@@ -22,6 +22,8 @@ import { loadLocalMatch, clearLocalMatch, markPendingCompletion } from '@/lib/lo
 import { completedDartCount, newlyCompletedVisit, VisitDocFields } from '@/lib/matchThrows';
 import { playDartSound, play180Melody } from '@/lib/sounds';
 import { Panel, Pips, BackLink } from '@/components/atoms';
+import { PageMessage } from '@/components/molecules/PageMessage';
+import { TextLink } from '@/components/molecules/TextLink';
 
 interface MatchPageProps {
   params: Promise<{ id: string }>;
@@ -82,7 +84,7 @@ function MatchInfoPanel({
 
   if (heroEntries.length > 0 && raceProgress.length === 0) {
     return (
-      <Panel notch="panel" className="p-3 flex items-center justify-between gap-3">
+      <Panel className="match-overview p-3 flex items-center justify-between gap-3">
         <div className="flex flex-1 flex-wrap items-center justify-around gap-x-4 gap-y-1 min-w-0">
           {info.map((entry) => (
             <div key={entry.label} className="flex items-baseline gap-2">
@@ -101,7 +103,7 @@ function MatchInfoPanel({
   }
 
   return (
-    <Panel notch="panel" className="p-3 flex flex-col gap-2">
+    <Panel className="match-overview p-3 flex flex-col gap-2">
       {heroEntries.length > 0 && <div className={heroEntries.length > 1 ? 'grid grid-cols-2 gap-3' : ''}>
       {heroEntries.map((entry) => (
         <div key={entry.label} className="flex flex-col items-center gap-0.5 pb-1.5 border-b border-sisal/15">
@@ -179,7 +181,7 @@ function HistoryPanel({
   const visibleVisits = expanded ? visits : visits.slice(0, HISTORY_VISIBLE_LIMIT);
 
   return (
-    <Panel notch="panel" className="p-4 flex flex-col gap-3 min-h-[240px]">
+    <Panel className="match-history p-4 flex flex-col gap-3 min-h-[240px]">
       <div className="text-xs font-bold uppercase tracking-widest text-sisal shrink-0">
         {displayName ?? playerId}
       </div>
@@ -517,7 +519,7 @@ export default function MatchPage({ params }: MatchPageProps) {
   }, [mode, loading, id]);
 
   if (error) {
-    return <div className="min-h-screen bg-oche text-chalk flex items-center justify-center">{error}</div>;
+    return <PageMessage eyebrow="The matchroom" title="Match unavailable" actions={<TextLink href="/">Back to play</TextLink>}><p role="alert">{error}</p></PageMessage>;
   }
 
   if (loading || !gameModule) {
@@ -587,7 +589,7 @@ export default function MatchPage({ params }: MatchPageProps) {
       <header className="match-header flex items-center justify-between">
         <div className="flex items-center gap-3">
           <BackLink />
-          <h1 className="text-xl font-display font-bold">{gameModule.name}</h1>
+          <div className="match-title"><span>OCHE / THE MATCHROOM</span><h1 className="text-xl font-display font-bold">{gameModule.name}</h1></div>
         </div>
         {!isComplete && (
           <div className="flex items-center gap-2">
@@ -647,7 +649,7 @@ export default function MatchPage({ params }: MatchPageProps) {
               raceProgress={raceProgress}
               displayNames={displayNames}
             />
-            <Panel notch="panel" className="p-4 flex flex-col gap-2 justify-center">
+            <Panel className="p-4 flex flex-col gap-2 justify-center">
               {otherPlayers.map((playerId) => {
                 const metric = gameModule.primaryMetric(gameState, playerId);
                 const isTurn = playerId === currentPlayerId;
@@ -711,7 +713,7 @@ export default function MatchPage({ params }: MatchPageProps) {
                 />
               </div>
 
-              <Panel notch="panel" className="p-3 flex flex-col gap-3 min-h-[240px]">
+              <Panel className="p-3 flex flex-col gap-3 min-h-[240px]">
                 {otherPlayers.map((playerId) => {
                   const isTurn = playerId === currentPlayerId;
                   const expanded = expandedOpponent === playerId;

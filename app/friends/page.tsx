@@ -4,7 +4,7 @@ import { PlayerAvatar } from '@/components/profile/PlayerAvatar';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { ArrowUpRight, Copy, Share2, Users } from 'lucide-react';
+import { ArrowUpRight, Check, Copy, Share2, Users } from 'lucide-react';
 import { Panel } from '@/components/atoms/Panel';
 import { Button } from '@/components/atoms/Button';
 import { AppBar, EmptyState, InlineFeedback, TextLink } from '@/components/molecules';
@@ -20,6 +20,12 @@ export default function FriendsPage() {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 2500);
+    return () => clearTimeout(timer);
+  }, [copied]);
   const [busy, setBusy] = useState(false);
   const [query, setQuery] = useState('');
   // Read after mount: navigator.share does not exist during the server render, and on
@@ -63,7 +69,7 @@ export default function FriendsPage() {
   const act = (person: FriendPerson, action: FriendAction) => void mutate(`/api/friends/${person.id}`, { action }, 'PATCH', action === 'accept' ? `You and ${person.name} are now friends.` : 'Request cleared.');
   async function copyCode() {
     if (!data) return;
-    try { await navigator.clipboard.writeText(data.code); setNotice('Friend code copied to your clipboard.'); }
+    try { await navigator.clipboard.writeText(data.code); setCopied(true); }
     catch { setError('Could not copy. You can select the code and copy it by hand.'); }
   }
   async function shareCode() {
@@ -96,15 +102,15 @@ export default function FriendsPage() {
       {/* One compact block: your code with its actions on one line, then the add field.
           This used to be a tall slab that dominated a page whose actual content — the
           friends list — sat below it. */}
-      <Panel notch="panel" className="p-4 flex flex-col gap-4">
+      <section className="friend-tools" aria-label="Add friends">
         <div className="friend-code-row">
           <div>
-            <p className="t-label">Your friend code</p>
+            <p className="friend-tools-label">Your friend code</p>
             <p className="friend-code select-all">{data.code.match(/.{1,4}/g)?.join(' ')}</p>
           </div>
           <div className="friend-code-actions">
             <Button size="sm" variant="secondary" onClick={copyCode} className="flex items-center gap-2">
-              <Copy size={14} aria-hidden="true" />Copy
+              {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}<span aria-live="polite">{copied ? 'Copied' : 'Copy'}</span>
             </Button>
             {canShare && <Button size="sm" variant="secondary" onClick={shareCode} className="flex items-center gap-2">
               <Share2 size={14} aria-hidden="true" />Share
@@ -112,8 +118,8 @@ export default function FriendsPage() {
           </div>
         </div>
 
-        <form onSubmit={request} className="flex flex-col gap-2 border-t border-[color:var(--border-subtle)] pt-4">
-          <label htmlFor="friend-code" className="t-label">Add a player</label>
+        <form onSubmit={request} className="friend-add-form">
+          <label htmlFor="friend-code" className="friend-tools-label">Add a friend</label>
           <div className="flex gap-2">
             <input
               id="friend-code"
@@ -132,12 +138,12 @@ export default function FriendsPage() {
             </Button>
           </div>
         </form>
-      </Panel>
+      </section>
 
       {data.incoming.length > 0 && <section className="flex flex-col gap-2">
         <div className="section-header"><h2>Requests <span className="section-header-count">{data.incoming.length}</span></h2></div>
         <div className="social-list">{data.incoming.map(person =>
-          <Panel key={person.id} notch="panel" className="social-person">
+          <Panel key={person.id} className="social-person">
             <span className="flex items-center gap-3 min-w-0"><PlayerAvatar name={person.name} image={person.image} /><span className="truncate">{person.name}</span></span>
             <div className="flex gap-1">
               <Button size="sm" disabled={busy} onClick={() => act(person, 'accept')}>Accept</Button>
@@ -169,7 +175,7 @@ export default function FriendsPage() {
         ) : (
           <div className="social-list">{visibleFriends.map(person =>
             <Link key={person.id} href={`/profile/${person.id}`} className="block">
-              <Panel notch="panel" className="social-person">
+              <Panel className="social-person">
                 <span className="flex items-center gap-3 min-w-0"><PlayerAvatar name={person.name} image={person.image} /><span className="truncate">{person.name}</span></span>
                 <span className="text-link shrink-0">View profile<ArrowUpRight size={15} aria-hidden="true" /></span>
               </Panel>
@@ -181,7 +187,7 @@ export default function FriendsPage() {
       {data.outgoing.length > 0 && <section className="flex flex-col gap-2">
         <div className="section-header"><h2>Sent requests <span className="section-header-count">{data.outgoing.length}</span></h2></div>
         <div className="social-list">{data.outgoing.map(person =>
-          <Panel key={person.id} notch="panel" className="social-person">
+          <Panel key={person.id} className="social-person">
             <span className="flex items-center gap-3 min-w-0"><PlayerAvatar name={person.name} image={person.image} /><span className="truncate">{person.name}</span></span>
             <span className="t-meta shrink-0">Pending</span>
             <Button size="sm" variant="ghost" disabled={busy} onClick={() => act(person, 'cancel')}>Cancel</Button>

@@ -1,163 +1,52 @@
-.tabs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-bottom: 1px solid #e4d8bc33;
-  gap: 12px;
+/* Compact game selection in the shared club palette. */
+.playPanel { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.kicker { display: flex; align-items: center; gap: 10px; font: 600 10px/1.5 var(--font-sans); letter-spacing: .18em; text-transform: uppercase; color: var(--wire); }
+.kicker > span { width: 5px; height: 5px; background: var(--wire); transform: rotate(45deg); }
+.selectionHead { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-top: 0; }
+.selectionHead h2 { font: 500 24px/1.2 var(--font-display); margin-bottom: 6px; color: var(--sisal); }
+.tabs { display: flex; border: 1px solid #c0a15c55; padding: 4px; background: #0b1511; }
+.tabs button { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 9px 22px; min-height: 52px; color: var(--text-muted); border: 1px solid transparent; text-align: left; }
+.tabs strong { font: 600 17px/1 var(--font-display); letter-spacing: .03em; text-transform: uppercase; }
+.tabs span { font-size: 10px; }
+.tabs button[aria-selected='true'] { background: #c0a15c; color: #111a14; border-color: #ddc386; box-shadow: inset 0 1px #f4dfab; }
+.gameGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.gameCard { --ticket-accent: #c0a15c; position: relative; isolation: isolate; overflow: hidden; display: flex; flex-direction: column; min-width: 0; text-align: left; padding: 20px 24px 0; border: 1px solid #c0a15c55; background: #191e18; transition: border-color 160ms, background 160ms; }
+.gameCard::before { content: ''; position: absolute; inset: 5px 5px auto; height: 2px; background: var(--ticket-accent); opacity: .9; }
+.gameCard[data-game='cricket'] { --ticket-accent: #2d9671; background: #11271f; border-color: #2d967155; }
+.gameCard[data-game='copycat'] { --ticket-accent: #c8475c; background: #2a171b; border-color: #c8475c55; }
+.cardTop { display: flex; gap: 12px; align-items: center; justify-content: space-between; font-size: 9px; text-transform: uppercase; letter-spacing: .13em; color: var(--sisal); }
+.cardTop > span:first-child { font-family: Georgia, serif; font-style: italic; font-size: 12px; color: var(--ticket-accent); text-transform: none; letter-spacing: 0; }
+.cardMotif { position: absolute; width: 160px; height: 160px; right: -42px; top: 27px; opacity: .23; z-index: -1; transform: rotate(-12deg); transition: transform 250ms; }
+.cardName { font: 600 56px/1 var(--font-display); text-transform: uppercase; margin-top: 24px; letter-spacing: -.01em; color: #eee4ce; }
+.cardDetail { display: block; font-size: 12px; color: #c9beaa; margin-top: 0; line-height: 1.5; }
+.cardFoot { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px dashed #e4d8bc33; padding: 15px 0; margin-top: 24px; font-size: 10px; color: #b6ad98; }
+.cardFoot > span:last-child { display: flex; align-items: center; gap: 8px; color: var(--sisal); font-size: 12px; font-weight: 600; }
+.gameCard:disabled { opacity: .5; cursor: wait; }
+@media (hover: hover) { .gameCard:hover { border-color: var(--ticket-accent); background: color-mix(in srgb, var(--ticket-accent) 12%, #111a14); } .gameCard:hover .cardMotif { transform: rotate(0); } }
+@media (max-width: 767px) {
+ .selectionHead { flex-wrap: wrap; gap: 16px; margin-top: 0; }
+ .selectionHead h2 { font-size: 26px; }
+ .selectionHead .kicker { font-size: 8px; }
+ .tabs { width: 100%; }
+ .tabs button { flex: 1; padding: 10px 14px; min-height: 44px; }
+ .tabs strong { font-size: 16px; }
+ .tabs span { font-size: 9px; }
+ .gameGrid { grid-template-columns: 1fr; gap: 10px; }
+ .gameCard { padding: 16px 18px 0; display: grid; grid-template-columns: 1fr auto; gap: 0 14px; }
+ .cardTop { grid-column: 1 / -1; justify-content: flex-start; gap: 14px; font-size: 8px; }
+ .cardName { font-size: 36px; margin-top: 12px; }
+ .cardDetail { margin: 6px 0 16px; font-size: 11px; grid-column: 1; }
+ .cardFoot { grid-column: 2; grid-row: 2 / 4; align-self: center; border: 0; margin: 0; padding: 0; flex-direction: column-reverse; align-items: flex-end; gap: 8px; }
+ .cardFoot > span:first-child { font-size: 9px; }
+ .cardFoot > span:last-child { font-size: 11px; }
+ .cardMotif { width: 120px; height: 120px; top: 10px; right: 42px; opacity: .15; }
+ .playPanel { gap: 16px; }
 }
-.tabs button {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 5px;
-  min-height: 76px;
-  padding: 13px 18px;
-  border: 1px solid transparent;
-  border-bottom: 3px solid transparent;
-  background: transparent;
-  color: #a4ada6;
-  text-align: left;
-  transition: background-color 160ms ease, color 160ms ease;
-}
-.tabs button strong {
-  font: 600 28px/1.1 var(--font-display), sans-serif;
-}
-.tabs button span { font-size: 12px; }
-.tabs button:hover:not(:disabled):not([aria-selected="true"]) {
-  background: color-mix(in srgb, #1e2724 60%, transparent);
-  color: #e4d8bc;
-}
-.tabs button[aria-selected="true"] {
-  background: #1e2724;
-  border-bottom-color: #c0a15c;
-  color: #e4d8bc;
-}
-.tabs button:focus-visible { outline: 2px solid #c0a15c; outline-offset: 3px; }
-.tabs button:disabled { opacity: .5; }
-.playPanel { display: flex; flex-direction: column; flex: 1; gap: var(--space-5); min-width: 0; }
-@media (max-width: 639px) {
-  .tabs { gap: 8px; }
-  .tabs button { padding: 12px 10px; min-height: 76px; }
-  .tabs button strong { font-size: 25px; }
-  .tabs button span { font-size: 10px; line-height: 1.5; }
-  .playPanel { gap: var(--space-4); }
-}
-.soloLink { display: block; min-width: 0; }
-.soloLink:focus-visible { outline: 2px solid var(--wire); outline-offset: 4px; }
-
-/* Setup progress: three flat markers, the completed ones steppable back to. */
-.stepper ol {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-/* Three markers on one rail. The boxes are gone — a step's state is carried by its rail
-   segment and its number badge, which is all the box was ever communicating. */
-.stepper button {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  width: 100%;
-  min-height: var(--height-button);
-  padding: var(--space-2) 0 var(--space-2);
-  background: transparent;
-  border: 0;
-  border-top: 2px solid var(--border-subtle);
-  color: var(--text-disabled);
-  font: 600 11px/1.2 var(--font-sans), sans-serif;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  text-align: left;
-  transition: color 160ms ease, border-color 160ms ease;
-}
-.stepper button > span {
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  border: 1px solid currentColor;
-  font-family: var(--font-display), sans-serif;
-  font-size: 12px;
-}
-.stepper li[data-state='done'] button { color: var(--text-secondary); border-top-color: color-mix(in srgb, var(--wire) 55%, transparent); }
-.stepper li[data-state='done'] button:hover { color: var(--chalk); }
-.stepper li[data-state='current'] button { border-top-color: var(--wire); color: var(--chalk); }
-.stepper li[data-state='current'] button > span { background: var(--wire); border-color: var(--wire); color: var(--oche); }
-.stepper button:disabled { cursor: default; }
-/* A step you can't reach yet stays legible — dimming it to 55% opacity put it under the
-   contrast floor, which is what made "disabled" and "unavailable" indistinguishable. */
-.stepper li[data-state='todo'] button:disabled { color: var(--text-disabled); }
-.stepper button:focus-visible { outline: 2px solid var(--wire); outline-offset: 3px; }
-
-/* Docked to the bottom of the step panel: on the short settings and review steps the forward
-   action used to sit high on the screen above a large empty region, out of thumb reach. */
-/* The dock holds the summary line and the navigation together. On a phone it is pushed to the
-   bottom of the step panel, which puts the forward action in thumb reach and closes the dead
-   region the short steps used to leave below their content. On a desktop it stays with the
-   content: a 900px-tall window would otherwise strand the button half a screen away from the
-   settings it confirms. */
-.stepDock { display: flex; flex-direction: column; gap: var(--space-2); margin-top: auto; padding-top: var(--space-5); }
-.stepNav { display: flex; align-items: center; gap: var(--space-3); }
-@media (min-width: 1024px) {
-  .stepDock { margin-top: 0; }
-}
-.stepNav button {
-  min-height: 48px;
-  padding: var(--space-3) var(--space-5);
-  background: transparent;
-  border: 0;
-  color: var(--text-secondary);
-  font: 600 14px/1 var(--font-sans), sans-serif;
-  transition: color 160ms ease, opacity 160ms ease;
-}
-/* Back is secondary, not invisible. Quiet enough that the gold forward action is plainly the
-   one to press, but it still has to look pressable: a hairline box, and the same left chevron
-   the page header uses, so "go back" is one glyph everywhere in the app. As bare text beside a
-   filled button it read as a caption. Sized to its own label and sitting flush on the page
-   gutter — its border is now its visible edge, so the old optical nudge would push it off. */
-.stepNav button:not([data-primary]) {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding-inline: var(--space-3);
-  border: 1px solid var(--border-default);
-}
-.stepNav button:not([data-primary]):hover:not(:disabled) { border-color: var(--wire); color: var(--chalk); }
-.stepNav button:not([data-primary]):disabled { border-color: var(--border-subtle); }
-/* Next carries the flow, so it gets the fill and — on a phone — the remaining width, which
-   makes it a comfortable thumb target. Past that it is sized to itself and sits at the right
-   end of the row; stretched across a desktop it became a metre of gold. */
-.stepNav button[data-primary] {
-  flex: 1;
-  background: var(--wire);
-  color: var(--oche);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-}
-.stepNav button[data-primary]:hover:not(:disabled) { opacity: .88; }
-.stepNav button:disabled { color: var(--text-disabled); }
-.stepNav button[data-primary]:disabled { background: color-mix(in srgb, var(--wire) 35%, var(--oche)); color: var(--text-disabled); }
-.stepNav button:focus-visible { outline: 2px solid var(--wire); outline-offset: 3px; }
-
-/* A one-line readout of everything chosen so far, sitting directly above the forward action
-   so the choice being confirmed is visible at the moment of confirming it. */
-.stepSummary {
-  color: var(--text-muted);
-  font-size: 12px;
-  line-height: 16px;
-  overflow-wrap: anywhere;
-}
-.stepSummary strong { color: var(--text-secondary); font-weight: 600; }
-
-@media (min-width: 640px) {
-  .stepNav button[data-primary] { flex: 0 0 auto; min-width: 220px; margin-left: auto; }
-}
-
-@media (max-width: 639px) {
-  .stepper button { flex-direction: column; align-items: flex-start; gap: var(--space-1); padding-block: var(--space-2); font-size: 10px; }
-  .stepNav button[data-primary] { padding-inline: var(--space-3); font-size: 13px; }
-}
+@media (prefers-reduced-motion: reduce) { .cardMotif, .gameCard { transition: none; } }
+/* A secondary way into a match, separated from the game choices. */
+.joinCard { display: flex; align-items: center; gap: 12px; margin-top: 20px; padding: 16px 0 0; min-height: 60px; border-top: 1px solid var(--club-hairline); color: var(--text-muted); }
+.joinCard > span { display: flex; flex: 1; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.joinCard strong { font: 500 14px/1.5 var(--font-sans); color: var(--sisal); }
+.joinCard small { font-size: 12px; color: var(--text-muted); }
+.joinCard:hover { color: var(--wire); }
+.joinCard:hover strong { color: var(--wire); }

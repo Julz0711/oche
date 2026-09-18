@@ -6,13 +6,11 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { gameRegistry, GameId } from '@/lib/games/registry';
 import { History } from 'lucide-react';
-import { Panel } from '@/components/atoms';
 import {
   AppBar,
   EmptyState,
   InlineFeedback,
   MatchHistoryRow,
-  MetricGrid,
   SegmentedControl,
   TextLink,
   groupMatchesByDay,
@@ -63,9 +61,11 @@ function streakLabel(streak: { type: 'win' | 'loss' | null; count: number }): st
 /** The chosen game filter survives a trip into a match and back. Session-scoped, because
  *  "what I was looking at just now" is a property of this visit, not a lasting preference. */
 const FILTER_KEY = 'oche:stats:gameFilter';
+const VIEW_KEY = 'oche:stats:view';
 
 export default function StatsPage() {
   const router = useRouter();
+  const [view, setView] = useState<'performance' | 'history'>('performance');
   const { data: session, status: sessionStatus } = useSession();
   const [data, setData] = useState<HistoryResponse | null>(null);
   const [error, setError] = useState(false);
@@ -83,6 +83,8 @@ export default function StatsPage() {
   // Restored after mount, never during render: sessionStorage does not exist on the server,
   // so reading it any earlier would hydrate a different tree than the one rendered there.
   useEffect(() => {
+    const savedView = sessionStorage.getItem(VIEW_KEY);
+    if (savedView === 'history' || savedView === 'performance') setView(savedView);
     const saved = sessionStorage.getItem(FILTER_KEY);
     if (saved && saved in gameRegistry) setGameFilter(saved as GameId);
   }, []);
@@ -128,11 +130,15 @@ export default function StatsPage() {
   const groups = groupMatchesByDay(data?.matches ?? []);
 
   return (
-    <main className="page-gutters account-page">
+    <main className="page-gutters account-page stats-page">
       <AppBar eyebrow="Your record" title="Statistics" />
 
-      <Panel notch="card" className="account-section">
-        <div className="section-header"><h2>Performance</h2></div>
+      <SegmentedControl label="Statistics view" value={view} onChange={nextView => {
+        setView(nextView);
+        sessionStorage.setItem(VIEW_KEY, nextView);
+      }}
+        options={[{ value: 'performance', label: 'Performance' }, { value: 'history', label: 'Match history' }]} />
+      {view === 'performance' ? <section className="stats-performance" aria-label="Performance">
         {boardError ? (
           <InlineFeedback tone="error">
             Could not load performance.{' '}
@@ -146,9 +152,7 @@ export default function StatsPage() {
             <div className="skeleton h-24" />
           </div>
         )}
-      </Panel>
-
-      <section className="flex flex-col gap-4">
+      </section> : <section className="flex flex-col gap-4">
         <div className="section-header"><h2>Match history</h2></div>
 
         {error ? (
@@ -160,17 +164,7 @@ export default function StatsPage() {
           </div>
         ) : (
           <>
-            {/* Three headline numbers, unboxed — the same MetricGrid the profile uses, so a
-                statistic looks identical wherever it appears. */}
-            <MetricGrid
-              cols={3}
-              size="sm"
-              metrics={[
-                { label: 'Matches', value: data.summary.played },
-                { label: 'Win rate', value: `${Math.round(data.summary.winRate * 100)}%` },
-                { label: 'Streak', value: streakLabel(data.summary.currentStreak) },
-              ]}
-            />
+            <p className="history-summary">{data.summary.played} matches · {Math.round(data.summary.winRate * 100)}% wins · Streak: {streakLabel(data.summary.currentStreak)}<span>All time</span></p>
 
             <SegmentedControl
               label="Filter by game"
@@ -204,7 +198,7 @@ export default function StatsPage() {
             )}
           </>
         )}
-      </section>
+      </section>}
     </main>
   );
 }

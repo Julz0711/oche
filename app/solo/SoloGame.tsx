@@ -12,8 +12,10 @@ import {
   ArrowUpRight,
   ArrowRight,
   Undo2,
+  House,
+  Users,
+  ChartNoAxesColumn,
 } from "lucide-react";
-import { BackLink } from "@/components/atoms/BackLink";
 import SoloStats from "./SoloStats";
 import { HeatmapBoard } from "@/components/organisms/HeatmapBoard";
 import { runHeatmap } from "@/lib/solo/runStats";
@@ -364,12 +366,12 @@ export default function SoloGame() {
   );
   return (
     <main
+      data-solo-phase={tab === "run" ? run?.phase : undefined}
       className={`${styles.shell} ${
         tab === "run" && run?.phase === "shop" ? styles.compactShop : ""
       }`}
     >
       <header className={styles.header}>
-        <BackLink href="/" label="Back to dashboard" className="lg:hidden" />
         <span className={styles.eyebrow}>OCHE / HOUSE RULES</span>
         <span className={styles.badge}>BETA · SOLO</span>
       </header>
@@ -378,31 +380,31 @@ export default function SoloGame() {
           aria-current={tab === "hub" ? "page" : undefined}
           onClick={showHub}
         >
-          Solo hub
+          <House size={18} aria-hidden="true" /><span>Hub</span>
         </button>
         <button
           aria-current={tab === "run" ? "page" : undefined}
           onClick={() => setTab("run")}
         >
-          {save ? "Your run" : "New run"}
+          <Crosshair size={18} aria-hidden="true" /><span>{save ? "Your run" : "New run"}</span>
         </button>
         <button
           aria-current={tab === "friends" ? "page" : undefined}
           onClick={() => setTab("friends")}
         >
-          Friends leaderboard
+          <Users size={18} aria-hidden="true" /><span>Friends</span>
         </button>
         <button
           aria-current={tab === "stats" ? "page" : undefined}
           onClick={showStats}
         >
-          Stats
+          <ChartNoAxesColumn size={18} aria-hidden="true" /><span>Stats</span>
         </button>
         <button
           aria-current={tab === "collection" ? "page" : undefined}
           onClick={() => setTab("collection")}
         >
-          The collection · 72
+          <Backpack size={18} aria-hidden="true" /><span>Collection</span>
         </button>
       </nav>
       {error && (
@@ -415,7 +417,7 @@ export default function SoloGame() {
       )}
       {!loaded && <p className={styles.muted}>Loading your run…</p>}
       {corrupt && (
-        <Panel notch="panel" className={styles.panel}>
+        <Panel className={styles.panel}>
           <h2>Your saved run needs attention.</h2>
           <p>
             Export it before clearing it. A backup may recover the previous
@@ -461,7 +463,7 @@ export default function SoloGame() {
           <div className={styles.heading}>
             <div>
               <p className={styles.eyebrow}>A DIFFERENT WAY TO THROW</p>
-              <h1>Build your unfair advantage.</h1>
+              <h1>The collection</h1>
               <p className={styles.muted}>
                 3 virtual darts · 5 shared charms · 2 consumables. Every effect
                 is in the shop pool.
@@ -498,7 +500,6 @@ export default function SoloGame() {
                 <div className={styles.catalogue}>
                   {entries.map((i) => (
                     <Panel
-                      notch="card"
                       accent={
                         i.kind === "dart"
                           ? "double"
@@ -535,10 +536,7 @@ export default function SoloGame() {
               {!run && (
                 <>
                   <p className={styles.eyebrow}>REAL DARTS. HOUSE RULES.</p>
-                  <h1>
-                    Your board.
-                    <br />A whole new game.
-                  </h1>
+                  <h1>New run</h1>
                   <p className={styles.intro}>
                     Beat nine rising targets. Buy enchanted darts and charms.
                     Beat three bosses. Compare your run with friends.
@@ -559,6 +557,10 @@ export default function SoloGame() {
                         ? "The house is yours."
                         : "One more run?"}
                     </h1>
+                    <div className={styles.resultActions}>
+                      <button className={styles.primary} onClick={newRun}>New run <ArrowUpRight size={16} aria-hidden="true" /></button>
+                      <button onClick={showHub}>Back to hub</button>
+                    </div>
                   </div>
                   <div className={styles.statGrid}>
                     {Object.entries({
@@ -574,13 +576,13 @@ export default function SoloGame() {
                       </div>
                     ))}
                   </div>
-                  <Panel notch="panel" className={styles.panel}>
+                  <Panel className={styles.panel}>
                     <h2>Where your darts landed</h2>
                     <div className={styles.heatmapWrap}>
                       <HeatmapBoard heatmap={runHeatmap(run)} />
                     </div>
                   </Panel>
-                  <Panel notch="panel" className={styles.panel}>
+                  <Panel className={styles.panel}>
                     <h2>Your final build</h2>
                     <div className={styles.tags}>
                       {[
@@ -619,8 +621,9 @@ export default function SoloGame() {
                   </Panel>
                 </>
               )}
-              <div className={styles.setupGrid}>
-                <Panel notch="panel" className={styles.panel}>
+              {!finished && <><div className={styles.setupGrid}>
+                <Panel className={styles.panel}>
+                  <p className={styles.eyebrow}>01 / The stakes</p>
                   <h2>Choose your pace</h2>
                   <div className={styles.actions}>
                     {(["social", "regular", "expert"] as const).map((d) => (
@@ -638,7 +641,8 @@ export default function SoloGame() {
                     darts run out. Upgrades can add more.
                   </p>
                 </Panel>
-                <Panel notch="panel" className={styles.panel}>
+                <Panel className={styles.panel}>
+                  <p className={styles.eyebrow}>02 / Your advantage</p>
                   <h2>Your first charm</h2>
                   <div className={styles.starters}>
                     {STARTERS.map((id) => (
@@ -676,6 +680,7 @@ export default function SoloGame() {
                 Practice works without an account. Save and resume on this
                 browser. Targets and prices are still being playtested.
               </p>
+              </>}
             </section>
           )}
           {run && !finished && r && (
@@ -737,7 +742,7 @@ export default function SoloGame() {
               </div>
               {run.phase === "preview" && (
                 <div className={styles.previewGrid}>
-                  <Panel notch="panel" fill="wire" className={styles.poster}>
+                  <Panel accent="wire" accentTrace className={styles.poster}>
                     <Crown />
                     <p className={styles.eyebrow}>
                       {boss ? "BOSS ENCOUNTER" : "NEXT ENCOUNTER"}
@@ -755,7 +760,7 @@ export default function SoloGame() {
                       <small>POINTS TO CLEAR</small>
                     </div>
                   </Panel>
-                  <Panel notch="panel" className={styles.panel}>
+                  <Panel className={styles.panel}>
                     <h2>Before you throw</h2>
                     <p className={styles.muted}>
                       {12 + (has(run, 41) ? 2 : 0) + (has(run, 42) ? 3 : 0)}{" "}
@@ -832,7 +837,6 @@ export default function SoloGame() {
                 <div className={styles.playGrid}>
                   <div>
                     <Panel
-                      notch="panel"
                       accent="wire"
                       active
                       activeBadge={false}
@@ -864,7 +868,7 @@ export default function SoloGame() {
                         <span>◉ {r.coins} pending coins</span>
                       </div>
                     </Panel>
-                    <Panel notch="panel" className={styles.panel}>
+                    <Panel className={`${styles.panel} ${styles.visitPanel}`}>
                       <div className={styles.between}>
                         <h2>
                           {run.phase === "pending"
@@ -944,7 +948,8 @@ export default function SoloGame() {
                             </p>
                           )}
                           <div data-native className={styles.sharedInput}>
-                            <DartboardInput
+                            {[false, true].map((compact) => <div key={String(compact)} className={compact ? styles.mobileInput : styles.desktopInput}><DartboardInput
+                              compact={compact}
                               key={r.index}
                               visitDartCount={r.hits.length}
                               disabled={r.hits.length >= visitSize}
@@ -954,7 +959,7 @@ export default function SoloGame() {
                               onThrow={({ sector, ring }) =>
                                 act({ type: "throw", hit: { sector, ring } })
                               }
-                            />
+                            /></div>)}
                           </div>
                         </>
                       )}
@@ -1031,7 +1036,7 @@ export default function SoloGame() {
                     )}
                   </div>
                   <aside>
-                    <Panel notch="panel" className={styles.panel}>
+                    <Panel className={styles.panel}>
                       <span className={styles.eyebrow}>DART BUDGET</span>
                       <strong className={styles.budget}>
                         {r.budget - r.spent - r.hits.length}
@@ -1123,7 +1128,7 @@ export default function SoloGame() {
               )}
               {run.phase === "shop" && (
                 <>
-                  <Panel notch="panel" className={styles.shopToolbar}>
+                  <Panel className={styles.shopToolbar}>
                     <div
                       className={styles.shopWallet}
                       role="status"
@@ -1219,7 +1224,6 @@ export default function SoloGame() {
                             } slots are full`;
                       return (
                         <Panel
-                          notch="card"
                           accent={
                             def.kind === "dart"
                               ? "double"
@@ -1287,7 +1291,7 @@ export default function SoloGame() {
                       );
                     })}
                   </div>
-                  <Panel notch="panel">
+                  <Panel>
                     <details className={`${styles.panel} ${styles.shopBuild}`}>
                       <summary>
                         <span>
@@ -1354,7 +1358,7 @@ export default function SoloGame() {
                 </>
               )}
               {confirmEnd && (
-                <Panel notch="panel" className={styles.panel}>
+                <Panel className={styles.panel}>
                   <div role="alert">
                     <h2>End this run?</h2>
                     <p>

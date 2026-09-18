@@ -105,7 +105,7 @@ export function ScoreboardSlot({
   );
 
   return (
-    <Panel notch="panel" accent="wire" active={isCurrentPlayer} activeBadge={false} className="p-5">
+    <Panel accent="wire" active={isCurrentPlayer} activeBadge={false} className="match-scorecard p-5">
       {isCurrentPlayer && (
         <Crosshair className="absolute top-4 right-4 w-4 h-4 text-wire" aria-label="On throw" />
       )}
@@ -155,7 +155,7 @@ export function HistoryPanel({
   const legsWon = state.legsWon[playerId];
 
   return (
-    <Panel notch="panel" className="p-4 flex flex-col gap-3 min-h-[240px]">
+    <Panel className="p-4 flex flex-col gap-3 min-h-[240px]">
       <div className="text-xs font-bold uppercase tracking-widest text-sisal">{displayName ?? playerId}</div>
 
       <div className="flex flex-col gap-1.5">

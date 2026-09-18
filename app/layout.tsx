@@ -7,6 +7,7 @@ import { OfflineBanner } from "@/components/OfflineBanner";
 import { AchievementToastContainer } from "@/components/organisms/AchievementToast";
 import { AppNavigation } from "@/components/AppNavigation";
 import "./globals.css";
+import "./club.css";
 
 const barlowCondensed = Barlow_Condensed({
   variable: "--font-display",

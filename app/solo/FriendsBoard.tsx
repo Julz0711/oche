@@ -89,7 +89,7 @@ export default function FriendsBoard({
       <div className={styles.heading}>
         <div>
           <p className={styles.eyebrow}>THE SAME HOUSE. YOUR FRIENDS.</p>
-          <h1>Who owns the board?</h1>
+          <h1>Friends leaderboard</h1>
           <p className={styles.muted}>
             A shared weekly seed. The same bosses, shop pool, and House Numbers.
           </p>
@@ -193,8 +193,8 @@ export default function FriendsBoard({
                             row.owner === userId ? styles.you : undefined
                           }
                         >
-                          <td>#{row.rank}</td>
-                          <td>
+                          <td data-label="Rank">#{row.rank}</td>
+                          <td data-label="Player">
                             {row.name}
                             {row.owner === userId ? " (you)" : ""}
                             <small>
@@ -202,10 +202,10 @@ export default function FriendsBoard({
                               {row.attempts === 1 ? "" : "s"}
                             </small>
                           </td>
-                          <td>{row.cleared}/9</td>
-                          <td>{row.progress}</td>
-                          <td>{row.darts}</td>
-                          <td>
+                          <td data-label="Rounds">{row.cleared}/9</td>
+                          <td data-label="Progress">{row.progress}</td>
+                          <td data-label="Darts">{row.darts}</td>
+                          <td data-label="Build">
                             <button
                               onClick={() =>
                                 setSelected(selected === row.id ? null : row.id)

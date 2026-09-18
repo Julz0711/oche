@@ -37,7 +37,7 @@ export function Achievements({ unlocked, definitions }: AchievementsData) {
     {/* Progress first: "11 of 40" is the thing a reader wants from this section at a glance,
         and it was previously the smallest, quietest text in it. */}
     <div className="achievement-progress">
-      <p><strong>{unlocked.length}</strong> of {definitions.length} unlocked</p>
+      <p><span><strong>{unlocked.length}</strong><span>of {definitions.length} unlocked</span></span><span>{progress}%</span></p>
       <div
         className="achievement-progress-bar"
         role="progressbar"

@@ -2,8 +2,9 @@
 'use client';
 import { useEffect, useState, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Button } from '@/components/atoms/Button';
+import { TextLink } from '@/components/molecules';
+import { PageMessage } from '@/components/molecules/PageMessage';
+import { LoadingIndicator } from '@/components/atoms/LoadingIndicator';
 
 interface JoinPageProps {
   params: Promise<{ code: string }>;
@@ -38,11 +39,10 @@ export default function JoinPage({ params }: JoinPageProps) {
 
   if (error) {
     return (
-      <div className="page-gutters min-h-screen bg-oche text-chalk p-4 text-center flex flex-col items-center justify-center gap-4">
-        <span>{error}</span>
-        <Link href="/join"><Button variant="secondary">Try another room code</Button></Link>
-      </div>
+      <PageMessage eyebrow="Online match" title="Couldn’t join the room" actions={<TextLink href="/join">Try another room code</TextLink>}>
+        <p role="alert">{error}</p>
+      </PageMessage>
     );
   }
-  return <div className="page-gutters min-h-screen bg-oche text-chalk p-4 text-center flex items-center justify-center">Joining…</div>;
+  return <LoadingIndicator fullPage label="Joining the room…" />;
 }

@@ -2,7 +2,9 @@
 'use client';
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { Panel, BoardMotif } from '@/components/atoms';
+import { BoardMotif } from '@/components/atoms';
+import { ArrowUpRight } from 'lucide-react';
+import styles from './dashboard.module.css';
 import type { AccentToken, MotifName } from '@/components/atoms';
 import type { GameId } from '@/lib/games/registry';
 
@@ -31,57 +33,25 @@ const ACCENT_TEXT: Record<AccentToken, string> = {
   sisal: 'text-sisal',
 };
 
-/** Picking a game opens its room, so a card is a way forward rather than a toggle — no selected
- *  state, and no `aria-pressed` claiming otherwise. Each card instead wears its game's colour
- *  permanently, which is what actually tells them apart. */
-export function GameCard({
-  game,
-  index,
-  onSelect,
-  opening = false,
-  disabled = false,
-}: {
-  game: GameOption;
-  index: number;
-  onSelect: () => void;
-  /** This card's room is being opened — the tap has been registered and a request is in flight. */
-  opening?: boolean;
-  disabled?: boolean;
+const GAME_COPY: Record<GameId, { category: string; detail: string }> = {
+  x01: { category: 'The classic', detail: 'Count down. Find your finish.' },
+  cricket: { category: 'The strategist', detail: 'Close your numbers. Own the board.' },
+  copycat: { category: 'The challenger', detail: 'Set the pace. Match your rival.' },
+};
+
+export function GameCard({ game, index, onSelect, opening = false, disabled = false }: {
+  game: GameOption; index: number; onSelect: () => void; opening?: boolean; disabled?: boolean;
 }) {
   const { accent, motif } = GAME_IDENTITY[game.id];
-
-  return (
-    <Panel
-      as="button"
-      notch="card"
-      accent={accent}
-      accentBar
-      accentTrace
-      onClick={onSelect}
-      disabled={disabled || opening}
-      aria-busy={opening}
-      className="dashboard-game min-h-[68px] sm:min-h-[140px]"
-    >
-      {/* Quieter than the resting motif elsewhere: three of these side by side, each with a
-          full-strength illustration, was the visual noise the audit called out. */}
-      <BoardMotif
-        name={motif}
-        className={`pointer-events-none absolute -right-11 -bottom-14 w-[150px] h-[150px] ${ACCENT_TEXT[accent]} transition-transform duration-300 group-hover:rotate-[3deg]`}
-        style={{ opacity: 'var(--motif-quiet)' }}
-      />
-      <span className="game-card-content relative block px-3 py-2.5 sm:p-4">
-        <span className={`game-card-index block font-display font-bold text-[10px] tracking-[0.2em] ${ACCENT_TEXT[accent]}`}>
-          {String(index + 1).padStart(2, '0')}
-        </span>
-        <span className="block font-display font-bold uppercase text-[22px] sm:text-[26px] leading-none text-chalk sm:mt-8 mb-1">
-          {game.name}
-        </span>
-        <span className="block text-xs sm:text-[11px] leading-[1.4] text-[color:var(--text-muted)]">
-          {opening ? 'Opening room…' : `${game.playerRange[0]}–${game.playerRange[1]} players · ${game.description}`}
-        </span>
-      </span>
-    </Panel>
-  );
+  const copy = GAME_COPY[game.id];
+  return <button type="button" className={styles.gameCard} data-game={game.id} onClick={onSelect}
+    disabled={disabled || opening} aria-busy={opening} aria-label={`Play ${game.name}`}>
+    <span className={styles.cardTop}><span>No. {String(index + 1).padStart(2, '0')}</span><span>{copy.category}</span></span>
+    <BoardMotif name={motif} className={`${styles.cardMotif} ${ACCENT_TEXT[accent]}`} />
+    <span className={styles.cardName}>{game.name}</span>
+    <span className={styles.cardDetail}>{copy.detail}</span>
+    <span className={styles.cardFoot}><span>{opening ? 'Opening room…' : `${game.playerRange[0]}–${game.playerRange[1]} players`}</span><span>{opening ? 'Please wait' : 'Play'} <ArrowUpRight size={18} aria-hidden="true" /></span></span>
+  </button>;
 }
 
 export function SettingLabel({ children }: { children: ReactNode }) {

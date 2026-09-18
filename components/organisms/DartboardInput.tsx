@@ -95,11 +95,11 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
   );
 
   return (
-    <div className="flex flex-col items-center gap-4 w-full max-w-md">
+    <div className="match-board-input flex flex-col items-center gap-4 w-full max-w-md">
       {/* Dartboard: HeatmapBoard renders the visual (grey structure + heat), a transparent
           overlay on top makes it clickable — an alternative to the keypad below, not a
           replacement for it. */}
-      <div className="relative w-full">
+      <div className="match-board-face relative w-full">
         <HeatmapBoard heatmap={heatmap} />
         <svg viewBox="0 0 400 400" className="absolute inset-0 w-full h-full">
           {BOARD_ORDER.map((segment, i) => {
@@ -159,12 +159,13 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
         </svg>
       </div>
 
-      {/* Number keypad — plain flat inputs, no background card, border, or per-button notch. */}
-      <div className="grid grid-cols-5 gap-3 w-full">
+      {/* Number keypad remains directly below the visible board. */}
+      <div className="board-keypad grid grid-cols-5 gap-3 w-full">
         {KEYPAD_NUMBERS.map((n) => (
           <button
             key={n}
             onClick={() => throwSector(n)}
+            aria-label={`${modifier === 'D' ? 'Double' : modifier === 'T' ? 'Triple' : 'Single'} ${n}`}
             disabled={disabled}
             className="min-h-14 min-w-14 rounded-none bg-slate text-chalk text-lg font-bold hover:opacity-80 disabled:opacity-50 transition-opacity"
           >
@@ -176,12 +177,12 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
           disabled={disabled || modifier === 'T'}
           className="min-h-14 col-span-5 rounded-none bg-treble text-chalk text-lg font-bold hover:opacity-80 disabled:opacity-50 transition-opacity"
         >
-          BULL (25)
+          {modifier === 'D' ? 'BULLSEYE (50)' : 'BULL (25)'}
         </button>
       </div>
 
       {/* Modifiers + miss, grouped in one row below the keypad */}
-      <div className="grid grid-cols-3 gap-3 w-full">
+      <div className="board-modifiers grid grid-cols-3 gap-3 w-full">
         <button
           onClick={() => toggleModifier('D')}
           disabled={disabled}

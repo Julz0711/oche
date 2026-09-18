@@ -1,16 +1,14 @@
 'use client';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { Panel } from '@/components/atoms/Panel';
 import { Button } from '@/components/atoms/Button';
+import { PageMessage } from '@/components/molecules/PageMessage';
 
 export default function SignOutPage() {
-  return <main className="auth-page page-gutters flex items-center justify-center min-h-screen p-3">
-    <div className="w-full max-w-md"><Panel notch="card" className="p-4 flex flex-col gap-3">
-      <h1 className="text-2xl font-display font-bold">Sign out?</h1>
-      <p className="text-sm text-sisal">You can sign back in to see your friends and match history.</p>
+  return <PageMessage eyebrow="Your account" title="Sign out?" actions={<>
       <Button onClick={() => signOut({ callbackUrl: '/' })}>Sign out</Button>
-      <Link href="/profile" className="social-link">Stay signed in</Link>
-    </Panel></div>
-  </main>;
+      <Link href="/profile" className="text-link">Stay signed in</Link>
+    </>}>
+    <p>You can sign back in to see your friends and match history.</p>
+  </PageMessage>;
 }

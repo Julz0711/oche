@@ -139,7 +139,7 @@ export function MatchLobby({
       savingSettings={saving}
       notice={error ? <InlineFeedback tone="error">{error}</InlineFeedback> : undefined}
       invite={
-        <Panel notch="card" accent="wire" accentBar className="room-invite">
+        <Panel accent="wire" accentBar className="room-invite">
           <p className="t-label">Room code</p>
           <p className="room-code-value">{roomCode}</p>
           <div className="room-invite-actions">

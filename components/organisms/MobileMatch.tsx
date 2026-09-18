@@ -53,7 +53,7 @@ export function MobileMatch({ gameModule: game, state, settings, displayNames, d
           const darts = isActive ? visit.throws : last?.throws ?? [];
           return (
             <article key={player} className="mobile-player-shell" data-active={isActive} aria-label={`${name(player)}${isActive ? ', on throw' : ''}`}>
-              <Panel notch="panel" accent="wire" active={isActive} activeBadge={false} className="mobile-player">
+              <Panel accent="wire" active={isActive} activeBadge={false} className="mobile-player">
               <div className={`mobile-score mobile-score-${game.id}`}>
                 <game.ScoreboardSlot compact state={state} settings={settings} playerId={player} displayName={name(player)} />
               </div>

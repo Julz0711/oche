@@ -1,5 +1,6 @@
 // components/organisms/PostMatchStats.tsx
 'use client';
+import { Trophy } from 'lucide-react';
 import { GameModule, PlayerId } from '@/lib/types';
 import { HeatmapBoard } from './HeatmapBoard';
 import { Button } from '@/components/atoms/Button';
@@ -44,8 +45,8 @@ export function PostMatchStats({
   });
 
   return (
-    <Panel notch="card" className="p-2.5 sm:p-3 flex flex-col gap-2.5">
-      <h2 className="text-[20px] leading-6 font-display font-bold text-center">Match Complete!</h2>
+    <section className="club-results flex flex-col">
+      <header className="club-results-heading"><Trophy size={28} aria-hidden="true" /><p className="eyebrow">The final score</p><h2>{winnerId ? `${displayNames.get(winnerId) ?? winnerId.replace(/^player(\d+)$/, 'Player $1')} wins.` : 'Match complete.'}</h2><p>Well played.</p></header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-start">
         {players.map((playerId) => {
@@ -53,7 +54,7 @@ export function PostMatchStats({
           const isWinner = playerId === winnerId;
 
           return (
-            <Panel key={playerId} notch="none" accent="wire" active={isWinner} activeBadge={false} className="p-2.5 flex flex-col gap-1">
+            <Panel key={playerId} accent="wire" active={isWinner} activeBadge={false} className="p-2.5 flex flex-col gap-1">
               <PlayerStatTiles
                 gameModule={gameModule}
                 state={state}
@@ -82,6 +83,6 @@ export function PostMatchStats({
         />
         <Button onClick={() => (window.location.href = '/')}>Back to Dashboard</Button>
       </div>
-    </Panel>
+    </section>
   );
 }

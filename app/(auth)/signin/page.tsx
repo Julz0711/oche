@@ -9,11 +9,23 @@ import { Panel } from "@/components/atoms";
 
 export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSignIn = async (provider: string) => {
     setIsLoading(true);
+    setError('');
     try {
-      await signIn(provider, { callbackUrl: "/" });
+      const callbackUrl = new URLSearchParams(window.location.search).get('callbackUrl');
+      const target = callbackUrl?.startsWith('/') && !callbackUrl.startsWith('//') ? callbackUrl : '/';
+      if (provider === 'development') {
+        const result = await signIn(provider, { callbackUrl: target, redirect: false });
+        if (result?.error) { setError('Could not open the local demo. Check that the development server and database are running.'); return; }
+        window.location.assign(target);
+      } else {
+        await signIn(provider, { callbackUrl: target });
+      }
+    } catch {
+      setError('Sign-in is unavailable. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -21,29 +33,31 @@ export default function SignInPage() {
 
   return (
     <div
-      className="auth-page page-gutters flex items-center justify-center min-h-screen p-3"
+      className="auth-page club-auth page-gutters flex items-center justify-center min-h-screen p-3"
       style={{ backgroundColor: tokens.oche }}
     >
-      <div className="w-full max-w-md"><Panel notch="card" className="p-4 md:p-8">
+      <div className="club-auth-layout">
+      <Panel className="p-4 md:p-8">
         {/* The mark, not a separate lockup image: one logo asset used everywhere in the app
             (see components/AppNavigation.tsx) rather than a second, independently-exported
             file that can drift out of sync with it. */}
         <div className="auth-brand">
           <Image src="/oche-mark.png" alt="" width={1024} height={1024} priority aria-hidden="true" />
           <p className="auth-brand-word">OCHE</p>
-          <h1>Sign in</h1>
+          </div>
+        <div className="auth-intro"><h1>Sign in</h1><p>Save your matches and play with friends.</p>
         </div>
 
         {process.env.NODE_ENV === 'development' && (
-          <div className="mb-4 p-3 rounded-none border border-sisal/30 bg-slate/50">
-            <a
-              href="/api/auth/test-login"
-              className="text-xs font-bold uppercase tracking-widest text-double hover:text-chalk transition-colors"
-            >
-              🧪 Quick Test Login
-            </a>
+          <div className="demo-login">
+            <span className="eyebrow">Local preview</span>
+            <p>Explore Stats, Profile and Friends with sample match history.</p>
+            <button type="button" disabled={isLoading} onClick={() => handleSignIn('development')}>
+              {isLoading ? 'Signing in…' : 'Try demo account'}
+            </button>
           </div>
         )}
+        {error && <p role="alert" className="inline-feedback" data-tone="error">{error}</p>}
 
         <div className="space-y-3">
           {/* Google */}
@@ -82,6 +96,7 @@ export default function SignInPage() {
           </button>
         </div>
 
+        <Link href="/" className="auth-guest">Play as a guest →</Link>
         <div
           className="text-xs text-center mt-6 space-y-1"
           style={{ color: tokens.sisal }}

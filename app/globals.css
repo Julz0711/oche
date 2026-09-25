@@ -395,6 +395,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
    wrong is what put the match room's start button underneath the fixed tab bar. */
 .app-shell { min-height: 100dvh; display: flex; flex-direction: column; }
 .app-shell-pattern {
+  background-color: var(--oche);
   background-image:
     repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.009) 0 2px, transparent 2px 9px),
     radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--wire) 10%, transparent), transparent 60%);
@@ -514,9 +515,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 
 
 
-.profile-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: var(--space-5); align-items: start; }
-.profile-layout > div:only-child { grid-column: 1 / -1; }
-.profile-layout > div, .settings-layout > div { min-width: 0; }
+.settings-layout > div { min-width: 0; }
 .settings-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr); gap: var(--space-5); align-items: start; }
 .account-section { padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
 .section-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
@@ -596,11 +595,10 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 
 
 
-.profile-friends { display: flex; flex-direction: column; }
+.profile-friends { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--space-2) var(--space-5); }
 /* A friend row is a TextLink, so it inherits the one link affordance; these rules only give
-   it a full-width layout and a divider instead of the inline, nowrap default. */
-.profile-friend { display: flex; width: 100%; gap: var(--space-3); min-height: 52px; color: var(--text-primary); font-size: 14px; font-weight: 500; white-space: normal; border-bottom: 1px solid var(--border-subtle); }
-.profile-friend:last-child { border-bottom: 0; }
+   it a full-width layout instead of the inline, nowrap default. */
+.profile-friend { display: flex; width: 100%; gap: var(--space-3); min-height: 52px; color: var(--text-primary); font-size: 14px; font-weight: 500; white-space: normal; }
 .profile-friend > span:not(.player-avatar) { flex: 1; min-width: 0; }
 .profile-friend > svg { color: var(--wire); margin-left: auto; }
 
@@ -656,7 +654,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   .page-gutters { padding-block: var(--space-4); }
   .account-page { gap: var(--space-4); }
   .app-content > .page-gutters > .max-w-3xl { gap: var(--space-4); }
-  .profile-layout, .settings-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .settings-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .account-section { padding: var(--space-4); }
   .match-page:not(.match-live) { padding-top: calc(env(safe-area-inset-top, 0px) + 12px); }
   .match-live { padding-top: calc(env(safe-area-inset-top, 0px) + 8px); }
@@ -759,9 +757,8 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 
 /* ── AppBar ──────────────────────────────────────────────────────────────────
    A compact top bar: chevron, eyebrow + title, optional trailing action — replacing
-   the large square back button that used to occupy a row of its own. The chevron's
-   negative inline margin pulls its 44px target's *optical* left edge back onto the
-   page gutter, so the title below still starts on the content column. */
+   the large square back button that used to occupy a row of its own. The back link's
+   negative inline margin keeps its chevron aligned with the page gutter. */
 .app-bar {
   display: flex;
   flex-direction: column;
@@ -775,22 +772,22 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   gap: var(--space-2);
   min-height: var(--height-button);
 }
-/* A negative inline margin pulls the 44px target's optical left edge back onto the page
-   gutter, so the chevron glyph lines up with the title beneath it rather than sitting
-   a touch-target's worth of padding inboard of everything. */
+/* The arrow and label share a compact link while retaining a 44px touch target. */
 .app-bar-back {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--height-button);
-  height: var(--height-button);
-  margin-left: calc(var(--space-3) * -1);
-  margin-right: calc(var(--space-2) * -1);
-  flex-shrink: 0;
+  gap: var(--space-1);
+  min-width: var(--height-button);
+  min-height: var(--height-button);
+  padding-inline: var(--space-2);
+  margin-left: calc(var(--space-2) * -1);
   color: var(--text-secondary);
   transition: color 160ms ease;
 }
-.app-bar-back:hover { color: var(--text-primary); }
+.app-bar-back > svg { flex-shrink: 0; }
+.app-bar-back .eyebrow { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-bar-back:hover, .app-bar-back:hover .eyebrow { color: var(--text-primary); }
 .app-bar-top > .eyebrow { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .app-bar-top > :last-child:not(.eyebrow):not(.app-bar-back) { margin-left: auto; flex-shrink: 0; }
 .app-bar > h1 { font: 700 30px/1.15 var(--font-display), sans-serif; color: var(--text-primary); overflow-wrap: anywhere; }

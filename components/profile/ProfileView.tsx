@@ -83,45 +83,35 @@ export function ProfileView({ friendId }: { friendId?: string }) {
       <InlineFeedback tone="error">{error}</InlineFeedback>
       <Button variant="secondary" onClick={() => setAttempt(n => n + 1)}>Try again</Button>
     </Panel> : !data ? <LoadingIndicator label="Loading profile…" /> : <>
-      <div className="profile-layout"><div className="flex flex-col gap-5">
-        <Panel className="account-section profile-match-summary">
-          {/* On your own profile this is a compact all-time snapshot, so the card needs its
-              own heading. On a friend's, StatsBoard renders the full board — which brings its
-              own "Overview" heading and period control — and a second heading directly above
-              it was two titles stacked with nothing between them. */}
-          {!friendId && <div className="section-header">
-            <div><h2>Match summary</h2><p className="summary-period">All time</p></div>
-            <TextLink href="/stats">Statistics</TextLink>
-          </div>}
-          <StatsBoard board={data.periods} compact={!friendId} showHeatmap={Boolean(friendId)} />
-        </Panel>
+      <StatsBoard board={data.periods} compact={!friendId} showHeatmap={Boolean(friendId)}
+        summaryAction={!friendId ? <TextLink href="/stats">Statistics</TextLink> : undefined} />
 
-        {friendId && <Panel className="account-section">
-          <div className="section-header"><h2>Friendship</h2></div>
-          <p className="t-body">You and {name} are friends. Removing them keeps every match you played together in your history.</p>
-          {removeError && <InlineFeedback tone="error">{removeError}</InlineFeedback>}
-          {/* Destructive and rarely wanted, so it is a quiet text action rather than a
-              full-width button, and it still asks before doing anything. */}
-          {confirmRemove
-            ? <div className="flex flex-wrap items-center gap-2">
-                <p className="t-body">Remove {name} from your friends?</p>
-                <Button size="sm" disabled={removing} onClick={removeFriend}>{removing ? 'Removing…' : 'Yes, remove'}</Button>
-                <Button size="sm" variant="ghost" disabled={removing} onClick={() => setConfirmRemove(false)}>Cancel</Button>
-              </div>
-            : <button type="button" className="danger-action" onClick={() => setConfirmRemove(true)}>Remove friend</button>}
-        </Panel>}
-      </div>
+      {friendId && <Panel className="account-section">
+        <div className="section-header"><h2>Friendship</h2></div>
+        <p className="t-body">You and {name} are friends. Removing them keeps every match you played together in your history.</p>
+        {removeError && <InlineFeedback tone="error">{removeError}</InlineFeedback>}
+        {/* Destructive and rarely wanted, so it is a quiet text action rather than a
+            full-width button, and it still asks before doing anything. */}
+        {confirmRemove
+          ? <div className="flex flex-wrap items-center gap-2">
+              <p className="t-body">Remove {name} from your friends?</p>
+              <Button size="sm" disabled={removing} onClick={removeFriend}>{removing ? 'Removing…' : 'Yes, remove'}</Button>
+              <Button size="sm" variant="ghost" disabled={removing} onClick={() => setConfirmRemove(false)}>Cancel</Button>
+            </div>
+          : <button type="button" className="danger-action" onClick={() => setConfirmRemove(true)}>Remove friend</button>}
+      </Panel>}
 
-      {!friendId && <aside><Panel className="account-section">
+      <Panel className="account-section">
+        <div className="section-header"><h2>Achievements</h2></div>
+        <Achievements {...data.achievements} playerName={friendId ? name : undefined} />
+      </Panel>
+
+      {!friendId && <section aria-label="Friends"><Panel className="account-section">
         <div className="section-header">
           <h2>Friends <span className="section-header-count">{data.friends?.length ?? 0}</span></h2>
           <TextLink href="/friends">Manage friends</TextLink>
         </div>
-        {/* A preview, not the list. Rendering every friend made this card's height a
-            function of how many friends you have — two names left the column stub-short
-            beside a tall Match summary, and ten made it the tallest thing on the page.
-            Capped, it is a predictable block whatever the count, and Manage friends is
-            where the full list lives. */}
+        {/* Friends have their own row, so the preview never changes the summary's height. */}
         {data.friends?.length
           ? <div className="profile-friends">
               {data.friends.slice(0, FRIENDS_PREVIEW).map(friend =>
@@ -140,14 +130,7 @@ export function ProfileView({ friendId }: { friendId?: string }) {
               body="Add a player to compare your matches and keep a head-to-head record."
               action={<TextLink href="/friends">Find friends</TextLink>}
             />}
-      </Panel></aside>}</div>
-
-      {/* Full width, below the grid: the achievements grid is the widest thing on the page
-          and the right-hand column has nothing left to say under a two-name friends list. */}
-      <Panel className="account-section">
-        <div className="section-header"><h2>Achievements</h2></div>
-        <Achievements {...data.achievements} playerName={friendId ? name : undefined} />
-      </Panel>
+      </Panel></section>}
     </>}
   </main>;
 }

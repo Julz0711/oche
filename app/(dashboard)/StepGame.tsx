@@ -115,8 +115,8 @@ export function StepGame({
       )}
 
       <div id="dashboard-play-panel" role="tabpanel" aria-labelledby={`play-tab-${mode}`} className={styles.gameGrid}>
-        {games === null ? [0, 1, 2].map(i => <div key={i} className="skeleton h-56" />) : games.map((game, index) => (
-          <GameCard key={game.id} game={game} index={index} opening={opening === game.id}
+        {games === null ? [0, 1, 2].map(i => <div key={i} className={`${styles.gameCard} skeleton`} aria-hidden="true" />) : games.map(game => (
+          <GameCard key={game.id} game={game} opening={opening === game.id}
             disabled={opening !== null && opening !== game.id} onSelect={() => onPickGame(game.id)} />
         ))}
       </div>

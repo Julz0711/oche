@@ -46,7 +46,6 @@
   --page-title-size: 42px;
   --club-serif: Georgia, 'Times New Roman', serif;
 }
-.app-shell-pattern { background: var(--oche); }
 /* The 1152px basis is load-bearing, not a rounding of 1200: it is --content-max
    (1200) minus two --gutter-page's (24 each), so this one padding value reproduces
    .page-gutters' outer centring AND its inner gutter in a single step. Set it to
@@ -275,12 +274,13 @@
 .stats-period-control { flex: 0 1 auto; border-bottom: 0; gap: 2px; }
 .stats-period-control button { padding-inline: 10px; font-size: 12px; min-height: 36px; }
 @media (max-width: 1023px) { .stats-period-control button { min-height: 44px; } }
-.record-summary { display: grid; grid-template-columns: 1fr 1fr 1.2fr; max-width: 500px; gap: 20px; padding: 0 0 22px; margin: 0; }
+.record-summary { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 0; padding-top: 8px; margin: 0; }
+.record-summary > div { min-width: 0; padding-inline: 16px; border-left: 1px solid var(--club-hairline); }
+.record-summary > div:first-child { padding-left: 0; border: 0; }
+.record-summary > div:last-child { padding-right: 0; }
 .record-summary dt { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
 .record-summary dd { font: 600 36px/1.1 var(--font-display); color: var(--sisal); margin: 0; font-variant-numeric: tabular-nums; }
-.record-summary .record-results dd { display: flex; flex-direction: column; gap: 5px; font: 400 13px/1.4 var(--font-sans); }
-.stats-board[data-compact] { gap: 14px; }
-.stats-board[data-compact] .record-summary { padding-bottom: 0; }
+.record-summary .record-results dd { display: flex; flex-direction: column; gap: 5px; font: 400 12px/1.4 var(--font-sans); }
 .stats-board > .segmented { width: 100%; border-top: 1px solid var(--club-hairline); padding-top: 8px; }
 .game-performance .performance-headlines { max-width: 580px; padding: 0 0 24px; gap: 16px; }
 .game-performance .performance-headlines dt { min-height: 0; font-size: 10px; font-weight: 500; letter-spacing: .03em; }
@@ -296,17 +296,12 @@
 .shot-map-content > .segmented { max-width: 100%; }
 .history-summary { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--text-muted); font-size: 12px; }
 .history-summary > span { color: var(--wire); }
-/* Both cards in the top row share a height. Left to `start`, a five-name friends preview
-   left a bare gap under the shorter Match summary; stretching turns that into part of a
-   bounded surface instead of a hole between two. */
-.profile-layout { align-items: stretch; }
-/* The column wrapper stretches, but a flex-column's children still size to content — the
-   card itself has to be told to take the height. */
-.profile-layout > div > .oche-panel, .profile-layout > aside > .oche-panel { flex: 1; }
-.profile-layout > aside { display: flex; }
+.profile-friend { padding: 12px 16px; background: var(--club-control); border: 1px solid var(--club-hairline-soft); transition: background-color 160ms, border-color 160ms; }
+.profile-friend:focus-visible { background: var(--club-raised); border-color: var(--wire); }
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+ .profile-friend:hover { background: var(--club-raised); border-color: var(--club-edge); }
+}
 .profile-friend-more { color: var(--wire); }
-.profile-layout .section-header h2 { font-size: 22px; }
-.profile-layout .section-header .text-link { font-size: 12px; }
 
 .sound-toggle { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; font-size: 13px; color: var(--sisal); }
 .switch-track { display: flex; align-items: center; width: 40px; height: 24px; padding: 3px; border: 1px solid var(--club-hairline); background: var(--club-control); border-radius: 20px; }
@@ -318,8 +313,8 @@
 .app-content:has(> .room-page) { padding-bottom: var(--chrome-bottom, 0px); }
 @media (max-width: 767px) {
  .stats-page > .segmented { width: 100%; }
- .record-summary { gap: 14px; }
- .record-summary dd { font-size: 30px; }
+ .record-summary > div { padding-inline: 12px; }
+ .record-summary dd { font-size: 32px; }
  .game-performance .performance-headlines dd { font-size: 28px; }
  .stat-detail-groups { grid-template-columns: 1fr; gap: 20px; }
  .stat-detail-groups dl > div { padding-block: 6px; }
@@ -353,14 +348,8 @@
 .game-performance-content { padding-bottom: 20px; }
 .game-performance-content > .stats-disclosure { border-top: 1px solid var(--club-hairline); }
 .game-performance-content > .stats-disclosure > summary { padding: 14px 0; font-size: 13px; }
-.profile-match-summary { background: linear-gradient(120deg, var(--club-live), var(--club-surface)); border-top: 2px solid var(--wire); }
+.stats-overview { background: linear-gradient(120deg, var(--club-live), var(--club-surface)); border-top: 2px solid var(--wire); }
 .summary-period { margin-top: 5px; color: var(--text-muted); font-size: 11px; }
-.profile-match-summary .record-summary { max-width: none; gap: 0; padding-top: 8px; }
-.profile-match-summary .record-summary > div { padding-inline: 16px; border-left: 1px solid var(--club-hairline); }
-.profile-match-summary .record-summary > div:first-child { padding-left: 0; border: 0; }
-.profile-match-summary .record-summary > div:last-child { padding-right: 0; }
-.profile-match-summary .record-summary dd { font-size: 36px; }
-.profile-match-summary .record-summary .record-results dd { font-size: 12px; }
 .achievement-progress { gap: 12px; padding-block: 4px 8px; }
 /* Full width now, so the tiles get real columns instead of two very narrow ones. */
 @media (min-width: 900px) { .achievement-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
@@ -394,8 +383,6 @@
  .friend-code-row .friend-code { font-size: 21px; }
  .friend-code-actions { margin-left: -10px; }
  .setting-section, .setting-section:first-child { padding: 16px; gap: 12px; }
- .profile-match-summary .record-summary > div { padding-inline: 12px; }
- .profile-match-summary .record-summary dd { font-size: 32px; }
 }
 
 /* Game filters share the home screen's gold, green and red identities. */

@@ -33,24 +33,15 @@ const ACCENT_TEXT: Record<AccentToken, string> = {
   sisal: 'text-sisal',
 };
 
-const GAME_COPY: Record<GameId, { category: string; detail: string }> = {
-  x01: { category: 'The classic', detail: 'Count down. Find your finish.' },
-  cricket: { category: 'The strategist', detail: 'Close your numbers. Own the board.' },
-  copycat: { category: 'The challenger', detail: 'Set the pace. Match your rival.' },
-};
-
-export function GameCard({ game, index, onSelect, opening = false, disabled = false }: {
-  game: GameOption; index: number; onSelect: () => void; opening?: boolean; disabled?: boolean;
+export function GameCard({ game, onSelect, opening = false, disabled = false }: {
+  game: GameOption; onSelect: () => void; opening?: boolean; disabled?: boolean;
 }) {
   const { accent, motif } = GAME_IDENTITY[game.id];
-  const copy = GAME_COPY[game.id];
   return <button type="button" className={styles.gameCard} data-game={game.id} onClick={onSelect}
     disabled={disabled || opening} aria-busy={opening} aria-label={`Play ${game.name}`}>
-    <span className={styles.cardTop}><span>No. {String(index + 1).padStart(2, '0')}</span><span>{copy.category}</span></span>
     <BoardMotif name={motif} className={`${styles.cardMotif} ${ACCENT_TEXT[accent]}`} />
     <span className={styles.cardName}>{game.name}</span>
-    <span className={styles.cardDetail}>{copy.detail}</span>
-    <span className={styles.cardFoot}><span>{opening ? 'Opening room…' : `${game.playerRange[0]}–${game.playerRange[1]} players`}</span><span>{opening ? 'Please wait' : 'Play'} <ArrowUpRight size={18} aria-hidden="true" /></span></span>
+    <span className={styles.cardMeta}><span>{opening ? 'Opening room…' : `${game.playerRange[0]}–${game.playerRange[1]} players`}</span><ArrowUpRight size={18} aria-hidden="true" /></span>
   </button>;
 }
 

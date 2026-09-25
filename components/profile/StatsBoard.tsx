@@ -1,8 +1,9 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type { StatsBoard as Board, StatsPeriod } from '@/lib/stats/board';
 import type { X01AggregateStats, CricketAggregateStats, CopycatAggregateStats } from '@/lib/stats/aggregateGameStats';
 import { Target } from 'lucide-react';
+import { Panel } from '@/components/atoms/Panel';
 import { EmptyState, MetricGrid, SegmentedControl, HeatmapFigure, summarizeHeatmap } from '@/components/molecules';
 import type { Metric } from '@/components/molecules';
 
@@ -137,7 +138,12 @@ const PERIOD_OPTIONS = [
  *  silently reset a reader from "Weekly" to "All time" under them. */
 const PERIOD_KEY = 'oche:stats:period';
 
-export function StatsBoard({ board, compact = false, showHeatmap = false }: { board: Board; compact?: boolean; showHeatmap?: boolean }) {
+export function StatsBoard({ board, compact = false, showHeatmap = false, summaryAction }: {
+  board: Board;
+  compact?: boolean;
+  showHeatmap?: boolean;
+  summaryAction?: ReactNode;
+}) {
   const [period, setPeriod] = useState<StatsPeriod>('all');
   const [gameFilter, setGameFilter] = useState('x01');
   useEffect(() => {
@@ -148,23 +154,27 @@ export function StatsBoard({ board, compact = false, showHeatmap = false }: { bo
   const gameCards = Object.keys(GAME_META).flatMap(id => stats.games.filter(game => game.gameId === id));
 
   return <div className="stats-board" data-compact={compact || undefined}>
-    {/* The app picks from small fixed sets with SegmentedControl everywhere else; this was
-        the one native <select> left, which meant browser chrome on desktop and a native wheel
-        on iOS for a four-option filter. */}
-    {!compact && <div className="stats-overview-heading"><h2>Overview</h2>
-      <SegmentedControl
-        className="stats-period-control"
-        label="Statistics period"
-        options={PERIOD_OPTIONS}
-        value={period}
-        onChange={next => { setPeriod(next); sessionStorage.setItem(PERIOD_KEY, next); }}
-      />
-    </div>}
-    <dl className="record-summary" aria-live="polite">
-      <div><dt>Matches</dt><dd>{stats.totalMatches}</dd></div>
-      <div><dt>Win rate</dt><dd>{stats.winRate}%</dd></div>
-      <div className="record-results"><dt>Record</dt><dd><span>{stats.wins} wins</span><span>{stats.losses} losses</span></dd></div>
-    </dl>
+    {/* Own and friend views share the overview surface; page wrappers must not restyle it. */}
+    <Panel className="account-section stats-overview">
+      <div className="stats-overview-heading">
+        <div>
+          <h2>{compact ? 'Match summary' : 'Overview'}</h2>
+          {compact && <p className="summary-period">All time</p>}
+        </div>
+        {compact ? summaryAction : <SegmentedControl
+          className="stats-period-control"
+          label="Statistics period"
+          options={PERIOD_OPTIONS}
+          value={period}
+          onChange={next => { setPeriod(next); sessionStorage.setItem(PERIOD_KEY, next); }}
+        />}
+      </div>
+      <dl className="record-summary" aria-live="polite">
+        <div><dt>Matches</dt><dd>{stats.totalMatches}</dd></div>
+        <div><dt>Win rate</dt><dd>{stats.winRate}%</dd></div>
+        <div className="record-results"><dt>Record</dt><dd><span>{stats.wins} wins</span><span>{stats.losses} losses</span></dd></div>
+      </dl>
+    </Panel>
     {!compact && <>
       <SegmentedControl label="Performance game" value={gameFilter} onChange={setGameFilter}
         className="performance-game-tabs"
@@ -182,9 +192,10 @@ export function StatsBoard({ board, compact = false, showHeatmap = false }: { bo
     })}</div>
       {stats.totalMatches > 0 && !gameCards.some(game => game.gameId === gameFilter) &&
         <EmptyState icon={Target} title={'No ' + GAME_META[gameFilter].name + ' matches in this period'}
-          body="Choose another game or a longer period to see your results." />}
+          body="Choose another game or a longer period to see recorded results." />}
     </>}
-    {stats.totalMatches === 0 && <EmptyState icon={Target} title="Nothing in this period yet"
-      body="Finish a match or choose a longer period to see your results." />}
+    {stats.totalMatches === 0 && <EmptyState icon={Target}
+      title={compact ? 'No completed matches yet' : 'Nothing in this period yet'}
+      body={compact ? 'Completed matches will appear here.' : 'Choose a longer period to see recorded results.'} />}
   </div>;
 }

@@ -4,12 +4,11 @@ import type { ReactNode } from 'react';
 
 /**
  * The page header: a short chrome row (back chevron, eyebrow, one optional action) above the
- * page title.
+ * page title. The back chevron and eyebrow form one link with a 44px touch target.
  *
  * It replaces the 44×44 bordered square that used to sit on a row of its own — that control
  * read as a detached widget and bought nothing with the row it cost. The row here earns its
- * height by also carrying the eyebrow and the page's trailing action, and the chevron keeps a
- * full 44×44 touch target while showing a 22px glyph.
+ * height by also carrying the eyebrow and the page's trailing action.
  *
  * The title deliberately sits on the row BELOW rather than beside the chevron: inline, it
  * started ~40px inboard of every other thing on the page, which is exactly the drifting
@@ -32,12 +31,12 @@ export function AppBar({
     <header className="app-bar">
       {(back || eyebrow || action) && (
         <div className="app-bar-top">
-          {back && (
-            <Link href={back.href} aria-label={back.label} className="app-bar-back">
-              <ChevronLeft size={22} aria-hidden="true" />
+          {back ? (
+            <Link href={back.href} aria-label={eyebrow ? `${eyebrow}: ${back.label}` : back.label} className="app-bar-back">
+              <ChevronLeft size={18} aria-hidden="true" />
+              {eyebrow && <span className="eyebrow">{eyebrow}</span>}
             </Link>
-          )}
-          {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+          ) : eyebrow && <p className="eyebrow">{eyebrow}</p>}
           {action}
         </div>
       )}

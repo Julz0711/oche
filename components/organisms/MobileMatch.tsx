@@ -81,10 +81,17 @@ export function MobileMatch({ gameModule: game, state, settings, displayNames, d
           );
         })}
       </div>
-      <div className="relative mobile-input-dock">
-        <TurnToast game={game} state={state} settings={settings} name={name(active)} enabled={!disabled} />
+      <div className="mobile-input-dock">
+        {/* The turn cue and the turn line share one reserved band at the top of the dock.
+            The cue used to be absolutely positioned above the dock, so it floated in dead
+            space with two players and sat on top of live scores with six — and it shifted
+            nothing on the way in, which is why it had no stable relationship to anything.
+            Here it fades in over the line it replaces: same place, same height, every time. */}
+        <div className="mobile-dock-head">
+          <div className="mobile-turn" role="status"><span className="truncate">{disabled ? `Waiting for ${name(active)}` : `${name(active)} to throw`}</span><span className="shrink-0 text-sisal/60">{visit.darts} / {visit.max} darts</span></div>
+          <TurnToast game={game} state={state} settings={settings} name={name(active)} enabled={!disabled} />
+        </div>
         {error && <div role="alert" className="flex items-center justify-between gap-2 text-sm text-chalk bg-treble/30 p-2">{error}<button onClick={onDismissError} className="underline min-h-11">Dismiss</button></div>}
-        <div className="mobile-turn" role="status"><span className="truncate">{disabled ? `Waiting for ${name(active)}` : `${name(active)} to throw`}</span><span className="shrink-0 text-sisal/60">{visit.darts} / {visit.max} darts</span></div>
         <DartboardInput key={active} compact onThrow={onThrow} onUndo={onUndo} disabled={disabled} visitDartCount={visit.darts} />
       </div>
     </section>

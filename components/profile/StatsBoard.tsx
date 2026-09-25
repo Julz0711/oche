@@ -148,14 +148,18 @@ export function StatsBoard({ board, compact = false, showHeatmap = false }: { bo
   const gameCards = Object.keys(GAME_META).flatMap(id => stats.games.filter(game => game.gameId === id));
 
   return <div className="stats-board" data-compact={compact || undefined}>
-    {!compact && <div className="stats-overview-heading"><h2>Overview</h2><label className="stats-period"><span className="sr-only">Period</span>
-      <select aria-label="Statistics period" value={period} onChange={event => {
-        setPeriod(event.target.value as StatsPeriod);
-        sessionStorage.setItem(PERIOD_KEY, event.target.value);
-      }}>
-        {PERIOD_OPTIONS.map(option => <option value={option.value} key={option.value}>{option.label}</option>)}
-      </select>
-    </label></div>}
+    {/* The app picks from small fixed sets with SegmentedControl everywhere else; this was
+        the one native <select> left, which meant browser chrome on desktop and a native wheel
+        on iOS for a four-option filter. */}
+    {!compact && <div className="stats-overview-heading"><h2>Overview</h2>
+      <SegmentedControl
+        className="stats-period-control"
+        label="Statistics period"
+        options={PERIOD_OPTIONS}
+        value={period}
+        onChange={next => { setPeriod(next); sessionStorage.setItem(PERIOD_KEY, next); }}
+      />
+    </div>}
     <dl className="record-summary" aria-live="polite">
       <div><dt>Matches</dt><dd>{stats.totalMatches}</dd></div>
       <div><dt>Win rate</dt><dd>{stats.winRate}%</dd></div>

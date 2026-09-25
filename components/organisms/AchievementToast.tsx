@@ -3,7 +3,7 @@
 import { X } from 'lucide-react';
 import { tokens, rarityColors } from '@/lib/theme';
 import type { AchievementRarity } from '@/lib/achievements/types';
-import { getIconForAchievement } from '@/lib/achievements/icons';
+import { AchievementIcon } from '@/lib/achievements/icons';
 import { useAchievementStore, type AchievementToast } from '@/lib/stores/achievementStore';
 
 /**
@@ -31,7 +31,7 @@ export function AchievementToastContainer() {
 
   return (
     <div
-      className="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"
+      className="achievement-toast-stack"
       role="status"
       aria-live="polite"
     >
@@ -60,14 +60,14 @@ function AchievementToastItem({ achievement, onClose }: AchievementToastItemProp
 
   return (
     <div
-      className="pointer-events-auto flex items-center gap-3 p-4 rounded border-l-4 max-w-sm shadow-lg animate-slideIn"
+      className="achievement-toast pointer-events-auto flex items-center gap-3 p-4 border-l-4 max-w-sm shadow-lg animate-slideIn"
       style={{
         backgroundColor: colors.bg,
         borderLeftColor: colors.border,
       }}
     >
-      <div className="text-2xl shrink-0" aria-hidden="true">
-        {getIconForAchievement(achievement.icon)}
+      <div className="shrink-0" style={{ color: ink.primary }}>
+        <AchievementIcon icon={achievement.icon} size={24} />
       </div>
 
       <div className="flex-1 min-w-0">

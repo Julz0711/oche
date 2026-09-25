@@ -11,11 +11,13 @@ interface ChipProps {
   className?: string;
 }
 
+/* `bg-opacity-*` is Tailwind v3 and does nothing in v4 — these were opaque fills, not the
+   20% washes they read as. The slash syntax is the v4 equivalent. */
 const variantClasses: Record<ChipVariant, string> = {
   default: "bg-slate text-chalk border border-wire",
-  success: "bg-double bg-opacity-20 text-double border border-double",
-  danger: "bg-treble bg-opacity-20 text-treble border border-treble",
-  accent: "bg-wire bg-opacity-20 text-wire border border-wire",
+  success: "bg-double/20 text-double border border-double",
+  danger: "bg-treble/20 text-treble border border-treble",
+  accent: "bg-wire/20 text-wire border border-wire",
 };
 
 export const Chip = React.forwardRef<HTMLDivElement, ChipProps>(
@@ -25,7 +27,7 @@ export const Chip = React.forwardRef<HTMLDivElement, ChipProps>(
         ref={ref}
         className={`
           inline-flex items-center gap-2
-          rounded-full px-3 py-1 text-sm
+          px-3 py-1 text-sm
           ${variantClasses[variant]}
           ${className}
         `}
@@ -35,7 +37,7 @@ export const Chip = React.forwardRef<HTMLDivElement, ChipProps>(
         {onClose && (
           <button
             onClick={onClose}
-            className="ml-1 inline-flex items-center justify-center rounded-full hover:opacity-70 active:opacity-50 transition-opacity cursor-pointer"
+            className="ml-1 inline-flex items-center justify-center hover:opacity-70 active:opacity-50 transition-opacity cursor-pointer"
             aria-label={`Remove ${label}`}
           >
             <X size={14} />

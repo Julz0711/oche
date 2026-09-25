@@ -51,7 +51,7 @@ export function ScoreboardSlot({
     <div className="compact-score">
       <div className="compact-player-name" title={displayName ?? playerId}>{displayName ?? playerId}</div>
       <span className="compact-score-value">{score}</span>
-      <div className="compact-score-meta"><span>Ø {legAvg3Dart.toFixed(1)}</span><span>L {legsWon}{setsEnabled ? ` · S ${setsWon}` : ''}</span></div>
+      <div className="compact-score-meta"><span>Avg {legAvg3Dart.toFixed(1)}</span><span>Legs {legsWon}{setsEnabled ? ` · Sets ${setsWon}` : ''}</span></div>
       {checkout && <div className="compact-score-hint text-wire">{checkout.join(' · ')}</div>}
     </div>
   );

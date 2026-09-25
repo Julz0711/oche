@@ -76,18 +76,19 @@
   border-bottom: 1px solid #354139;
 }
 .eyebrow {
-  font: 10px/1.5 monospace;
+  font: 10px/1.5 var(--font-sans);
   letter-spacing: 2px;
   color: var(--wire);
   text-transform: uppercase;
 }
 .badge {
   margin-left: auto;
-  font: 10px monospace;
+  /* Was `monospace` — the only monospace text left in the product. */
+  font: 600 11px/1.5 var(--font-sans);
   letter-spacing: 1px;
   padding: 6px 10px;
   color: var(--sisal);
-  border: 1px solid #655b41;
+  border: 1px solid var(--club-hairline);
 }
 .tabs {
   display: flex;
@@ -740,11 +741,11 @@
     gap: 14px;
   }
   .header .eyebrow {
-    font-size: 8px;
+    font-size: 11px;
     letter-spacing: 1px;
   }
   .badge {
-    font-size: 8px;
+    font-size: 11px;
     padding: 5px;
   }
   .tabs {
@@ -768,10 +769,10 @@
     font-size: 13px;
   }
   .stamp small {
-    font-size: 8px;
+    font-size: 11px;
   }
   .eyebrow {
-    font-size: 8px;
+    font-size: 11px;
     letter-spacing: 1.2px;
   }
   .setupGrid,
@@ -811,7 +812,7 @@
     padding: 9px;
   }
   .dartSlots small {
-    font-size: 8px;
+    font-size: 11px;
     min-height: 33px;
   }
   .dartSlots strong {
@@ -1092,7 +1093,7 @@
     gap: 14px;
   }
   .shopWallet .eyebrow {
-    font-size: 9px;
+    font-size: 11px;
     letter-spacing: 1px;
   }
   .shopWallet strong {
@@ -1295,7 +1296,7 @@
     font-size: 42px;
   }
   .compactShop .shopWallet > small {
-    font-size: 9px;
+    font-size: 11px;
   }
   .compactShop .shopToolbarActions {
     gap: 5px;
@@ -1347,7 +1348,7 @@
     font-size: 22px;
   }
   .shopCardTop .eyebrow {
-    font-size: 8px;
+    font-size: 11px;
     letter-spacing: 0.5px;
   }
   .shopCardTop > svg {
@@ -1551,7 +1552,7 @@
     height: 36px;
   }
   .artCategory {
-    font-size: 8px;
+    font-size: 11px;
     letter-spacing: 0.8px;
   }
 }
@@ -1720,7 +1721,7 @@
   min-width: 0;
 }
 .hubRun .eyebrow {
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 1px;
 }
 .hubGrid .hubRun h3 {
@@ -1745,6 +1746,12 @@
   flex-wrap: wrap;
   gap: 12px 20px;
 }
+/* Three buttons at identical weight read as three equal choices. They are not: one saves
+   and leaves, one ends the run for good, and one is a maintenance export. */
+.footerQuiet { opacity: .75; font-weight: 400; }
+.footerDanger { border-color: color-mix(in srgb, var(--treble) 55%, transparent); color: var(--treble); }
+.footerDanger:hover { background: color-mix(in srgb, var(--treble) 12%, transparent); }
+
 .runFooterActions {
   display: flex;
   flex-wrap: wrap;
@@ -1818,7 +1825,7 @@
 .shell h2 { font: 500 24px/1.2 var(--font-display); }
 .shell h3 { font: 600 19px/1.3 var(--font-display); }
 .header { border-color: var(--club-hairline); gap: 16px; padding-bottom: 16px; }
-.eyebrow { font: 600 9px/1.5 var(--font-sans); letter-spacing: .16em; }
+.eyebrow { font: 600 11px/1.5 var(--font-sans); letter-spacing: .16em; }
 .heading { padding-bottom: 20px; border-bottom: 1px solid var(--club-hairline); margin: 20px 0 24px; }
 .shell .intro { font-size: 14px; line-height: 1.7; max-width: 58ch; margin-bottom: 24px !important; }
 .shell button:not(:where([data-native], [data-native] *)), .shell select { background: var(--club-control); border-color: var(--club-hairline); color: var(--sisal); font-size: 13px; }
@@ -1857,10 +1864,10 @@
 .shell .tabs button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 12px 2px; font-size: 10px; min-height: 62px; }
 .shell .tabs button[aria-current='page'] { background: #c0a15c0a; }
 .header { padding: 0 0 12px; }
-.header .eyebrow, .badge { font-size: 9px; }
+.header .eyebrow, .badge { font-size: 11px; }
 .hubHero { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; padding: 28px 20px 0; border: 1px solid #c0a15c66; background: linear-gradient(125deg, #233d2d, #101b15 80%); overflow: hidden; }
 .hubHero::before { content: ''; position: absolute; inset: 5px; border: 1px solid #c0a15c22; pointer-events: none; }
-.hubHero h1 { margin-top: 8px; font-size: 44px; color: #ede0bd; }
+.hubHero h1 { margin-top: 8px; font-size: 44px; color: var(--sisal); }
 .hubHero .muted { max-width: 40ch; font-size: 13px; margin-top: 14px; }
 .hubHero .primary { justify-self: start; }
 .hubCrest { position: absolute; right: 22px; top: 25px; display: flex; flex-direction: column; align-items: center; color: var(--wire); opacity: .2; transform: rotate(10deg); }
@@ -1951,16 +1958,19 @@
  .shell .heading:has(.stamp) { flex-wrap: nowrap; gap: 12px; }
  .shell .heading .muted { font-size: 12px; }
  .shell .panel { padding: 16px; }
- .shell[data-solo-phase='playing'], .shell[data-solo-phase='pending'] { padding-top: 12px; }
- .shell[data-solo-phase='playing'] .header, .shell[data-solo-phase='pending'] .header { display: none; }
- .shell[data-solo-phase='playing'] .tabs, .shell[data-solo-phase='pending'] .tabs { margin-bottom: 10px; }
- .shell[data-solo-phase='playing'] .heading, .shell[data-solo-phase='pending'] .heading { margin: 8px 0 12px; padding: 0; border: 0; }
- .shell[data-solo-phase='playing'] .heading h1, .shell[data-solo-phase='pending'] .heading h1 { font-size: 24px; margin: 4px 0; }
- .shell[data-solo-phase='playing'] .heading .muted, .shell[data-solo-phase='pending'] .heading .muted { margin: 4px 0 0; font-size: 11px; line-height: 1.4; }
- .shell[data-solo-phase='playing'] .heading h1, .shell[data-solo-phase='pending'] .heading h1 { font-size: 22px; }
- .shell[data-solo-phase='playing'] .tabs button, .shell[data-solo-phase='pending'] .tabs button { min-height: 50px; padding-block: 6px; }
- .shell[data-solo-phase='playing'] .heading .eyebrow, .shell[data-solo-phase='pending'] .heading .eyebrow { margin-block: 4px; }
- .shell[data-solo-phase='playing'] .track, .shell[data-solo-phase='pending'] .track { margin-bottom: 10px; }
+ /* An open run is an open run: every phase compacts the chrome the same way.
+    Listing only `playing` and `pending` meant the breadcrumb and header appeared
+    on `preview` and `shop` and vanished again on `playing` — a ~100px jump on each
+    of the nine round transitions, eighteen times a run. */
+ .shell[data-solo-phase] { padding-top: 12px; }
+ .shell[data-solo-phase] .header { display: none; }
+ .shell[data-solo-phase] .tabs { margin-bottom: 10px; }
+ .shell[data-solo-phase] .heading { margin: 8px 0 12px; padding: 0; border: 0; }
+ .shell[data-solo-phase] .heading h1 { font-size: 22px; margin: 4px 0; }
+ .shell[data-solo-phase] .heading .muted { margin: 4px 0 0; font-size: 11px; line-height: 1.4; }
+ .shell[data-solo-phase] .tabs button { min-height: 50px; padding-block: 6px; }
+ .shell[data-solo-phase] .heading .eyebrow { margin-block: 4px; }
+ .shell[data-solo-phase] .track { margin-bottom: 10px; }
  .desktopInput { display: none; }
  .mobileInput { display: block; }
  .sharedInput { margin: 12px 0; }

@@ -7,37 +7,38 @@
 .tabs { display: flex; border: 1px solid #c0a15c55; padding: 4px; background: #0b1511; }
 .tabs button { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 9px 22px; min-height: 52px; color: var(--text-muted); border: 1px solid transparent; text-align: left; }
 .tabs strong { font: 600 17px/1 var(--font-display); letter-spacing: .03em; text-transform: uppercase; }
-.tabs span { font-size: 10px; }
+.tabs span { font-size: 11px; }
 .tabs button[aria-selected='true'] { background: #c0a15c; color: #111a14; border-color: #ddc386; box-shadow: inset 0 1px #f4dfab; }
 .gameGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 900px) { .gameGrid { grid-template-columns: 1fr; } }
 .gameCard { --ticket-accent: #c0a15c; position: relative; isolation: isolate; overflow: hidden; display: flex; flex-direction: column; min-width: 0; text-align: left; padding: 20px 24px 0; border: 1px solid #c0a15c55; background: #191e18; transition: border-color 160ms, background 160ms; }
 .gameCard::before { content: ''; position: absolute; inset: 5px 5px auto; height: 2px; background: var(--ticket-accent); opacity: .9; }
 .gameCard[data-game='cricket'] { --ticket-accent: #2d9671; background: #11271f; border-color: #2d967155; }
 .gameCard[data-game='copycat'] { --ticket-accent: #c8475c; background: #2a171b; border-color: #c8475c55; }
-.cardTop { display: flex; gap: 12px; align-items: center; justify-content: space-between; font-size: 9px; text-transform: uppercase; letter-spacing: .13em; color: var(--sisal); }
-.cardTop > span:first-child { font-family: Georgia, serif; font-style: italic; font-size: 12px; color: var(--ticket-accent); text-transform: none; letter-spacing: 0; }
+.cardTop { display: flex; gap: 12px; align-items: center; justify-content: space-between; font-size: 11px; text-transform: uppercase; letter-spacing: .13em; color: var(--sisal); }
+.cardTop > span:first-child { font-family: Georgia, serif; font-style: italic; font-size: 12px; color: color-mix(in srgb, var(--ticket-accent) 45%, var(--sisal)); text-transform: none; letter-spacing: 0; }
 .cardMotif { position: absolute; width: 160px; height: 160px; right: -42px; top: 27px; opacity: .23; z-index: -1; transform: rotate(-12deg); transition: transform 250ms; }
 .cardName { font: 600 56px/1 var(--font-display); text-transform: uppercase; margin-top: 24px; letter-spacing: -.01em; color: #eee4ce; }
-.cardDetail { display: block; font-size: 12px; color: #c9beaa; margin-top: 0; line-height: 1.5; }
-.cardFoot { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px dashed #e4d8bc33; padding: 15px 0; margin-top: 24px; font-size: 10px; color: #b6ad98; }
+.cardDetail { display: block; font-size: 12px; color: #c9beaa; margin-top: 0; line-height: 1.5; max-width: 30ch; }
+.cardFoot { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px dashed #e4d8bc33; padding: 15px 0; margin-top: auto; padding-top: 15px; font-size: 11px; color: #b6ad98; }
 .cardFoot > span:last-child { display: flex; align-items: center; gap: 8px; color: var(--sisal); font-size: 12px; font-weight: 600; }
 .gameCard:disabled { opacity: .5; cursor: wait; }
 @media (hover: hover) { .gameCard:hover { border-color: var(--ticket-accent); background: color-mix(in srgb, var(--ticket-accent) 12%, #111a14); } .gameCard:hover .cardMotif { transform: rotate(0); } }
 @media (max-width: 767px) {
  .selectionHead { flex-wrap: wrap; gap: 16px; margin-top: 0; }
  .selectionHead h2 { font-size: 26px; }
- .selectionHead .kicker { font-size: 8px; }
+ .selectionHead .kicker { font-size: 11px; }
  .tabs { width: 100%; }
  .tabs button { flex: 1; padding: 10px 14px; min-height: 44px; }
  .tabs strong { font-size: 16px; }
- .tabs span { font-size: 9px; }
+ .tabs span { font-size: 11px; }
  .gameGrid { grid-template-columns: 1fr; gap: 10px; }
  .gameCard { padding: 16px 18px 0; display: grid; grid-template-columns: 1fr auto; gap: 0 14px; }
- .cardTop { grid-column: 1 / -1; justify-content: flex-start; gap: 14px; font-size: 8px; }
+ .cardTop { grid-column: 1 / -1; justify-content: flex-start; gap: 14px; font-size: 11px; }
  .cardName { font-size: 36px; margin-top: 12px; }
  .cardDetail { margin: 6px 0 16px; font-size: 11px; grid-column: 1; }
  .cardFoot { grid-column: 2; grid-row: 2 / 4; align-self: center; border: 0; margin: 0; padding: 0; flex-direction: column-reverse; align-items: flex-end; gap: 8px; }
- .cardFoot > span:first-child { font-size: 9px; }
+ .cardFoot > span:first-child { font-size: 11px; }
  .cardFoot > span:last-child { font-size: 11px; }
  .cardMotif { width: 120px; height: 120px; top: 10px; right: 42px; opacity: .15; }
  .playPanel { gap: 16px; }

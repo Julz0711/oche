@@ -13,6 +13,9 @@ import { Achievements, type AchievementsData } from './Achievements';
 import type { StatsBoard as Board } from '@/lib/stats/board';
 import type { FriendPerson, FriendsResponse } from '@/lib/friends/types';
 
+/** How many friends the profile previews before deferring to the Friends page. */
+const FRIENDS_PREVIEW = 5;
+
 interface ProfileData { person: FriendPerson; periods: Board; achievements: AchievementsData; friends?: FriendPerson[] }
 export function ProfileView({ friendId }: { friendId?: string }) {
   const { data: session, status } = useSession();
@@ -60,15 +63,16 @@ export function ProfileView({ friendId }: { friendId?: string }) {
   const name = person?.name || 'Player';
 
   return <main className="account-page page-gutters">
-    {/* The player's name IS the page title on a friend's profile, and their avatar sits in the
-        bar beside it. It used to be repeated again immediately below in a full-width identity
-        card — the audit's "friend identity is repeated multiple times". */}
+    {/* The player's name IS the page title — on your own profile as much as on a friend's.
+        Titling your own "Profile" left your name nowhere on the screen, while a friend's page
+        led with theirs; the avatar chip beside a generic word is not identity. The name is not
+        repeated below in an identity card — the audit's "identity repeated multiple times". */}
     <AppBar
       back={friendId ? { href: '/friends', label: 'Back to friends' } : undefined}
       eyebrow={friendId ? 'Player profile' : 'Your account'}
       title={<span className="profile-title">
         <PlayerAvatar name={name} image={person?.image} />
-        <span className="truncate">{friendId ? name : 'Profile'}</span>
+        <span className="truncate">{name}</span>
       </span>}
       action={friendId
         ? <TextLink href={`/friends/${friendId}`} arrow="detail">Head-to-head</TextLink>
@@ -81,16 +85,15 @@ export function ProfileView({ friendId }: { friendId?: string }) {
     </Panel> : !data ? <LoadingIndicator label="Loading profile…" /> : <>
       <div className="profile-layout"><div className="flex flex-col gap-5">
         <Panel className="account-section profile-match-summary">
-          <div className="section-header">
-            <div><h2>Match summary</h2>{!friendId && <p className="summary-period">All time</p>}</div>
-            {!friendId && <TextLink href="/stats">Statistics</TextLink>}
-          </div>
+          {/* On your own profile this is a compact all-time snapshot, so the card needs its
+              own heading. On a friend's, StatsBoard renders the full board — which brings its
+              own "Overview" heading and period control — and a second heading directly above
+              it was two titles stacked with nothing between them. */}
+          {!friendId && <div className="section-header">
+            <div><h2>Match summary</h2><p className="summary-period">All time</p></div>
+            <TextLink href="/stats">Statistics</TextLink>
+          </div>}
           <StatsBoard board={data.periods} compact={!friendId} showHeatmap={Boolean(friendId)} />
-        </Panel>
-
-        <Panel className="account-section">
-          <div className="section-header"><h2>Achievements</h2></div>
-          <Achievements {...data.achievements} />
         </Panel>
 
         {friendId && <Panel className="account-section">
@@ -114,12 +117,22 @@ export function ProfileView({ friendId }: { friendId?: string }) {
           <h2>Friends <span className="section-header-count">{data.friends?.length ?? 0}</span></h2>
           <TextLink href="/friends">Manage friends</TextLink>
         </div>
+        {/* A preview, not the list. Rendering every friend made this card's height a
+            function of how many friends you have — two names left the column stub-short
+            beside a tall Match summary, and ten made it the tallest thing on the page.
+            Capped, it is a predictable block whatever the count, and Manage friends is
+            where the full list lives. */}
         {data.friends?.length
-          ? <div className="profile-friends">{data.friends.map(friend =>
-              <TextLink key={friend.id} href={`/profile/${friend.id}`} arrow="detail" className="profile-friend">
-                <PlayerAvatar name={friend.name} image={friend.image} />
-                <span className="truncate">{friend.name}</span>
-              </TextLink>)}
+          ? <div className="profile-friends">
+              {data.friends.slice(0, FRIENDS_PREVIEW).map(friend =>
+                <TextLink key={friend.id} href={`/profile/${friend.id}`} arrow="detail" className="profile-friend">
+                  <PlayerAvatar name={friend.name} image={friend.image} />
+                  <span className="truncate">{friend.name}</span>
+                </TextLink>)}
+              {data.friends.length > FRIENDS_PREVIEW &&
+                <TextLink href="/friends" arrow="detail" className="profile-friend profile-friend-more">
+                  {data.friends.length - FRIENDS_PREVIEW} more
+                </TextLink>}
             </div>
           : <EmptyState
               icon={Users}
@@ -128,6 +141,13 @@ export function ProfileView({ friendId }: { friendId?: string }) {
               action={<TextLink href="/friends">Find friends</TextLink>}
             />}
       </Panel></aside>}</div>
+
+      {/* Full width, below the grid: the achievements grid is the widest thing on the page
+          and the right-hand column has nothing left to say under a two-name friends list. */}
+      <Panel className="account-section">
+        <div className="section-header"><h2>Achievements</h2></div>
+        <Achievements {...data.achievements} playerName={friendId ? name : undefined} />
+      </Panel>
     </>}
   </main>;
 }

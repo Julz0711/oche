@@ -18,12 +18,14 @@ interface HeatmapBoardProps {
   selected?: string | null;
 }
 
-/** Structural grey shades, derived from the existing chalk/oche tokens via color-mix — the board's shape stays legible without competing with the heat overlay for attention. */
+/** Structural shades for the board. Mixed from `--sisal` rather than `--chalk` so the board
+ *  sits in the club's warm palette instead of reading as neutral stock-chart grey, while
+ *  staying desaturated enough that the heat overlay is the only thing carrying real hue. */
 const GREY = {
-  ringBand: 'color-mix(in srgb, var(--chalk) 30%, var(--oche))', // double + treble rings
-  singleBand: 'color-mix(in srgb, var(--chalk) 12%, var(--oche))', // both single bands
-  outerBull: 'color-mix(in srgb, var(--chalk) 40%, var(--oche))',
-  innerBull: 'color-mix(in srgb, var(--chalk) 55%, var(--oche))',
+  ringBand: 'color-mix(in srgb, var(--sisal) 34%, var(--oche))', // double + treble rings
+  singleBand: 'color-mix(in srgb, var(--sisal) 13%, var(--oche))', // both single bands
+  outerBull: 'color-mix(in srgb, var(--sisal) 42%, var(--oche))',
+  innerBull: 'color-mix(in srgb, var(--sisal) 58%, var(--oche))',
 };
 
 /** Interpolates a 3-stop blue -> yellow -> red heat color for a 0..1 density ratio. A naive 2-color blue-to-red blend produces a muddy purple in the middle, so this mixes blue->yellow for the first half and yellow->red for the second. */
@@ -42,6 +44,9 @@ function heatOpacity(ratio: number): number {
 }
 
 export function HeatmapBoard({ heatmap = {}, label, decorative = false, onSelect, selected = null }: HeatmapBoardProps) {
+  const overlay = (ratio: number) => ({ fill: heatColor(ratio), fillOpacity: heatOpacity(ratio) });
+  const singleFill = () => GREY.singleBand;
+  const ringFill = () => GREY.ringBand;
   // Misses ("M0") are never rendered, so they must not count toward the normalization ceiling —
   // otherwise a heavy-miss match caps every hit well below red.
   const maxHeat = Math.max(1, ...Object.entries(heatmap).filter(([key]) => !key.startsWith('M')).map(([, v]) => v));
@@ -91,7 +96,7 @@ export function HeatmapBoard({ heatmap = {}, label, decorative = false, onSelect
       className="w-full max-w-md aspect-square"
       {...(label ? { role: 'img' as const, 'aria-label': label } : decorative ? { 'aria-hidden': true as const } : {})}
     >
-      <circle cx={CENTER} cy={CENTER} r={RADIUS.boardEdge} fill="var(--oche)" stroke="var(--chalk)" strokeWidth="1" />
+      <circle cx={CENTER} cy={CENTER} r={RADIUS.boardEdge} fill="var(--oche)" stroke="var(--club-edge)" strokeWidth="1" />
 
       {BOARD_ORDER.map((segment, i) => {
         const { startAngle, endAngle, midAngle } = segmentAngles(i);
@@ -110,35 +115,35 @@ export function HeatmapBoard({ heatmap = {}, label, decorative = false, onSelect
 
         return (
           <g key={segment}>
-            <path d={annularWedgePath(RADIUS.doubleInner, RADIUS.boardEdge, startAngle, endAngle)} fill={GREY.ringBand} stroke="var(--oche)" strokeWidth="2" />
+            <path d={annularWedgePath(RADIUS.doubleInner, RADIUS.boardEdge, startAngle, endAngle)} fill={ringFill()} stroke="var(--oche)" strokeWidth="2" />
             {region(`D${segment}`, `D${segment}`, `Double ${segment}`,
               <path
                 d={annularWedgePath(RADIUS.doubleInner, RADIUS.boardEdge, startAngle, endAngle)}
-                style={{ fill: heatColor(doubleRatio), fillOpacity: heatOpacity(doubleRatio) }}
+                style={overlay(doubleRatio)}
               />)}
 
-            <path d={annularWedgePath(RADIUS.outerSingleInner, RADIUS.doubleInner, startAngle, endAngle)} fill={GREY.singleBand} stroke="var(--oche)" strokeWidth="2" />
+            <path d={annularWedgePath(RADIUS.outerSingleInner, RADIUS.doubleInner, startAngle, endAngle)} fill={singleFill()} stroke="var(--oche)" strokeWidth="2" />
             {region(`S${segment}-outer`, `S${segment}`, `Single ${segment}`,
               <path
                 d={annularWedgePath(RADIUS.outerSingleInner, RADIUS.doubleInner, startAngle, endAngle)}
-                style={{ fill: heatColor(outerSingleRatio), fillOpacity: heatOpacity(outerSingleRatio) }}
+                style={overlay(outerSingleRatio)}
               />)}
 
-            <path d={annularWedgePath(RADIUS.trebleInner, RADIUS.outerSingleInner, startAngle, endAngle)} fill={GREY.ringBand} stroke="var(--oche)" strokeWidth="2" />
+            <path d={annularWedgePath(RADIUS.trebleInner, RADIUS.outerSingleInner, startAngle, endAngle)} fill={ringFill()} stroke="var(--oche)" strokeWidth="2" />
             {region(`T${segment}`, `T${segment}`, `Treble ${segment}`,
               <path
                 d={annularWedgePath(RADIUS.trebleInner, RADIUS.outerSingleInner, startAngle, endAngle)}
-                style={{ fill: heatColor(trebleRatio), fillOpacity: heatOpacity(trebleRatio) }}
+                style={overlay(trebleRatio)}
               />)}
 
-            <path d={annularWedgePath(RADIUS.innerSingleInner, RADIUS.trebleInner, startAngle, endAngle)} fill={GREY.singleBand} stroke="var(--oche)" strokeWidth="2" />
+            <path d={annularWedgePath(RADIUS.innerSingleInner, RADIUS.trebleInner, startAngle, endAngle)} fill={singleFill()} stroke="var(--oche)" strokeWidth="2" />
             {region(`S${segment}-inner`, `S${segment}`, `Single ${segment}`,
               <path
                 d={annularWedgePath(RADIUS.innerSingleInner, RADIUS.trebleInner, startAngle, endAngle)}
-                style={{ fill: heatColor(innerSingleRatio), fillOpacity: heatOpacity(innerSingleRatio) }}
+                style={overlay(innerSingleRatio)}
               />)}
 
-            <text x={labelPoint.x} y={labelPoint.y} textAnchor="middle" className="text-xs fill-chalk" dy="0.3em">
+            <text x={labelPoint.x} y={labelPoint.y} textAnchor="middle" className="text-xs fill-sisal" dy="0.3em">
               {segment}
             </text>
           </g>
@@ -151,7 +156,7 @@ export function HeatmapBoard({ heatmap = {}, label, decorative = false, onSelect
           cx={CENTER}
           cy={CENTER}
           r={RADIUS.innerSingleInner}
-          style={{ fill: heatColor(ratioOf('OB25')), fillOpacity: heatOpacity(ratioOf('OB25')) }}
+          style={overlay(ratioOf('OB25'))}
         />)}
 
       <circle cx={CENTER} cy={CENTER} r={RADIUS.innerSingleInner * 0.4} fill={GREY.innerBull} stroke="var(--oche)" strokeWidth="2" />
@@ -160,7 +165,7 @@ export function HeatmapBoard({ heatmap = {}, label, decorative = false, onSelect
           cx={CENTER}
           cy={CENTER}
           r={RADIUS.innerSingleInner * 0.4}
-          style={{ fill: heatColor(ratioOf('IB25')), fillOpacity: heatOpacity(ratioOf('IB25')) }}
+          style={overlay(ratioOf('IB25'))}
         />)}
     </svg>
   );

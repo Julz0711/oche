@@ -181,7 +181,7 @@ export function HeatmapFigure({
             {share.toFixed(1)}% of darts · {selectedCount * regionScore(selected)} pts
           </>
         ) : (
-          'Tap a region of the board for its detail.'
+          'Select a region of the board for its detail.'
         )}
       </p>
 

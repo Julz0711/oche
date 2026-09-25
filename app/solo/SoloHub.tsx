@@ -40,21 +40,24 @@ export default function SoloHub({
           <span><Coins size={16} aria-hidden="true" />Earn & upgrade</span>
         </div>
       </div>
-      {(["Continue playing", "Past runs"] as const).map((label, index) => {
+      {/* With no runs at all, two headed sections each saying "nothing here" is the same
+          nothing said twice, under a count of zero. One line covers it until there is
+          something to group. */}
+      {entries.length === 0 && (
+        <p className={styles.muted}>
+          No runs yet. Start one to step up to the oche — finished and abandoned runs are
+          kept here too.
+        </p>
+      )}
+      {entries.length > 0 && (["Continue playing", "Past runs"] as const).map((label, index) => {
         const group = entries.filter((entry) => entry.ended === (index === 1));
+        if (!group.length) return null;
         return (
           <section key={label} className={styles.hubSection}>
             <h2>
               {label} <small>· {group.length}</small>
             </h2>
-            {!group.length ? (
-              <p className={styles.muted}>
-                {index === 0
-                  ? "No runs in progress. Start a run to step up to the oche."
-                  : "Completed and abandoned runs will appear here."}
-              </p>
-            ) : (
-              <div className={styles.hubGrid}>
+            <div className={styles.hubGrid}>
                 {group.map(({ save, run, ended }) => (
                   <Panel
                     key={save.config.id}
@@ -102,8 +105,7 @@ export default function SoloHub({
                     )}
                   </Panel>
                 ))}
-              </div>
-            )}
+            </div>
           </section>
         );
       })}

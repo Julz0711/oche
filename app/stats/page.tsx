@@ -190,7 +190,7 @@ export default function StatsPage() {
               groups.map((group) => (
                 <section key={group.key} className="flex flex-col gap-2" aria-label={group.label}>
                   <h3 className="history-group"><span className="t-label">{group.label}</span></h3>
-                  <div className="flex flex-col gap-2">
+                  <div className="history-group-list">
                     {group.matches.map((match) => <MatchHistoryRow key={match.id} match={match} />)}
                   </div>
                 </section>

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import type { Achievement, UserAchievement } from '@/lib/achievements/types';
-import { getIconForAchievement } from '@/lib/achievements/icons';
+import { AchievementIcon } from '@/lib/achievements/icons';
 import { rarityColors } from '@/lib/theme';
 import { Button } from '@/components/atoms/Button';
 import { EmptyState, SegmentedControl, TextButton } from '@/components/molecules';
@@ -19,14 +19,14 @@ function AchievementDetails({ achievement, award, close }: { achievement: Achiev
   }, []);
   const time = (date: Date) => <time dateTime={new Date(date).toISOString()}>{new Date(date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</time>;
   return <dialog ref={ref} className="achievement-dialog" style={{ borderColor: rarityColors[achievement.rarity].border }} aria-labelledby="achievement-title" onCancel={close} onClick={e => { if (e.target === e.currentTarget) { const bounds = e.currentTarget.getBoundingClientRect(); if (e.clientX < bounds.left || e.clientX > bounds.right || e.clientY < bounds.top || e.clientY > bounds.bottom) close(); } }}>
-    <div className="flex items-center gap-3"><span className="text-[32px]" aria-hidden="true">{getIconForAchievement(achievement.icon)}</span><div><p className="text-xs uppercase tracking-widest text-sisal">{achievement.rarity}{award ? ' · Unlocked' : ' · Locked'}</p><h2 id="achievement-title" className="text-[24px] font-display text-wire">{achievement.name}</h2></div></div>
+    <div className="flex items-center gap-3"><span className="achievement-dialog-icon text-wire" aria-hidden="true"><AchievementIcon icon={achievement.icon} size={32} /></span><div><p className="text-xs uppercase tracking-widest text-sisal">{achievement.rarity}{award ? ' · Unlocked' : ' · Locked'}</p><h2 id="achievement-title" className="text-[24px] font-display text-wire">{achievement.name}</h2></div></div>
     <p className="text-sm leading-relaxed">{achievement.description}</p>
     {award ? <dl className="achievement-dates"><div><dt>First unlocked</dt><dd>{time(award.unlocked_at)}</dd></div>{achievement.is_repeatable && <><div><dt>Times earned</dt><dd>{award.count}</dd></div><div><dt>Last unlocked</dt><dd>{award.last_unlocked_at ? time(award.last_unlocked_at) : award.count === 1 ? time(award.unlocked_at) : 'Not recorded for earlier awards'}</dd></div></>}</dl> : <p className="text-sm text-sisal">Complete the challenge to unlock this achievement.</p>}
     <Button variant="secondary" onClick={close} className="w-full">Close</Button>
   </dialog>;
 }
 
-export function Achievements({ unlocked, definitions }: AchievementsData) {
+export function Achievements({ unlocked, definitions, playerName }: AchievementsData & { playerName?: string }) {
   const [selected, setSelected] = useState<Achievement | null>(null);
   const [showLocked, setShowLocked] = useState(false);
   const awards = new Map(unlocked.map(award => [award.achievement_id, award]));
@@ -70,7 +70,7 @@ export function Achievements({ unlocked, definitions }: AchievementsData) {
           onClick={() => setSelected(achievement)}
           aria-haspopup="dialog"
         >
-          <span className="achievement-icon" aria-hidden="true">{getIconForAchievement(achievement.icon)}</span>
+          <span className="achievement-icon" aria-hidden="true"><AchievementIcon icon={achievement.icon} size={18} /></span>
           <span className="min-w-0">
             <strong>{achievement.name}</strong>
             {/* Status only. Pairing it with the rarity made a two-word line that truncated on
@@ -85,7 +85,11 @@ export function Achievements({ unlocked, definitions }: AchievementsData) {
     })}</ul> : <EmptyState
       icon={Trophy}
       title="No achievements yet"
-      body="Play a match and the first ones start unlocking. Use “View all achievements” to see what is on offer."
+      /* On someone else's profile this used to address the viewer — telling them to play a
+         match so that the person whose page they are reading would unlock something. */
+      body={playerName
+        ? `${playerName} has not unlocked any yet. Use “View all achievements” to see what is on offer.`
+        : 'Play a match and the first ones start unlocking. Use “View all achievements” to see what is on offer.'}
     />}
     {selected && <AchievementDetails achievement={selected} award={awards.get(selected.achievement_id)} close={() => setSelected(null)} />}
   </div>;

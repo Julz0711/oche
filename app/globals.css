@@ -250,7 +250,12 @@ button:not(:disabled) {
 button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 :focus-visible { outline: 2px solid var(--wire); outline-offset: 3px; }
 
-@media (max-width: 1023px) {
+/* The phone shell — one scroll region, docked input — now runs up to 1179px instead of
+   1023px. The desktop scoreboard below it needs ~1040px of height, which put
+   Double/Triple/Miss about 200px under the fold on a 1024x768 tablet in landscape; the
+   shell fits any height by construction. 1180px is the first width where the desktop
+   composition has the room it was designed for. */
+@media (max-width: 1179px) {
   .match-live {
     height: 100dvh;
     min-height: 0;
@@ -264,9 +269,16 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   .match-header button, .match-header a { min-width: 44px; min-height: 44px; border-width: 2px; border-radius: 0; }
   .mobile-match { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; flex: 1; min-height: 0; }
   .mobile-match-meta { padding: 0 12px 6px; color: color-mix(in srgb, var(--sisal) 65%, transparent); font-size: 12px; }
-  .mobile-score-list { position: relative; overflow-y: auto; overscroll-behavior-y: contain; padding: 4px 10px 12px; scroll-padding: 8px; }
-  .mobile-player-shell { margin-bottom: 6px; }
-  .mobile-player { position: relative; display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(96px, 1fr); padding-right: 40px; align-items: center; transition: background-color 180ms ease; }
+  .mobile-score-list { position: relative; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; overscroll-behavior-y: contain; padding: 4px 10px 12px; scroll-padding: 8px; }
+  /* Rows share whatever height the column has, within bounds: with two players they fill it
+     instead of leaving a dead band above the dock, and with eight they hit their floor and
+     the list scrolls exactly as before. */
+  .mobile-player-shell { flex: 1 1 auto; min-height: 104px; max-height: 168px; margin-bottom: 0; }
+  /* `safe` matters: with enough players to overflow, centring would push the first row above
+     the scroll origin and make it unreachable. Safe centring falls back to start in that case. */
+  .mobile-score-list { justify-content: safe center; }
+  .mobile-player-shell > .oche-panel { height: 100%; }
+  .mobile-player { position: relative; display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(96px, 1fr); grid-template-rows: auto; align-content: center; padding-right: 40px; align-items: center; transition: background-color 180ms ease; }
   .mobile-score { min-width: 0; }
   .compact-score { padding: 8px 0 8px 10px; }
   .compact-player-name { font-size: 12px; line-height: 16px; font-weight: 700; text-transform: uppercase; color: var(--sisal); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -274,28 +286,37 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   .compact-score-meta { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; line-height: 16px; color: var(--sisal); }
   .compact-score-hint { font-size: 12px; line-height: 16px; }
   .mobile-visit { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 0 8px 8px; }
-  .mobile-darts { display: flex; gap: 4px; width: 100%; }
-  .mobile-dart { display: flex; align-items: center; justify-content: center; min-width: 0; flex: 1; height: 28px; color: #e4d8bc55; border-radius: 0; background: var(--oche); }
+  .mobile-darts { display: flex; justify-content: flex-end; gap: 4px; width: 100%; }
+  .mobile-dart { display: flex; align-items: center; justify-content: center; min-width: 0; flex: 0 1 62px; height: 28px; color: color-mix(in srgb, var(--sisal) 35%, transparent); border-radius: 0; background: var(--oche); }
   .mobile-dart > * { width: 100%; height: 28px; font-size: 12px; }
   .mobile-player-details { grid-column: 1 / -1; padding: 0 10px; }
   .mobile-player-details summary { position: absolute; top: 22px; right: 0; width: 40px; min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: color-mix(in srgb, var(--sisal) 65%, transparent); cursor: pointer; list-style: none; }
   .mobile-player-details summary::-webkit-details-marker { display: none; }
-  .mobile-player-details summary::after { content: '+'; font-size: 18px; }
+  .mobile-player-details summary::after { content: '+'; font-size: 18px; line-height: 1; }
   .mobile-player-details[open] summary::after { content: '−'; }
+  .mobile-player-details summary { border-left: 1px solid var(--club-hairline-soft); }
+  .mobile-player-details summary:hover { color: var(--wire); }
   .mobile-input-dock { padding: 0 8px max(8px, env(safe-area-inset-bottom)); background: var(--oche); border-top: 1px solid #e4d8bc22; box-shadow: 0 -8px 24px #10161466; }
-  .mobile-turn { display: flex; justify-content: space-between; gap: 8px; padding: 6px 4px; font-size: 12px; color: var(--wire); }
+  .mobile-turn { display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 100%; padding: 6px 4px; font-size: 12px; color: var(--wire); }
   .scoring-pad { user-select: none; }
   .scoring-numbers { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
   .scoring-pad button { min-width: 0; min-height: 44px; height: 44px; border-radius: 0; background: var(--slate); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; transition: transform 100ms ease, background-color 120ms ease; }
   .scoring-pad button:active:not(:disabled) { transform: scale(.94); background: color-mix(in srgb, var(--wire) 20%, var(--slate)); }
   .scoring-pad button:disabled { opacity: .35; }
-  .scoring-actions { display: grid; grid-template-columns: 1fr 2fr 2fr 2fr; gap: 5px; margin-top: 5px; }
+  .scoring-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; margin-top: 5px; }
   .scoring-actions button { font-size: 14px; text-transform: uppercase; }
-  .scoring-actions button:first-child, .scoring-actions button:last-child { font-size: 18px; }
+  .scoring-actions button:last-child { font-size: 18px; }
   .scoring-actions .modifier-double { background: color-mix(in srgb, var(--double) 15%, transparent); color: var(--double); }
   .scoring-actions .modifier-triple { background: color-mix(in srgb, var(--treble) 15%, transparent); color: var(--treble); }
   .scoring-actions .modifier-double[aria-pressed="true"] { background: var(--double); color: var(--chalk); }
   .scoring-actions .modifier-triple[aria-pressed="true"] { background: var(--treble); color: var(--chalk); }
+}
+
+/* Tablet portrait has the most spare column height of any size — let rows use it. */
+@media (min-width: 700px) and (max-width: 1179px) and (min-height: 900px) {
+  .mobile-player-shell { max-height: 260px; }
+  .compact-score-value { font-size: 56px; line-height: 60px; }
+  .compact-player-name { font-size: 14px; }
 }
 
 /* Landscape phones retain a useful score region beside the keypad. */
@@ -304,6 +325,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   .mobile-match-meta { grid-column: 1 / -1; }
   .mobile-input-dock { border-left: 1px solid #e4d8bc22; overflow-y: auto; }
 }
+
 
 .stats-dialog { position: fixed; inset: auto 0 0; margin: 0 auto; padding: 0; width: 100%; max-width: 42rem; max-height: 90dvh; color: var(--chalk); background: transparent; border: 0; }
 .stats-dialog::backdrop { background: #0009; }
@@ -613,7 +635,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
   border-left: 3px solid var(--wire);
   text-align: left;
 }
-.achievement-icon { font-size: 20px; line-height: 1; flex-shrink: 0; }
+.achievement-icon { display: flex; align-items: center; line-height: 1; flex-shrink: 0; color: var(--wire); }
 .achievement-tile strong { display: block; font-size: 13px; line-height: 16px; font-weight: 700; color: var(--text-primary); }
 /* The rarity and status on one line: wrapped, they doubled every tile's height for no
    extra information. */
@@ -622,7 +644,7 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
    the only signal — and it stays above the contrast floor. */
 .achievement-locked { border-left-color: var(--border-default); background: transparent; }
 .achievement-locked strong { color: var(--text-muted); font-weight: 500; }
-.achievement-locked .achievement-icon { filter: grayscale(1); opacity: .7; }
+.achievement-locked .achievement-icon { color: var(--text-muted); }
 .achievement-dialog { margin: auto; width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px); overflow-y: auto; background: var(--slate); color: var(--chalk); border: 1px solid var(--wire); padding: 20px; }
 .achievement-dialog[open] { display: flex; flex-direction: column; gap: 20px; animation: achievement-enter 160ms ease-out; }
 .achievement-dialog::backdrop { background: #080e0bd9; }
@@ -687,8 +709,19 @@ button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: man
 /* Anchored to its own relatively-positioned parent — the wrapper directly around the dartboard
    input, in both the desktop and mobile layouts — so it always sits just above the board itself,
    centered, rather than pinned to the top of the viewport regardless of where the board is. */
-.turn-toast-region { position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); width: min(340px, calc(100vw - 32px)); z-index: 45; pointer-events: none; }
-.turn-toast { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--slate); border: 1px solid var(--wire); border-left: 4px solid var(--wire); color: var(--wire); box-shadow: 0 6px 24px #0005; animation: turn-cue 3.5s ease both; }
+/* One reserved band at the top of the input dock holds the turn line and, for the
+   first 3.5s of a turn, the cue that covers it. Reserving the height is the point:
+   nothing below it moves, and nothing above it is obscured. */
+.mobile-dock-head { position: relative; min-height: 52px; }
+.mobile-dock-head .turn-toast-region { inset: 0; top: 0; transform: none; left: 0; }
+/* In the desktop board column it sits in flow at the top, rather than absolutely above the
+   column, where it used to bleed past the panel's edge and shift nothing on the way in. */
+/* Anchored to the TOP INSIDE of the board column, not above it. `bottom: 100%` put it
+   outside the column's box, where it overhung the panel edge on desktop and sat on top of
+   live scores on a phone; `top: 0` keeps it within the surface it belongs to and costs the
+   layout no height, so the board does not move when it fades. */
+.turn-toast-region { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: min(340px, 100%); z-index: 45; pointer-events: none; }
+.turn-toast { display: flex; align-items: center; gap: 12px; height: 100%; padding: 8px 12px; background: var(--slate); border: 1px solid var(--wire); border-left: 4px solid var(--wire); color: var(--wire); box-shadow: 0 6px 24px #0005; animation: turn-cue 3.5s ease both; }
 .turn-toast strong { display: block; font-size: 16px; overflow-wrap: anywhere; }
 .turn-toast span { display: block; color: var(--sisal); font-size: 12px; }
 .turn-toast svg { flex-shrink: 0; }

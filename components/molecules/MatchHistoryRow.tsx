@@ -1,4 +1,3 @@
-import { Panel } from '@/components/atoms';
 
 export interface MatchHistoryItem {
   id: string;
@@ -26,11 +25,15 @@ export function ResultBadge({ won }: { won: boolean }) {
  * headline metric land on the same x positions all the way down the list — the headline
  * label changes per game (`POINTS`, `3-DART AVG`, `MPR`) and used to drag the numbers
  * around with it, which is what made the list hard to scan.
+ *
+ * A row is NOT its own bounded surface. Each match used to be a Panel under its own date
+ * heading, so twelve matches drew twelve boxes and eight headings; the day group owns the
+ * border now and rows are separated inside it by a hairline.
  */
 export function MatchHistoryRow({ match }: { match: MatchHistoryItem }) {
   const when = new Date(match.completedAt);
   return (
-    <Panel className="history-row">
+    <div className="history-row">
       <div className="history-row-main">
         <div className="history-row-title">
           <ResultBadge won={match.won} />
@@ -47,7 +50,7 @@ export function MatchHistoryRow({ match }: { match: MatchHistoryItem }) {
         <dt>{match.headline.label}</dt>
         <dd>{match.headline.value}</dd>
       </dl>
-    </Panel>
+    </div>
   );
 }
 

@@ -73,7 +73,7 @@ export default function SettingsPage() {
   const dirty = name.trim() !== (session.user.name ?? '') && name.trim().length > 0;
 
   return (
-    <main className="account-page page-gutters">
+    <main className="account-page settings-page page-gutters">
       <AppBar back={{ href: '/profile', label: 'Back to profile' }} eyebrow="Your account" title="Settings" />
       <div className="settings-sheet">
         <section className="setting-section">

@@ -75,6 +75,77 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
     setModifier((current) => (current === target ? 'S' : target));
   };
 
+  /** The board face plus its transparent hit overlay. Shared by both branches so there is
+   *  exactly one clickable board in the app, not two that can drift apart.
+   *
+   *  The wedges are a pointer convenience, deliberately not focusable: the keypad below is
+   *  the keyboard and screen-reader path to every throw, with a real labelled button each. */
+  const boardFace = (
+    <div className="match-board-face relative w-full">
+      {/* The live heat map is the point of this board: it shows where THIS player has been
+          landing darts, updating as they throw. The structure stays neutral so the heat is
+          the only thing carrying colour — a fully painted red/green board was tried and it
+          fought the overlay for the same signal. */}
+      <HeatmapBoard heatmap={heatmap} decorative />
+      <svg viewBox="0 0 400 400" className="absolute inset-0 w-full h-full">
+        {BOARD_ORDER.map((segment, i) => {
+          const { startAngle, endAngle } = segmentAngles(i);
+          const bands: { ring: BoardRing; inner: number; outer: number }[] = [
+            { ring: 'S', inner: RADIUS.innerSingleInner, outer: RADIUS.trebleInner },
+            { ring: 'T', inner: RADIUS.trebleInner, outer: RADIUS.outerSingleInner },
+            { ring: 'S', inner: RADIUS.outerSingleInner, outer: RADIUS.doubleInner },
+            { ring: 'D', inner: RADIUS.doubleInner, outer: RADIUS.boardEdge },
+          ];
+          return (
+            <g key={segment}>
+              {bands.map((band, bi) => (
+                <g key={bi}>
+                  <path
+                    d={annularWedgePath(band.inner, band.outer, startAngle, endAngle)}
+                    className={disabled ? 'fill-transparent' : HIGHLIGHT_CLASS}
+                    onClick={() => throwAt(segment, band.ring)}
+                  />
+                  {flash && flash.sector === segment && flash.ring === band.ring && (
+                    <path
+                      d={annularWedgePath(band.inner, band.outer, startAngle, endAngle)}
+                      className="fill-wire/60 pointer-events-none"
+                    />
+                  )}
+                </g>
+              ))}
+            </g>
+          );
+        })}
+        {/* Outer bull (25) drawn first, inner bull (50) drawn on top so it captures its own clicks */}
+        <circle
+          cx={CENTER}
+          cy={CENTER}
+          r={RADIUS.innerSingleInner}
+          className={disabled ? 'fill-transparent' : HIGHLIGHT_CLASS}
+          onClick={() => throwAt(25, 'OB')}
+        />
+        {flash && flash.sector === 25 && flash.ring === 'OB' && (
+          <circle cx={CENTER} cy={CENTER} r={RADIUS.innerSingleInner} className="fill-wire/60 pointer-events-none" />
+        )}
+        <circle
+          cx={CENTER}
+          cy={CENTER}
+          r={RADIUS.innerSingleInner * 0.4}
+          className={disabled ? 'fill-transparent' : HIGHLIGHT_CLASS}
+          onClick={() => throwAt(25, 'IB')}
+        />
+        {flash && flash.sector === 25 && flash.ring === 'IB' && (
+          <circle
+            cx={CENTER}
+            cy={CENTER}
+            r={RADIUS.innerSingleInner * 0.4}
+            className="fill-wire/60 pointer-events-none"
+          />
+        )}
+      </svg>
+    </div>
+  );
+
   if (compact) return (
     <div className="scoring-pad" aria-label="Dart scoring keypad">
       <div className="scoring-numbers">
@@ -86,7 +157,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
         ))}
       </div>
       <div className="scoring-actions">
-        <button onClick={handleMiss} disabled={disabled} aria-label="Miss, zero points">0</button>
+        <button onClick={handleMiss} disabled={disabled} aria-label="Miss, zero points">MISS</button>
         <button onClick={() => toggleModifier('D')} disabled={disabled} aria-pressed={modifier === 'D'} className="modifier-double">Double</button>
         <button onClick={() => toggleModifier('T')} disabled={disabled} aria-pressed={modifier === 'T'} className="modifier-triple">Triple</button>
         <button onClick={onUndo} aria-label="Undo last dart or visit"><Undo2 className="w-5 h-5 mx-auto" /></button>
@@ -96,68 +167,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
 
   return (
     <div className="match-board-input flex flex-col items-center gap-4 w-full max-w-md">
-      {/* Dartboard: HeatmapBoard renders the visual (grey structure + heat), a transparent
-          overlay on top makes it clickable — an alternative to the keypad below, not a
-          replacement for it. */}
-      <div className="match-board-face relative w-full">
-        <HeatmapBoard heatmap={heatmap} />
-        <svg viewBox="0 0 400 400" className="absolute inset-0 w-full h-full">
-          {BOARD_ORDER.map((segment, i) => {
-            const { startAngle, endAngle } = segmentAngles(i);
-            const bands: { ring: BoardRing; inner: number; outer: number }[] = [
-              { ring: 'S', inner: RADIUS.innerSingleInner, outer: RADIUS.trebleInner },
-              { ring: 'T', inner: RADIUS.trebleInner, outer: RADIUS.outerSingleInner },
-              { ring: 'S', inner: RADIUS.outerSingleInner, outer: RADIUS.doubleInner },
-              { ring: 'D', inner: RADIUS.doubleInner, outer: RADIUS.boardEdge },
-            ];
-            return (
-              <g key={segment}>
-                {bands.map((band, bi) => (
-                  <g key={bi}>
-                    <path
-                      d={annularWedgePath(band.inner, band.outer, startAngle, endAngle)}
-                      className={disabled ? 'fill-transparent' : HIGHLIGHT_CLASS}
-                      onClick={() => throwAt(segment, band.ring)}
-                    />
-                    {flash && flash.sector === segment && flash.ring === band.ring && (
-                      <path
-                        d={annularWedgePath(band.inner, band.outer, startAngle, endAngle)}
-                        className="fill-wire/60 pointer-events-none"
-                      />
-                    )}
-                  </g>
-                ))}
-              </g>
-            );
-          })}
-          {/* Outer bull (25) drawn first, inner bull (50) drawn on top so it captures its own clicks */}
-          <circle
-            cx={CENTER}
-            cy={CENTER}
-            r={RADIUS.innerSingleInner}
-            className={disabled ? 'fill-transparent' : HIGHLIGHT_CLASS}
-            onClick={() => throwAt(25, 'OB')}
-          />
-          {flash && flash.sector === 25 && flash.ring === 'OB' && (
-            <circle cx={CENTER} cy={CENTER} r={RADIUS.innerSingleInner} className="fill-wire/60 pointer-events-none" />
-          )}
-          <circle
-            cx={CENTER}
-            cy={CENTER}
-            r={RADIUS.innerSingleInner * 0.4}
-            className={disabled ? 'fill-transparent' : HIGHLIGHT_CLASS}
-            onClick={() => throwAt(25, 'IB')}
-          />
-          {flash && flash.sector === 25 && flash.ring === 'IB' && (
-            <circle
-              cx={CENTER}
-              cy={CENTER}
-              r={RADIUS.innerSingleInner * 0.4}
-              className="fill-wire/60 pointer-events-none"
-            />
-          )}
-        </svg>
-      </div>
+      {boardFace}
 
       {/* Number keypad remains directly below the visible board. */}
       <div className="board-keypad grid grid-cols-5 gap-3 w-full">
@@ -167,7 +177,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
             onClick={() => throwSector(n)}
             aria-label={`${modifier === 'D' ? 'Double' : modifier === 'T' ? 'Triple' : 'Single'} ${n}`}
             disabled={disabled}
-            className="min-h-14 min-w-14 rounded-none bg-slate text-chalk text-lg font-bold hover:opacity-80 disabled:opacity-50 transition-opacity"
+            className="disabled:opacity-50"
           >
             {n}
           </button>
@@ -175,7 +185,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
         <button
           onClick={() => throwSector(25)}
           disabled={disabled || modifier === 'T'}
-          className="min-h-14 col-span-5 rounded-none bg-treble text-chalk text-lg font-bold hover:opacity-80 disabled:opacity-50 transition-opacity"
+          className="col-span-5 disabled:opacity-50"
         >
           {modifier === 'D' ? 'BULLSEYE (50)' : 'BULL (25)'}
         </button>
@@ -187,9 +197,7 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
           onClick={() => toggleModifier('D')}
           disabled={disabled}
           aria-pressed={modifier === 'D'}
-          className={`min-h-14 px-2 rounded-none font-bold text-lg transition-colors ${
-            modifier === 'D' ? 'bg-double text-chalk' : 'bg-double/15 text-double'
-          } disabled:opacity-50`}
+          className="disabled:opacity-50"
         >
           DOUBLE
         </button>
@@ -197,16 +205,15 @@ export function DartboardInput({ onThrow, disabled = false, visitDartCount = 0, 
           onClick={() => toggleModifier('T')}
           disabled={disabled}
           aria-pressed={modifier === 'T'}
-          className={`min-h-14 px-2 rounded-none font-bold text-lg transition-colors ${
-            modifier === 'T' ? 'bg-treble text-chalk' : 'bg-treble/15 text-treble'
-          } disabled:opacity-50`}
+          className="disabled:opacity-50"
         >
           TRIPLE
         </button>
         <button
           onClick={handleMiss}
           disabled={disabled}
-          className="min-h-14 px-2 rounded-none font-bold text-lg bg-slate text-sisal hover:opacity-80 disabled:opacity-50 transition-opacity"
+          aria-label="Miss, zero points"
+          className="disabled:opacity-50"
         >
           MISS
         </button>

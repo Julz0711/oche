@@ -15,6 +15,7 @@ import {
   House,
   Users,
   ChartNoAxesColumn,
+  Check,
 } from "lucide-react";
 import SoloStats from "./SoloStats";
 import { HeatmapBoard } from "@/components/organisms/HeatmapBoard";
@@ -373,9 +374,13 @@ export default function SoloGame() {
     >
       <header className={styles.header}>
         <span className={styles.eyebrow}>OCHE / HOUSE RULES</span>
-        <span className={styles.badge}>BETA · SOLO</span>
+        <span className={styles.badge}>BETA</span>
       </header>
-      <nav className={styles.tabs} aria-label="Solo mode">
+      {/* These labels must not repeat the app tab bar's. Both bars are visible at once on a
+          phone — one at the top, one at the bottom, in the same visual language — and
+          "Friends" and "Stats" appearing in both, meaning different things, is a coin flip
+          for the user. These are the House Rules leaderboard and House Rules run stats. */}
+      <nav className={styles.tabs} aria-label="House Rules">
         <button
           aria-current={tab === "hub" ? "page" : undefined}
           onClick={showHub}
@@ -392,13 +397,13 @@ export default function SoloGame() {
           aria-current={tab === "friends" ? "page" : undefined}
           onClick={() => setTab("friends")}
         >
-          <Users size={18} aria-hidden="true" /><span>Friends</span>
+          <Users size={18} aria-hidden="true" /><span>Leaderboard</span>
         </button>
         <button
           aria-current={tab === "stats" ? "page" : undefined}
           onClick={showStats}
         >
-          <ChartNoAxesColumn size={18} aria-hidden="true" /><span>Stats</span>
+          <ChartNoAxesColumn size={18} aria-hidden="true" /><span>Run stats</span>
         </button>
         <button
           aria-current={tab === "collection" ? "page" : undefined}
@@ -664,7 +669,7 @@ export default function SoloGame() {
                   disabled={busy}
                   onClick={() => start(false)}
                 >
-                  Start solo run <ArrowUpRight size={18} />
+                  Start a run <ArrowUpRight size={18} />
                 </button>
                 {status === "authenticated" ? (
                   <button disabled={busy} onClick={() => start(true)}>
@@ -678,7 +683,7 @@ export default function SoloGame() {
               </div>
               <p className={styles.muted}>
                 Practice works without an account. Save and resume on this
-                browser. Targets and prices are still being playtested.
+                browser.
               </p>
               </>}
             </section>
@@ -691,7 +696,7 @@ export default function SoloGame() {
                     ACT {Math.floor(r.index / 3) + 1} ·{" "}
                     {run.config.challengeId
                       ? "WEEKLY FRIENDS CHALLENGE"
-                      : "SOLO RUN"}{" "}
+                      : "HOUSE RULES"}{" "}
                     · {run.config.difficulty}
                   </p>
                   <h1>
@@ -736,7 +741,10 @@ export default function SoloGame() {
                         : ""
                     }
                   >
-                    {i < r.index ? "✓" : (i + 1) % 3 === 0 ? "♜" : i + 1}
+                    {/* A crown, not U+265C BLACK CHESS ROOK. House Rules' whole identity is
+                        the crown — the IX motif, the boss poster, the "3 bosses" line — and the
+                        rook was also the only glyph in the app set in monospace. */}
+                    {i < r.index ? <Check size={14} aria-hidden="true" /> : (i + 1) % 3 === 0 ? <Crown size={14} aria-hidden="true" /> : i + 1}
                   </span>
                 ))}
               </div>
@@ -964,12 +972,18 @@ export default function SoloGame() {
                         </>
                       )}
                       <div className={styles.actions}>
-                        <button
-                          disabled={!canUndo}
-                          onClick={() => act({ type: "undo" })}
-                        >
-                          <Undo2 size={16} aria-hidden="true" /> Undo dart
-                        </button>
+                        {/* While the keypad is up it already carries undo, right under the
+                            thumb. Two undos on one screen — one a glyph, one a labelled
+                            button — is one too many; this is the fallback for the phases
+                            that have no keypad. */}
+                        {run.phase !== "playing" && (
+                          <button
+                            disabled={!canUndo}
+                            onClick={() => act({ type: "undo" })}
+                          >
+                            <Undo2 size={16} aria-hidden="true" /> Undo dart
+                          </button>
+                        )}
                         {run.phase === "playing" ? (
                           <button
                             className={styles.primary}
@@ -978,9 +992,9 @@ export default function SoloGame() {
                           >
                             {r.hits.length === visitSize
                               ? <>Score visit · +{preview?.score} <ArrowRight size={16} aria-hidden="true" /></>
-                              : `Record ${visitSize - r.hits.length} more dart${
+                              : `${visitSize - r.hits.length} dart${
                                   visitSize - r.hits.length === 1 ? "" : "s"
-                                }`}
+                                } left to record`}
                           </button>
                         ) : (
                           <button
@@ -1379,9 +1393,9 @@ export default function SoloGame() {
               <div className={styles.runFooter}>
                 <span>Saved on this browser after every action.</span>
                 <div className={styles.runFooterActions}>
-                  <button onClick={exportSave}>Export run</button>
-                  <button onClick={showHub}>Save & return to hub</button>
-                  <button onClick={() => setConfirmEnd(true)}>End run</button>
+                  <button onClick={exportSave} className={styles.footerQuiet}>Export run</button>
+                  <button onClick={showHub}>Save &amp; return to hub</button>
+                  <button onClick={() => setConfirmEnd(true)} className={styles.footerDanger}>End run</button>
                 </div>
               </div>
             </>

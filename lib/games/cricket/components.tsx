@@ -99,7 +99,7 @@ export function ScoreboardSlot({
     <div className="compact-score">
       <div className="compact-player-name" title={displayName ?? playerId}>{displayName ?? playerId}</div>
       <span className="compact-score-value">{settings.scoring === 'no-points' ? totalMarks : state.points[playerId]}</span>
-      <div className="compact-score-meta"><span>{totalMarks}/{TOTAL_MARKS} marks</span><span>L {state.legsWon[playerId]}</span></div>
+      <div className="compact-score-meta"><span>{totalMarks}/{TOTAL_MARKS} marks</span><span>Legs {state.legsWon[playerId]}</span></div>
       {pointsBehind > 0 && <div className="compact-score-hint text-treble">Need {pointsBehind} more points</div>}
     </div>
   );

@@ -1,18 +1,67 @@
 /* Royal Oche — the original gold, red, green and black palette, with a club-house finish.
    Layout and game mechanics stay in their existing components. */
-:root { --club-surface: #1b2821; --club-surface-active: #1c3528; --club-control: #142019; --page-title-size: 42px; --club-ink: #0b110e; --club-green: #143429; --club-brass: #d8bf83; --club-hairline: #c0a15c40; --club-serif: Georgia, 'Times New Roman', serif; }
+:root {
+  /* ── Surface ramp ────────────────────────────────────────────────────────────
+     Five steps, each perceptibly apart. EVERY club surface resolves to one of
+     these. If a new surface seems to want a sixth green that sits between two of
+     them, the answer is one of these five, not a new hex. */
+  --club-sunk:    #0B1711;  /* wells that read below the page: inputs, code fields */
+  --club-control: #142019;  /* controls at rest: keypad keys, quiet fills, tiles   */
+  --club-surface: #1B2821;  /* the default panel                                   */
+  --club-raised:  #23342A;  /* pressed, selected, hovered                          */
+  --club-live:    #1C3528;  /* the one accent surface: a player on throw           */
+  --club-chrome:  #0C1511F5;/* sticky navigation over scrolling content            */
+
+  /* ── Brass ramp ──────────────────────────────────────────────────────────── */
+  --club-brass:     #D8BF83; /* filled brass controls          */
+  --club-brass-lit: #DECA92; /* the sheen down a brass gradient */
+  --club-cream:     #E5CE94; /* live score numerals             */
+
+  /* ── Edges ───────────────────────────────────────────────────────────────────
+     All derived from --wire, so re-tinting the brand carries every rule with it. */
+  --club-hairline:      color-mix(in srgb, var(--wire) 25%, transparent);
+  --club-hairline-soft: color-mix(in srgb, var(--wire) 14%, transparent);
+  --club-edge:          color-mix(in srgb, var(--wire) 35%, transparent);
+  --club-wash:          color-mix(in srgb, var(--wire)  6%, transparent);
+
+  /* ── Per-game identities ─────────────────────────────────────────────────────
+     One definition, shared by the home tickets and the statistics tabs. */
+  --game-x01:     var(--wire);
+  --game-cricket: #2D9671;
+  --game-copycat: #C8475C;
+
+  /* ── Scoring modifiers ───────────────────────────────────────────────────── */
+  --mod-double-bg: #173D2C; --mod-double-ink: #9BC5A8; --mod-double-edge: #30704C;
+  --mod-triple-bg: #3C1D25; --mod-triple-ink: #E19BA6; --mod-triple-edge: #743343;
+
+  /* ── Measures ────────────────────────────────────────────────────────────────
+     Three column widths, set on the PAGE element so a page's heading rule is
+     constrained by the same value as its content. Pages previously capped inner
+     blocks instead, which left the tri-colour rule under SETTINGS running 500px
+     past the cards it introduced, and gave one screen (Statistics) three different
+     right edges stacked down the page. A page picks one of these. */
+  --measure-wide: 880px;  /* a reading cap for blocks inside a full-width page */
+  --measure-text: 660px;  /* prose, forms, one column */
+
+  --page-title-size: 42px;
+  --club-serif: Georgia, 'Times New Roman', serif;
+}
 .app-shell-pattern { background: var(--oche); }
-.app-navigation { padding: 12px max(24px, calc((100% - 1200px) / 2)); min-height: 72px; border-bottom: 1px solid var(--club-hairline); background: #0c1511f5; }
+/* The 1152px basis is load-bearing, not a rounding of 1200: it is --content-max
+   (1200) minus two --gutter-page's (24 each), so this one padding value reproduces
+   .page-gutters' outer centring AND its inner gutter in a single step. Set it to
+   1200 and the wordmark sits 24px left of every page title beneath it. */
+.app-navigation { padding: 12px max(24px, calc((100% - 1152px) / 2)); min-height: 72px; border-bottom: 1px solid var(--club-hairline); background: var(--club-chrome); }
 .nav-brand { gap: 12px; }
 .nav-brand img { width: 42px; height: 42px; }
+/* No subline under the wordmark. At the ~30px a navigation bar allows it renders
+   about three pixels tall and reads as a smudge — see the note in AppNavigation. */
 .nav-brand span { font-size: 29px; letter-spacing: .1em; }
-.nav-brand small { display: block; font: 500 8px/1.5 var(--font-sans); letter-spacing: .2em; text-transform: uppercase; color: var(--sisal); margin-top: 4px; }
 .nav-destinations { align-items: center; gap: 4px; }
 .nav-destinations a { font-size: 12px; padding-inline: 14px; }
-.nav-destinations a[aria-current='page'] { background: linear-gradient(0deg, #c0a15c12, transparent); }
+.nav-destinations a[aria-current='page'] { background: linear-gradient(0deg, var(--club-wash), transparent); }
 .nav-account { margin-left: 0; }
-.nav-account .player-avatar { background: #173428; border: 1px solid #c0a15c55; color: var(--wire); }
-.club-mobile-masthead { display: none; }
+.nav-account .player-avatar { background: var(--club-live); border: 1px solid var(--club-edge); color: var(--wire); }
 .skip-link { position: fixed; top: 8px; left: 8px; z-index: 100; padding: 12px 20px; background: var(--wire); color: var(--oche); transform: translateY(-150%); }
 .skip-link:not(:focus) { clip-path: inset(50%); }
 .skip-link:focus { transform: none; }
@@ -23,71 +72,81 @@
 .oche-panel[data-interactive] { width: 100%; transition: border-color 160ms; }
 .oche-panel[data-interactive]:hover { border-color: var(--panel-accent); }
 .oche-panel:disabled { opacity: .5; cursor: not-allowed; }
-.oche-panel[data-active] { border-color: var(--panel-accent); background: var(--club-surface-active); }
+.oche-panel[data-active] { border-color: var(--panel-accent); background: var(--club-live); }
 .oche-panel[data-trace] { border-color: color-mix(in srgb, var(--panel-accent) 55%, transparent); }
 .oche-panel[data-fill] { background: var(--panel-fill); }
 .oche-panel-surface { min-width: 0; }
 .panel-accent-bar { position: absolute; inset: 0 0 auto; height: 2px; background: var(--panel-accent); }
 .panel-active-badge { position: absolute; top: 0; right: 0; display: grid; place-items: center; width: 22px; height: 22px; color: var(--oche); background: var(--panel-accent); }
 .club-button { font-size: 13px; font-weight: 600; letter-spacing: .04em; }
-.club-button[data-variant='primary'], .room-action { color: #101614; border: 1px solid #d9c084; background: linear-gradient(110deg, #c0a15c, #deca92 50%, #c0a15c); box-shadow: inset 0 1px #f4e1ae77; }
+.club-button[data-variant='primary'], .room-action { color: var(--oche); border: 1px solid var(--club-brass); background: linear-gradient(110deg, var(--wire), var(--club-brass-lit) 50%, var(--wire)); box-shadow: inset 0 1px color-mix(in srgb, var(--club-brass-lit) 45%, transparent); }
+/* A disabled primary keeps the brass GEOMETRY but drops the fill. Dimming the gradient left
+   a muddy olive slab with grey text that read as broken rather than inactive — most visible
+   on Save, which is disabled by default until the name is edited. */
+.club-button[data-variant='primary']:disabled, .room-action:disabled {
+  background: none; box-shadow: none; border-color: var(--club-hairline); color: var(--text-muted); opacity: 1;
+}
 .club-button[data-variant='secondary'] { border-color: var(--club-hairline); }
-.club-input, .account-input, .code-input { background: #0b1711; border: 1px solid #c0a15c55; border-radius: 0; min-height: 46px; padding: 10px 12px; }
+.club-input, .account-input, .code-input { background: var(--club-sunk); border: 1px solid var(--club-edge); border-radius: 0; min-height: 46px; padding: 10px 12px; }
 .club-input::placeholder, .account-input::placeholder, .code-input::placeholder { color: var(--text-muted); }
 .club-input:focus, .account-input:focus, .code-input:focus { border-color: var(--wire); }
 .app-bar { position: relative; border-bottom: 1px solid var(--club-hairline); padding-bottom: 20px; margin-bottom: 4px; }
 .app-bar::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 48px; height: 3px; background: linear-gradient(90deg, var(--treble) 0 33%, var(--wire) 33% 66%, var(--double) 66%); }
 .app-bar > h1, .page-title { font: 600 var(--page-title-size)/1 var(--font-display); text-transform: uppercase; letter-spacing: .015em; color: var(--sisal); }
-.eyebrow { color: var(--wire); font-size: 9px; letter-spacing: .18em; }
+.eyebrow { color: var(--wire); font-size: 10px; letter-spacing: .18em; }
 .section-header h2, .section-header h3 { color: var(--sisal); font-size: 25px; font-weight: 500; }
 .account-page { gap: 28px; }
 .account-section { padding: 24px; }
 .segmented { gap: 4px; border-bottom-color: var(--club-hairline); }
 .segmented button { color: var(--text-muted); }
-.segmented button[aria-pressed='true'] { color: var(--sisal); border-color: var(--wire); background: #c0a15c0c; }
-.segmented-choice button { background: #0d1a14; border-color: var(--club-hairline); }
-.segmented-choice button[aria-pressed='true'] { color: var(--club-brass); background: #243526; border-color: var(--wire); box-shadow: inset 0 -2px var(--wire); }
+.segmented button[aria-pressed='true'] { color: var(--sisal); border-color: var(--wire); background: var(--club-wash); }
+.segmented-choice button { background: var(--club-control); border-color: var(--club-hairline); }
+.segmented-choice button[aria-pressed='true'] { color: var(--club-brass); background: var(--club-raised); border-color: var(--wire); box-shadow: inset 0 -2px var(--wire); }
 .metric-grid { padding-block: 8px; gap: 20px; }
 .metric-grid dd { font-size: 42px; color: var(--sisal); }
 .metric-grid[data-size='sm'] dd { font-size: 28px; }
 .metric-grid dt { color: var(--text-muted); }
-.history-row { padding-block: 18px; }
+/* One bounded surface per day, hairline-separated rows inside it. */
+.history-group-list { display: flex; flex-direction: column; border: 1px solid var(--club-hairline); background: var(--club-surface); }
+.history-group-list > .history-row + .history-row { border-top: 1px solid var(--club-hairline-soft); }
+.history-row { padding: 16px 18px; }
+.social-person-name { display: flex; align-items: center; gap: 12px; min-height: 44px; min-width: 0; flex: 1 1 auto; color: var(--text-primary); }
+.social-person-name:hover { color: var(--wire); }
 .empty-state { padding: 36px 24px; }
 .empty-state h3 { font: 500 25px/1.2 var(--font-display); color: var(--sisal); }
 .empty-state > svg { color: var(--wire); opacity: .8; }
 .friend-code { letter-spacing: .12em; }
-.room-invite { background: #17372a; }
+.room-invite { background: var(--club-live); }
 .room-code-value { font-size: 56px; color: var(--club-brass); letter-spacing: .12em; }
 .room-section { gap: 18px; }
 .room-player-row { padding-block: 14px; }
 .room-player-seat { border-color: var(--club-hairline); color: var(--wire); }
-.room-dock { border-color: var(--club-hairline); background: var(--oche); box-shadow: 0 -10px 20px #101614e6; }
+.room-dock { border-color: var(--club-hairline); background: var(--oche); box-shadow: 0 -10px 20px color-mix(in srgb, var(--oche) 90%, transparent); }
 .room-action { text-transform: uppercase; letter-spacing: .12em; font-size: 13px; }
-.join-page { max-width: 720px; }
+.join-page { max-width: var(--measure-text); }
 .join-page .code-input { min-height: 72px; text-align: center; letter-spacing: .2em; font: 600 32px/1 var(--font-display); }
 .stats-dialog { border-top: 1px solid var(--wire); background: var(--oche); }
-.achievement-dialog { border-color: var(--wire); background: #18261e; }
-.achievement-tile { background: #112018; }
+.achievement-dialog { border-color: var(--wire); background: var(--club-surface); padding: 24px; }
+.achievement-tile { background: var(--club-control); }
 /* Match room: retain both original layouts, the full board, keypad and history columns. */
 .match-page { padding: 20px max(20px, calc((100% - 1360px) / 2)); }
 .match-header { border-bottom: 1px solid var(--club-hairline); padding-bottom: 16px; }
-.match-title > span { display: block; color: var(--wire); font-size: 8px; letter-spacing: .18em; margin-bottom: 4px; }
+.match-title > span { display: block; color: var(--wire); font-size: 10px; letter-spacing: .18em; margin-bottom: 4px; }
 .match-title h1 { font-size: 28px; line-height: 1.1; color: var(--sisal); }
-.match-header button, .match-header a { min-height: 40px; border-width: 1px; border-color: #c0a15c55; background: #17271e; }
+.match-header button, .match-header a { min-height: 40px; border-width: 1px; border-color: var(--club-edge); background: var(--club-surface); }
 .match-scorecard { padding: 20px 24px; }
 .match-scorecard > .tabular-nums { color: var(--sisal); font-size: 112px; line-height: .95; margin-block: 12px; }
-.oche-panel[data-active] .match-scorecard > .tabular-nums { color: #e5ce94; text-shadow: 0 2px #050906; }
+.oche-panel[data-active] .match-scorecard > .tabular-nums { color: var(--club-cream); text-shadow: 0 2px color-mix(in srgb, var(--oche) 60%, black); }
 .match-overview { padding: 18px; gap: 12px; }
-.match-history { background-image: repeating-linear-gradient(0deg, transparent 0 47px, #c0a15c06 47px 48px); }
-.match-board-input { gap: 12px; }
-.match-board-face { max-width: 360px; padding: 0; border-radius: 50%; background: radial-gradient(circle, #18251d, transparent 69%); box-shadow: 0 0 0 1px #c0a15c30, 0 0 0 6px #c0a15c06; }
+.match-board-input { gap: 20px; }
+.match-board-face { max-width: 360px; padding: 0; border-radius: 50%; background: radial-gradient(circle, var(--club-surface), transparent 69%); box-shadow: 0 0 0 1px var(--club-hairline), 0 0 0 6px var(--club-wash); }
 .board-keypad { gap: 6px; }
-.board-keypad button { min-height: 44px; min-width: 0; border: 1px solid #c0a15c33; background: var(--club-control); font: 600 22px/1 var(--font-display); color: var(--sisal); }
-.board-keypad button:last-child { background: #922039; border-color: #c8475c; font: 600 12px/1 var(--font-sans); letter-spacing: .12em; }
+.board-keypad button { min-height: 44px; min-width: 0; border: 1px solid var(--club-hairline); background: var(--club-control); font: 600 22px/1 var(--font-display); color: var(--sisal); }
+.board-keypad button:last-child { background: color-mix(in srgb, var(--treble) 70%, var(--oche)); border-color: var(--game-copycat); font: 600 12px/1 var(--font-sans); letter-spacing: .12em; }
 .board-modifiers { gap: 6px; }
-.board-modifiers button { min-height: 44px; border: 1px solid #c0a15c33; font-size: 12px; letter-spacing: .04em; }
-.board-modifiers button:nth-child(1) { background: #173d2c; color: #9bc5a8; border-color: #30704c; }
-.board-modifiers button:nth-child(2) { background: #3c1d25; color: #e19ba6; border-color: #743343; }
+.board-modifiers button { min-height: 44px; border: 1px solid var(--club-hairline); font-size: 12px; letter-spacing: .04em; }
+.board-modifiers button:nth-child(1) { background: var(--mod-double-bg); color: var(--mod-double-ink); border-color: var(--mod-double-edge); }
+.board-modifiers button:nth-child(2) { background: var(--mod-triple-bg); color: var(--mod-triple-ink); border-color: var(--mod-triple-edge); }
 .board-modifiers button:nth-child(1)[aria-pressed='true'] { background: var(--double); color: white; }
 .board-modifiers button:nth-child(2)[aria-pressed='true'] { background: var(--treble); color: white; }
 /* Authentication uses the same compact title and controls as supporting pages. */
@@ -103,7 +162,7 @@
 @media (max-width: 1023px) {
  .match-live { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px); }
  .match-header { padding: 10px 12px; }
- .match-title > span { font-size: 7px; }
+ .match-title > span { font-size: 10px; }
  .match-title h1 { font-size: 20px; }
  .match-header button, .match-header a { min-width: 44px; min-height: 44px; }
  .mobile-match-meta { padding-top: 8px; padding-bottom: 10px; color: var(--text-muted); font-size: 11px; }
@@ -111,30 +170,28 @@
  .mobile-player-shell { margin-bottom: 8px; }
  .compact-score { padding-block: 12px; }
  .compact-score-value { font-size: 44px; line-height: 48px; color: var(--sisal); }
- .mobile-player-shell[data-active='true'] .compact-score-value { color: #e5ce94; }
+ .mobile-player-shell[data-active='true'] .compact-score-value { color: var(--club-cream); }
  .mobile-player-shell[data-active='true'] .compact-player-name { color: var(--club-brass); }
- .mobile-dart { border: 1px solid #c0a15c22; }
- .mobile-input-dock { background: #111c16; border-color: var(--club-hairline); }
+ .mobile-dart { border: 1px solid var(--club-hairline-soft); }
+ .mobile-input-dock { background: var(--club-control); border-color: var(--club-hairline); }
  .mobile-turn { padding-block: 12px; }
- .scoring-pad button { border: 1px solid #c0a15c30; background: var(--club-control); color: var(--sisal); }
- .scoring-actions .modifier-double { background: #173d2c; color: #9bc5a8; border-color: #30704c; }
- .scoring-actions .modifier-triple { background: #3c1d25; color: #e19ba6; border-color: #743343; }
+ .scoring-pad button { border: 1px solid var(--club-hairline); background: var(--club-control); color: var(--sisal); }
+ .scoring-actions .modifier-double { background: var(--mod-double-bg); color: var(--mod-double-ink); border-color: var(--mod-double-edge); }
+ .scoring-actions .modifier-triple { background: var(--mod-triple-bg); color: var(--mod-triple-ink); border-color: var(--mod-triple-edge); }
  .scoring-actions .modifier-double[aria-pressed='true'] { background: var(--double); color: white; }
  .scoring-actions .modifier-triple[aria-pressed='true'] { background: var(--treble); color: white; }
  .scoring-actions button { font-size: 12px; }
 }
 @media (max-width: 767px) {
- .app-navigation { min-height: 0; padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); border-top: 1px solid var(--club-hairline); background: #0c1511f5; }
+ .app-navigation { min-height: 0; padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); border-top: 1px solid var(--club-hairline); background: var(--club-chrome); }
  .nav-destinations { gap: 0; }
  .nav-destinations a { padding: 6px 0; font-size: 10px; }
  .nav-account { margin-left: 0; }
- .club-mobile-masthead { display: flex; align-items: center; justify-content: space-between; padding: calc(16px + env(safe-area-inset-top, 0px)) 16px 16px; border-bottom: 1px solid var(--club-hairline); }
- .club-mobile-masthead > a:first-child { display: flex; align-items: center; gap: 10px; }
- .club-mobile-masthead img { width: 32px; height: 32px; }
- .club-mobile-masthead > a:first-child > span { font: 600 24px/.9 var(--font-display); letter-spacing: .1em; color: var(--wire); }
- .club-mobile-masthead small { display: block; font: 500 7px/1.4 var(--font-sans); text-transform: uppercase; letter-spacing: .15em; margin-top: 5px; color: var(--sisal); }
  .app-content > .min-h-screen { min-height: 0; }
- .page-gutters { padding-block: 20px; }
+ /* No brand bar on phones. It carried no action, never scrolled away, and repeated
+    "The darts club" ~120px above the page eyebrow that already says it — ~70px of
+    the scarcest space on the screen. The page title is the header here. */
+ .page-gutters { padding-block: calc(16px + env(safe-area-inset-top, 0px)) 20px; }
  :root { --page-title-size: 34px; }
  .account-section { padding: 18px; }
  .account-page { gap: 22px; }
@@ -147,7 +204,7 @@
 .club-results-heading > p:last-child { font: italic 20px/1.4 var(--club-serif); color: var(--wire); }
 @media (max-width: 767px) { .club-results { padding: 0; } .club-results-heading h2 { font-size: 36px; } }
 
-.message-page { width: 100%; max-width: 640px; margin: auto; display: flex; flex-direction: column; gap: 24px; padding-block: 64px; }
+.message-page { width: 100%; max-width: var(--measure-text); margin: auto; display: flex; flex-direction: column; gap: 24px; padding-block: 64px; }
 .message-body { color: var(--text-secondary); font-size: 14px; line-height: 1.7; }
 .message-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
 .legal-copy { display: flex; flex-direction: column; gap: 28px; font-size: 14px; line-height: 1.8; color: var(--text-muted); }
@@ -155,10 +212,39 @@
 .stats-dialog-content { display: flex; flex-direction: column; gap: 16px; padding: 20px 20px max(20px, env(safe-area-inset-bottom)); max-height: 85dvh; }
 .dialog-title { font: 500 26px/1.2 var(--font-display); color: var(--sisal); }
 .dialog-close { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--club-hairline); color: var(--sisal); }
-.achievement-dialog { padding: 24px; }
 @media (max-width: 767px) { .message-page { padding-block: 32px; } .stats-dialog-content { padding-inline: 16px; } }
 
+/* Two page classes, not four arbitrary widths. The app's own screens — Play, Friends,
+   Stats, Profile — all share the full page column, so their eyebrow, title and tri-colour
+   rule start and end on the same x on every one of them. Documents (settings forms, legal
+   prose, the join code) take the narrow text measure, where a 1150px line length would be
+   unreadable; their heading rule is capped with them, so each still reads as deliberate. */
+.legal-page, .settings-page, .join-page { max-width: var(--measure-text); }
+
 .legal-updated { padding-top: 20px; border-top: 1px solid var(--club-hairline); }
+
+/* Achievement unlocks ──────────────────────────────────────────────────────────
+   These fire during live scoring, so where they sit matters as much as how they look.
+   Anchored below the match header rather than at the very top of the viewport, and
+   capped, so a burst of three cannot bury the scoreboard they are congratulating.
+   Square, club surfaces, brass edges — the same language as every other panel. */
+.achievement-toast-stack {
+  position: fixed;
+  top: calc(var(--toast-top, 16px) + env(safe-area-inset-top, 0px));
+  right: max(16px, env(safe-area-inset-right, 0px));
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: min(340px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.achievement-toast { background: var(--club-surface); border: 1px solid var(--club-hairline); border-left-width: 4px; }
+.achievement-toast > div > div:first-child { font: 600 11px/1.4 var(--font-sans); letter-spacing: .12em; }
+.achievement-toast > div > div:last-child { font: 500 13px/1.4 var(--font-sans); }
+/* The match room has its own header to clear. */
+.match-page { --toast-top: 68px; }
+@media (max-width: 1179px) { .match-page { --toast-top: 58px; } }
 
 .demo-login { padding: 16px; margin-bottom: 20px; border: 1px solid var(--club-hairline); background: var(--club-control); }
 .demo-login p { color: var(--text-muted); font-size: 12px; line-height: 1.6; margin: 8px 0 12px; }
@@ -169,21 +255,26 @@
 
 @media (max-width: 767px) {
  .nav-destinations { grid-template-columns: repeat(5, minmax(0, 1fr)); }
- .nav-destinations a { font-size: 9px; }
+ /* 11px, not 9px: five gold, letter-spaced labels on a dark bar are the app's
+    permanent wayfinding, and 9px puts them under every platform's tab-bar floor. */
+ .nav-destinations a { font-size: 11px; letter-spacing: 0; }
  .segmented:not(.segmented-choice) { width: 100%; gap: 0; }
  .segmented:not(.segmented-choice) button { flex: 1 0 auto; padding-inline: 8px; font-size: 12px; }
- /* House Rules supplies its own run navigation while scoring. */
- .app-shell:has([data-solo-phase='playing'], [data-solo-phase='pending']) .club-mobile-masthead,
- .app-shell:has([data-solo-phase='playing'], [data-solo-phase='pending']) .demo-session { display: none; }
+ /* House Rules supplies its own run navigation while a run is open. Every phase in
+    the run is listed — `preview` and `shop` included — because omitting them made
+    the demo strip appear and disappear on each of the nine round transitions. */
+ .app-shell:has([data-solo-phase]) .demo-session { display: none; }
 }
 
 /* Supporting pages use compact records and aligned rows rather than equal-weight panels. */
-.stats-page { max-width: 1040px; }
+.stats-page { max-width: var(--content-max); }
 .stats-page > .segmented { align-self: flex-start; width: auto; }
-.stats-performance, .stats-page > section { width: 100%; max-width: 800px; }
+.stats-performance, .stats-page > section { width: 100%; max-width: none; }
 .stats-board { display: flex; flex-direction: column; gap: 20px; }
 .stats-period { display: flex; align-items: center; gap: 12px; color: var(--text-muted); font-size: 12px; }
-.stats-period select { min-height: 44px; padding: 8px 30px 8px 12px; background: var(--club-control); border: 1px solid var(--club-hairline); border-radius: 0; color: var(--sisal); font: inherit; }
+.stats-period-control { flex: 0 1 auto; border-bottom: 0; gap: 2px; }
+.stats-period-control button { padding-inline: 10px; font-size: 12px; min-height: 36px; }
+@media (max-width: 1023px) { .stats-period-control button { min-height: 44px; } }
 .record-summary { display: grid; grid-template-columns: 1fr 1fr 1.2fr; max-width: 500px; gap: 20px; padding: 0 0 22px; margin: 0; }
 .record-summary dt { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
 .record-summary dd { font: 600 36px/1.1 var(--font-display); color: var(--sisal); margin: 0; font-variant-numeric: tabular-nums; }
@@ -191,8 +282,6 @@
 .stats-board[data-compact] { gap: 14px; }
 .stats-board[data-compact] .record-summary { padding-bottom: 0; }
 .stats-board > .segmented { width: 100%; border-top: 1px solid var(--club-hairline); padding-top: 8px; }
-.game-performance-heading { display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px; }
-.game-performance-heading > span { color: var(--text-muted); font-size: 12px; }
 .game-performance .performance-headlines { max-width: 580px; padding: 0 0 24px; gap: 16px; }
 .game-performance .performance-headlines dt { min-height: 0; font-size: 10px; font-weight: 500; letter-spacing: .03em; }
 .game-performance .performance-headlines dd { font-size: 30px; margin-top: 6px; }
@@ -204,35 +293,26 @@
 .stat-detail-groups dl > div { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; padding: 7px 0; font-size: 12px; }
 .stat-detail-groups dt { color: var(--text-muted); }
 .stat-detail-groups dd { margin: 0; font-weight: 500; color: var(--sisal); font-variant-numeric: tabular-nums; }
-.shot-map-content { display: flex; flex-direction: column; align-items: flex-start; gap: 20px; padding: 0 0 20px; }
 .shot-map-content > .segmented { max-width: 100%; }
 .history-summary { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--text-muted); font-size: 12px; }
 .history-summary > span { color: var(--wire); }
+/* Both cards in the top row share a height. Left to `start`, a five-name friends preview
+   left a bare gap under the shorter Match summary; stretching turns that into part of a
+   bounded surface instead of a hole between two. */
+.profile-layout { align-items: stretch; }
+/* The column wrapper stretches, but a flex-column's children still size to content — the
+   card itself has to be told to take the height. */
+.profile-layout > div > .oche-panel, .profile-layout > aside > .oche-panel { flex: 1; }
+.profile-layout > aside { display: flex; }
+.profile-friend-more { color: var(--wire); }
 .profile-layout .section-header h2 { font-size: 22px; }
 .profile-layout .section-header .text-link { font-size: 12px; }
 
-.settings-sheet { width: 100%; max-width: 760px; }
-.setting-section { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 28px; padding: 24px 0; border-bottom: 1px solid var(--club-hairline); }
-.setting-section:first-child { padding-top: 0; }
-.setting-label h2 { font: 500 23px/1.2 var(--font-display); color: var(--sisal); }
-.setting-label p { font-size: 12px; line-height: 1.6; color: var(--text-muted); margin-top: 8px; max-width: 22ch; }
-.setting-content { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; min-width: 0; }
-.setting-content form { width: 100%; display: flex; flex-direction: column; gap: 8px; }
-.setting-content label, .settings-email > span { font-size: 12px; color: var(--text-muted); }
-.settings-name-field { display: flex; gap: 8px; align-items: stretch; }
-.settings-name-field input { min-width: 0; flex: 1; }
-.settings-name-field button { flex-shrink: 0; }
-.settings-email { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.settings-email .reveal-value { text-align: left; overflow-wrap: anywhere; min-height: 44px; font-size: 14px; }
 .sound-toggle { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; font-size: 13px; color: var(--sisal); }
 .switch-track { display: flex; align-items: center; width: 40px; height: 24px; padding: 3px; border: 1px solid var(--club-hairline); background: var(--club-control); border-radius: 20px; }
 .switch-track > span { width: 16px; height: 16px; border-radius: 50%; background: var(--text-muted); }
-.sound-toggle[aria-checked='true'] .switch-track { background: #294632; border-color: var(--wire); justify-content: flex-end; }
+.sound-toggle[aria-checked='true'] .switch-track { background: var(--club-raised); border-color: var(--wire); justify-content: flex-end; }
 .sound-toggle[aria-checked='true'] .switch-track > span { background: var(--wire); }
-.friend-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; padding: 20px; }
-.friend-code-row { align-items: flex-end; gap: 8px 16px; }
-.friend-code-actions { flex: 0 0 auto; }
-.friend-add-form { display: flex; flex-direction: column; gap: 8px; border-left: 1px solid var(--club-hairline); padding-left: 28px; }
 .room-page { padding-bottom: 0; }
 .room-page .room-dock { margin-inline: 0; margin-top: auto; padding-inline: 0; flex-shrink: 0; }
 .app-content:has(> .room-page) { padding-bottom: var(--chrome-bottom, 0px); }
@@ -246,8 +326,6 @@
  .shot-map-content > .segmented button { white-space: normal; font-size: 11px; }
  .setting-section { grid-template-columns: 1fr; gap: 14px; padding-block: 20px; }
  .setting-label p { max-width: none; margin-top: 4px; }
- .settings-name-field { flex-wrap: wrap; }
- .settings-name-field input { flex-basis: 100%; }
  .settings-name-field button { min-height: 44px; }
  .friend-tools { grid-template-columns: 1fr; gap: 18px; padding: 16px; }
  .friend-add-form { border-left: 0; border-top: 1px solid var(--club-hairline); padding: 18px 0 0; }
@@ -255,19 +333,19 @@
 }
 
 /* Account and social sections: headings anchor their controls and content. */
-.friend-tools { display: flex; flex-direction: column; align-items: stretch; gap: 24px; padding: 0; max-width: 640px; }
-.friend-code-row { padding: 16px 20px; align-items: center; justify-content: space-between; background: var(--club-control); border-left: 2px solid var(--wire); }
+.friend-tools { display: flex; flex-direction: column; align-items: stretch; gap: 24px; padding: 0; max-width: none; }
+.friend-code-row { padding: 16px 20px; gap: 8px 16px; align-items: center; justify-content: space-between; background: var(--club-control); border-left: 2px solid var(--wire); }
 .friend-tools-label { font-size: 12px; font-weight: 500; color: var(--text-muted); }
 .friend-code-row .friend-code { font-size: 23px; letter-spacing: .08em; margin-top: 4px; }
-.friend-code-actions { gap: 4px; }
+.friend-code-actions { flex: 0 0 auto; gap: 4px; }
 .friend-code-actions button { min-width: 72px; padding-inline: 10px; background: transparent; border-color: transparent; }
-.friend-add-form { padding: 0; border: 0; gap: 10px; }
-.stats-overview-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.friend-add-form { display: flex; flex-direction: column; padding: 0; border: 0; gap: 10px; }
+.stats-overview-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px 16px; }
 .stats-overview-heading h2 { font: 500 24px/1.2 var(--font-display); color: var(--sisal); }
-.stats-period select { background: transparent; }
 .game-accordions { border-top: 1px solid var(--club-hairline); }
 .game-performance { border-bottom: 1px solid var(--club-hairline); }
 .game-performance-heading { display: flex; align-items: center; gap: 16px; padding: 20px 0; margin: 0; cursor: pointer; list-style: none; }
+.game-performance-heading > span { color: var(--text-muted); font-size: 12px; }
 .game-performance-heading::-webkit-details-marker { display: none; }
 .game-performance-heading::after { content: '+'; margin-left: auto; color: var(--wire); font-size: 22px; }
 .game-performance[open] > .game-performance-heading::after { content: '−'; }
@@ -275,7 +353,7 @@
 .game-performance-content { padding-bottom: 20px; }
 .game-performance-content > .stats-disclosure { border-top: 1px solid var(--club-hairline); }
 .game-performance-content > .stats-disclosure > summary { padding: 14px 0; font-size: 13px; }
-.profile-match-summary { background: linear-gradient(120deg, #1b3025, #17231d); border-top: 2px solid var(--wire); }
+.profile-match-summary { background: linear-gradient(120deg, var(--club-live), var(--club-surface)); border-top: 2px solid var(--wire); }
 .summary-period { margin-top: 5px; color: var(--text-muted); font-size: 11px; }
 .profile-match-summary .record-summary { max-width: none; gap: 0; padding-top: 8px; }
 .profile-match-summary .record-summary > div { padding-inline: 16px; border-left: 1px solid var(--club-hairline); }
@@ -284,25 +362,30 @@
 .profile-match-summary .record-summary dd { font-size: 36px; }
 .profile-match-summary .record-summary .record-results dd { font-size: 12px; }
 .achievement-progress { gap: 12px; padding-block: 4px 8px; }
+/* Full width now, so the tiles get real columns instead of two very narrow ones. */
+@media (min-width: 900px) { .achievement-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .achievement-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .achievement-progress p { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .achievement-progress p > span:first-child { display: inline-flex; align-items: baseline; gap: 7px; }
 .achievement-progress strong { font-size: 22px; line-height: 1; }
-.settings-sheet { display: flex; flex-direction: column; gap: 12px; max-width: 640px; }
-.setting-section, .setting-section:first-child { display: flex; flex-direction: column; gap: 12px; padding: 18px; border: 1px solid var(--club-hairline); background: var(--club-panel, #18271f); }
+.settings-sheet { display: flex; flex-direction: column; gap: 12px; max-width: none; }
+.setting-section, .setting-section:first-child { display: flex; flex-direction: column; gap: 12px; padding: 18px; border: 1px solid var(--club-hairline); background: var(--club-surface); }
 .setting-label { padding-bottom: 0; border: 0; }
-.setting-label h2 { font-size: 22px; }
-.setting-label p { max-width: none; margin-top: 6px; }
-.setting-content { width: 100%; gap: 8px; }
-.setting-content form { gap: 8px; }
+.setting-label h2 { font: 500 22px/1.2 var(--font-display); color: var(--sisal); }
+.setting-label p { font-size: 12px; line-height: 1.6; color: var(--text-muted); max-width: none; margin-top: 6px; }
+.setting-content { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; width: 100%; gap: 8px; }
+.setting-content form { display: flex; flex-direction: column; width: 100%; gap: 8px; }
+.setting-content label, .settings-email > span { font-size: 12px; color: var(--text-muted); }
 .setting-content form > label { font-size: 13px; color: var(--sisal); font-weight: 500; }
 .setting-content form > .t-meta { font-size: 11px; margin: 0; }
-.settings-name-field { flex-direction: row; align-items: stretch; gap: 8px; }
+.settings-name-field button { flex-shrink: 0; }
+.settings-name-field { display: flex; flex-direction: row; align-items: stretch; gap: 8px; }
 .settings-name-field input { width: 100%; flex: 1; }
 .setting-sound-row { flex-direction: row; justify-content: space-between; align-items: center; gap: 16px; }
 .setting-sound-row h3 { font-size: 14px; color: var(--sisal); }
 .setting-sound-row p { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
-.settings-email { width: 100%; gap: 6px; }
-.settings-email .reveal-value { display: flex; justify-content: space-between; width: 100%; gap: 16px; }
+.settings-email { display: flex; flex-direction: column; min-width: 0; width: 100%; gap: 6px; }
+.settings-email .reveal-value { display: flex; justify-content: space-between; width: 100%; gap: 16px; text-align: left; overflow-wrap: anywhere; min-height: 44px; font-size: 14px; }
 .settings-signout { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px; border-top: 1px solid var(--club-hairline); padding-top: 4px; }
 .settings-signout > span { font-size: 12px; color: var(--text-muted); }
 .settings-signout .danger-action { margin: 0; font-size: 13px; min-height: 44px; }
@@ -311,27 +394,25 @@
  .friend-code-row .friend-code { font-size: 21px; }
  .friend-code-actions { margin-left: -10px; }
  .setting-section, .setting-section:first-child { padding: 16px; gap: 12px; }
- .settings-name-field { flex-wrap: nowrap; }
- .settings-name-field input { flex-basis: auto; }
  .profile-match-summary .record-summary > div { padding-inline: 12px; }
  .profile-match-summary .record-summary dd { font-size: 32px; }
 }
 
 /* Game filters share the home screen's gold, green and red identities. */
 .stats-board > .performance-game-tabs { border-top: 0; padding-top: 0; }
-.performance-game-tabs button:has([data-game='x01']) { --game-accent: #c0a15c; }
-.performance-game-tabs button:has([data-game='cricket']) { --game-accent: #2d9671; }
-.performance-game-tabs button:has([data-game='copycat']) { --game-accent: #c8475c; }
+.performance-game-tabs button:has([data-game='x01']) { --game-accent: var(--game-x01); }
+.performance-game-tabs button:has([data-game='cricket']) { --game-accent: var(--game-cricket); }
+.performance-game-tabs button:has([data-game='copycat']) { --game-accent: var(--game-copycat); }
 .performance-game-tabs button:has([data-game]) { border-bottom-color: color-mix(in srgb, var(--game-accent) 35%, transparent); }
 .performance-game-tabs button:has([data-game])[aria-pressed='true'] { border-bottom-color: var(--game-accent); background: color-mix(in srgb, var(--game-accent) 12%, transparent); color: var(--sisal); }
 .performance-game-tabs + .game-accordions { border-top: 0; }
-.game-performance[data-game='x01'] { --game-accent: #c0a15c; }
-.game-performance[data-game='cricket'] { --game-accent: #2d9671; }
-.game-performance[data-game='copycat'] { --game-accent: #c8475c; }
+.game-performance[data-game='x01'] { --game-accent: var(--game-x01); }
+.game-performance[data-game='cricket'] { --game-accent: var(--game-cricket); }
+.game-performance[data-game='copycat'] { --game-accent: var(--game-copycat); }
 .game-performance-heading::before { content: ''; width: 3px; height: 20px; background: var(--game-accent); flex-shrink: 0; }
 
 /* Keep the shot map in one reading column: summary, board, key, then detail. */
-.shot-map-content { max-width: 560px; width: 100%; }
+.shot-map-content { display: flex; flex-direction: column; align-items: flex-start; gap: 20px; padding: 0 0 20px; width: 100%; }
 .shot-map .stats-heatmap-item { width: 100%; display: flex; flex-direction: column; align-items: stretch; gap: 16px; text-align: left; }
 .shot-map .stats-heatmap-head { order: 0; }
 .shot-map .stats-heatmap-head h4 { display: none; }
@@ -339,7 +420,7 @@
 .shot-map .chart-callout { display: flex; flex-direction: column; gap: 6px; }
 .shot-map .chart-callout dt { min-height: 0; font-size: 11px; text-transform: none; letter-spacing: 0; font-weight: 400; }
 .shot-map .chart-callout dd { font: 500 20px/1.2 var(--font-display); }
-.shot-map .stats-heatmap-item > svg { order: 2; width: 100%; max-width: 300px; align-self: center; margin-block: 4px; }
+.shot-map .stats-heatmap-item > svg { order: 2; width: 100%; max-width: 380px; align-self: center; margin-block: 4px; }
 .shot-map .chart-legend { order: 3; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; }
 .shot-map .chart-readout { order: 4; min-height: 44px; margin: 0; padding: 12px; background: var(--club-control); font-size: 12px; text-align: center; }
 .shot-map .chart-table { order: 5; border-top: 1px solid var(--club-hairline); }

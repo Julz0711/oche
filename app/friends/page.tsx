@@ -153,6 +153,10 @@ export default function FriendsPage() {
         </div>
       </section>}
 
+      {/* Friend rows carry two destinations, two links — the row used to be one big link to
+          the profile with a "View profile" label floating a thousand pixels away from the name
+          on desktop. Head-to-head is the thing you actually want from a friend in a darts app,
+          and it was reachable only from inside their profile. */}
       <section className="flex flex-col gap-2">
         <div className="section-header"><h2>Friends <span className="section-header-count">{data.friends.length}</span></h2></div>
         {/* Search only earns its space once the list is long enough to need it. */}
@@ -174,12 +178,12 @@ export default function FriendsPage() {
           <EmptyState title="No matches for that search" body={`Nobody in your friends list matches "${query}".`} />
         ) : (
           <div className="social-list">{visibleFriends.map(person =>
-            <Link key={person.id} href={`/profile/${person.id}`} className="block">
-              <Panel className="social-person">
-                <span className="flex items-center gap-3 min-w-0"><PlayerAvatar name={person.name} image={person.image} /><span className="truncate">{person.name}</span></span>
-                <span className="text-link shrink-0">View profile<ArrowUpRight size={15} aria-hidden="true" /></span>
-              </Panel>
-            </Link>)}
+            <Panel key={person.id} className="social-person">
+              <Link href={`/profile/${person.id}`} className="social-person-name">
+                <PlayerAvatar name={person.name} image={person.image} /><span className="truncate">{person.name}</span>
+              </Link>
+              <Link href={`/friends/${person.id}`} className="text-link shrink-0">Head-to-head<ArrowUpRight size={15} aria-hidden="true" /></Link>
+            </Panel>)}
           </div>
         )}
       </section>

@@ -58,10 +58,19 @@ export type ColorToken = keyof typeof tokens;
 export type FontSizeToken = keyof typeof fontSize;
 export type FontFamilyToken = keyof typeof fontFamily;
 
-// Shared achievement palette, matching the original unlock toasts.
+/**
+ * Shared achievement palette.
+ *
+ * Rarity is a four-step ladder, so it reads as one — increasing presence in the SAME brass,
+ * not four unrelated hues. The previous values were Tailwind's blue-500 and purple-500 plus a
+ * pure `#FFD700`: three colours that appear nowhere else in the product, on the one surface
+ * that pops up over live scoring. They made the toasts look like a different application.
+ *
+ * Common is the quietest edge the app draws; legendary is filled brass with dark ink.
+ */
 export const rarityColors = {
-  common: { bg: tokens.slate, border: tokens.double },
-  rare: { bg: tokens.slate, border: '#3B82F6' },
-  epic: { bg: tokens.slate, border: '#A855F7' },
-  legendary: { bg: tokens.wire, border: '#FFD700' },
+  common: { bg: tokens.slate, border: tokens.sisal },
+  rare: { bg: tokens.slate, border: tokens.double },
+  epic: { bg: tokens.slate, border: tokens.treble },
+  legendary: { bg: tokens.wire, border: tokens.wire },
 } as const;

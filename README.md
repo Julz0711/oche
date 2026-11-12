@@ -1,86 +1,121 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Oche
 
-## Getting Started
+A darts scoring and practice app for playing at the board, sharing a match remotely, and tracking your progress.
 
-First, run the development server:
+Play X01, Cricket, or Copycat with friends, or take on **House Rules**, a solo roguelike built around real dart throws entered in the app.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+[Play modes](#play-modes) · [Features](#features) · [Quick start](#quick-start) · [Configuration](#configuration) · [Development](#development)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Play modes
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Mode | Experience |
+| --- | --- |
+| X01 | Classic countdown scoring, checkout guidance, visits, and X01 heatmaps. |
+| Cricket | Close 15–20 and bull with Standard or No points scoring. |
+| Copycat | Match the previous visit's total to score a point. |
+| Local play | Score a match together on one device. |
+| Online rooms | Share a six-character code, join as an account or guest, and score across devices. |
+| House Rules | A solo run of nine encounters, bosses, equipment, shops, and consumables. |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Physical throws are self-reported; this app does not automatically detect dart hits.
 
-## Learn More
+## Features
 
-To learn more about Next.js, take a look at the following resources:
+- **Match flow:** lobby setup, scoring, undo, summaries, and a new match in the same online room.
+- **Realtime recovery:** small Ably notifications trigger snapshot refreshes; reconnect and visible-page polling recover missed updates.
+- **Performance:** Today, This week, This month, and All time statistics, match history, achievements, and profiles.
+- **Friends:** private friend codes, requests, accepted-friend profiles, and head-to-head records.
+- **Solo practice:** local saves, resume, recovery backup, run export, and recent results.
+- **Weekly challenge:** signed-in players can submit a shared-seed solo run to a private friends leaderboard.
+- **App experience:** responsive layouts, installable PWA support, and local/offline match support.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Stats periods use UTC with Monday-start weeks. X01 heatmaps are specific to X01. Head-to-head records cover completed one-on-one online matches between the two accounts.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Quick start
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Rooms, navigation, and friends
-
-- **Join a room:** the link beside the dashboard play actions opens `/join`. Enter a six-character room code; guests and signed-in players can join. Shared `/join/[code]` links still work.
-- **Navigation:** Play, Friends, Stats, and Account are available in a bottom bar on phones and a header on larger screens. Live matches retain their dedicated scoring layout. Sign-out is under Account → Account settings.
-- **Friends:** signed-in players get a private 12-character code on `/friends`. Send a code-based request; the recipient can accept or decline, and the sender can cancel. Accepted friendships appear for both players. Remove a friend from their head-to-head page without deleting match history.
-- **Head-to-head:** totals and per-game records include completed, one-on-one online matches in which both accounts participated, including matches played before becoming friends. Local guest games and multiplayer rooms are excluded. Recent matches paginate in completion order.
-
-Friend data uses the existing MongoDB connection: `socialProfiles` stores unique codes and `friendships` stores one relationship per account pair. Indexes are created idempotently on first use. Requests and head-to-head records require authentication; code lookup returns only the target's display name through the request list, never an email. Pending outgoing requests are limited to 25. The friends page refreshes on focus and every 30 seconds while visible.
-
-Run unit tests with `npx vitest run`. Database integration tests are opt-in:
+Use Node.js 22 LTS, npm, and a running MongoDB instance.
 
 ```sh
-OCHE_TEST_MONGODB_URI="mongodb://localhost:27017" npx vitest run lib/friends/repository.integration.test.ts
+git clone https://github.com/Julz0711/oche.git
+cd oche
+npm ci
 ```
 
-The integration suite creates a unique `oche_friends_test_*` database and deletes that database afterward. It covers concurrent requests, acceptance permissions, cancel/decline/remove, privacy, pagination, and preserving match history.
+Create `.env.local`:
 
-### Play again in the same room
+```dotenv
+MONGODB_URI=mongodb://127.0.0.1:27017/oche
+AUTH_SECRET=replace-with-a-long-random-secret
+```
 
-After an online match, the host can expand **Play again** in the summary, keep the current settings or choose X01, Cricket, or Copycat with new settings, then open the next lobby. The room code, host, player identities, and seating order carry over. Other participants see **Join next match** in their summary and can enter when ready; the host starts play from the lobby as usual.
+Start the app:
 
-Each round of matches creates a separate match record, preserving results, visits, achievements, and head-to-head history. A completed match has only one successor: an atomic reservation plus an idempotent insert handles simultaneous submissions and interrupted requests. Room codes are reserved across completed matches as well as active ones. The summary checks for the next lobby every three seconds while visible, stopping once it is available.
+```sh
+npm run dev
+```
 
-Remote matches broadcast small refresh notifications instead of complete game histories, so additional legs cannot exceed Ably's message size limit. Clients fetch the saved snapshot after a notification, reconnection, returning to the app, or a successful scoring request; a visible-page poll also recovers missed messages. Player presence shows Online/Away, and shows Unknown while the local realtime connection is unavailable. Presence can take time to detect an interrupted connection. Rejoining by room code preserves an existing account or guest-cookie seat; guests need the original browser cookie. Signed-in players can also use Resume on the dashboard.
+Open [localhost:3000](http://localhost:3000). A local demo account provider is available only in development on localhost/loopback hosts. Real OAuth sign-in and realtime online play need the additional configuration below.
 
-Cricket supports Standard and No points scoring in match setup and rematch setup. Standard awards overflow hits on a closed number while any opponent still has it open, and requires closing every number with at least as many points as every opponent. No points awards the leg as soon as a player closes all seven numbers. Undo restores marks and points as well as the visible darts. Copycat shows the live remaining target (or overshoot) in the middle information panel. Heatmaps are shown and aggregated for X01 only; other games retain their normal throw history and statistics.
+## Configuration
 
-Run the isolated database tests with `OCHE_TEST_MONGODB_URI="mongodb://localhost:27017" npx vitest run lib/rematch.integration.test.ts`. They cover authorization, validation, concurrent requests, recovery, and result/roster preservation. They create and remove their own `oche_rematch_test_*` database. Restart the development server after updating the Mongoose schema so cached models pick up the new fields.
+| Variable | Purpose |
+| --- | --- |
+| `MONGODB_URI` | Database connection used by Mongoose and the authentication adapter. |
+| `AUTH_SECRET` | Authentication signing secret; `NEXTAUTH_SECRET` is also accepted by the auth configuration. |
+| `GOOGLE_ID`, `GOOGLE_SECRET` | Google OAuth credentials. |
+| `DISCORD_ID`, `DISCORD_SECRET` | Discord OAuth credentials. |
+| `ABLY_API_KEY` | Server-side Ably key for online match notifications and presence. |
 
+OAuth callbacks use `/api/auth/callback/google` and `/api/auth/callback/discord` on the app's origin. Keep the Ably key and database credentials server-side.
 
-### Profiles, performance, and account controls
+For production, configure the database, secrets, OAuth providers, and realtime service, then use `npm run build` and `npm start`.
 
-Stats includes Today, This week, This month, and All time results, plus a game breakdown and match history. Calendar periods use UTC and Monday-start weeks. Totals include the signed-in first player in local matches and the player's own seat in online matches. The profile shows a compact version of these results alongside friends and achievements.
+## Playing with friends
 
-Accepted friends can open each other's profiles through the friends list, profile sidebar, or head-to-head page. Profile responses expose the player's name, image, performance and achievements, never email or their friends list. Removing the friendship revokes access.
+Create an online match and share its room code or `/join/<code>` link. Existing participants can rejoin with the same account or guest browser cookie. Signed-in players can also resume from the dashboard.
 
-Achievement tiles open a keyboard-accessible detail dialog with the description and first award date. Recurring awards now also store `last_unlocked_at`; older repeated awards without that field explicitly show that the last date was not recorded.
+After a match, the host can choose **Play again**, adjust the game settings, and open the next lobby. The room code and player identities carry over; each match keeps its own result and history.
 
-Account settings contains display-name editing, sound preferences and sign-out. The quick mute control appears only in the desktop navigation; phones and tablets use Settings. The phone navigation retains four destinations. Mobile safe-area padding includes extra spacing below the iOS status bar for page headers and match back buttons.
+Friend relationships use a separate private 12-character code under **Friends**. Accepted friends can view each other's profiles and head-to-head results; removing the friendship revokes that access.
 
-### House Rules — solo roguelike beta
+## House Rules
 
-Open `/solo` or choose **House Rules** on the dashboard. Play nine encounters with three bosses, 72 equipment effects, three virtual dart slots, five shared charm slots, and two consumable slots. Shops support purchases, sales, positional dart swaps, and refreshing unsold offers. Extra darts, partial visits, economy builds, and rotating House Numbers use the same deterministic engine in the browser and on the server.
+Practice runs need no account. Each action saves locally, with a previous-save backup; reload to resume or export the run from its footer. Undo is available until a round is confirmed. In-progress practice runs do not sync across devices.
 
-Practice runs need no account. Each action saves locally with a previous-save backup; reload to resume, export the run from its footer, or recover a damaged save from the recovery screen. Undo remains available until a round is confirmed. Completed runs remain on the results screen until a new run starts; the most recent 20 previous results are retained in local storage. Cross-device in-progress sync and a history browser are future work.
+Weekly challenges roll over Monday at 00:00 UTC. Finished runs must be submitted before the deadline; the server replays submitted actions to validate the result. Rankings are separated by difficulty and rules version. Solo results are separate from ordinary match statistics.
 
-Signed-in players can enter a weekly shared-seed challenge and submit their finished run to a private friends leaderboard. Weeks roll over Monday at 00:00 UTC. Rankings separate difficulty and rules versions, sort by rounds cleared, capped encounter progress, then fewer darts, and share exact ties. `soloRuns` stores server-created attempts and idempotent, replay-validated results. Only accepted friends can see results and encounter details; physical hits are self-reported. A run must be submitted before the challenge deadline. No solo points are mixed into normal match statistics.
+See [solo implementation notes](docs/solo-implementation.md) and the [House Rules design](docs/solo-roguelike-plan.md). Targets and equipment balance remain subject to real-board playtesting.
 
-Run the focused tests with `npx vitest run lib/games/roguelike lib/solo`. Database tests use `OCHE_TEST_MONGODB_URI="mongodb://127.0.0.1:27017" npx vitest run lib/solo/repository.integration.test.ts`; they create and remove only their own unique `oche_solo_test_*` database. The design and implementation notes are in `docs/solo-roguelike-plan.md` and `docs/solo-implementation.md`. Targets and item prices still need real-board playtesting.
+## Development
+
+```sh
+npx vitest run
+npm run build
+```
+
+Focused solo tests:
+
+```sh
+npx vitest run lib/games/roguelike lib/solo
+```
+
+Database integration tests are opt-in:
+
+```sh
+OCHE_TEST_MONGODB_URI="mongodb://127.0.0.1:27017" npx vitest run lib/friends/repository.integration.test.ts lib/rematch.integration.test.ts lib/solo/repository.integration.test.ts
+```
+
+These suites create and remove their own uniquely named test databases. Use a development MongoDB instance.
+
+## Code map
+
+| Path | Responsibility |
+| --- | --- |
+| [app/](app/) | Match, solo, friends, profile, and settings pages; API routes. |
+| [components/](components/) | Scoring UI, navigation, PWA, and sync interfaces. |
+| [lib/games/](lib/games/) | Game engines, settings, statistics, and solo rules. |
+| [lib/solo/](lib/solo/) | Solo persistence, weekly challenges, and run statistics. |
+| [lib/friends/](lib/friends/) | Friend requests, access policy, and head-to-head data. |
+| [lib/realtime.ts](lib/realtime.ts) | Ably notifications and scoped tokens. |
+| [lib/auth.ts](lib/auth.ts) | Authentication providers and sessions. |
+| [docs/](docs/) | Product, design, implementation, and review notes. |
